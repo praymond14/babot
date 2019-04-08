@@ -1,17 +1,18 @@
-var Discord = require('discord.js');
-var auth = require('./bauth.json');
+var Discord = require('discord.js'); //discord stuff
+var auth = require('./bauth.json'); //auth for discord
 
 // Initialize Discord Bot
 var bot = new Discord.Client();
 
-bot.login(auth.token);
+bot.login(auth.token); //login
 
+//not shure what this does but it was in jeremy's code so
 bot.on('ready', function (evt) 
 {
     console.log('Connected');
 });
 
-
+//stuff when message is recived.
 bot.on('message', message => 
 {
     if(message.content.includes('@545036997920817162'))
@@ -20,6 +21,7 @@ bot.on('message', message =>
     }
 });
 
+//not shure what this does also but it was in jeremy's code so
 var cleanupFn = function cleanup() 
 {
     console.log("Logging off");
