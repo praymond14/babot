@@ -1,4 +1,3 @@
-var cowsay = require('cowsay');
 var Discord = require('discord.js');
 var auth = require('./bauth.json');
 
