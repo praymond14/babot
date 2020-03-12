@@ -15,7 +15,7 @@ bot.on('ready', function (evt)
 //stuff when message is recived.
 bot.on('message', message => 
 {
-    if(message.content.includes('@560872746087743528')) 
+    if(message.content.includes('<@!560872746087743528>')) 
     {
       message.channel.send('BABA IS ADMIN');
     }
