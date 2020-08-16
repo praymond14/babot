@@ -1,5 +1,6 @@
 var Discord = require('discord.js'); //discord stuff
 var auth = require('./bauth.json'); //auth for discord
+var passwords = require('./pass.json');//passwords
 
 // Initialize Discord Bot
 var bot = new Discord.Client();
@@ -15,9 +16,19 @@ bot.on('ready', function (evt)
 //stuff when message is recived.
 bot.on('message', message => 
 {
-    if(message.content.includes('<@!560872746087743528>')) 
+    if(message.content.includes('<@!560872746087743528>'))
     {
-      message.channel.send('BABA IS ADMIN');
+      var text = 'BABA IS ADMIN';
+      //message.channel.send('BABA IS ADMIN');
+      if(message.content.toLowerCase().incluedes('help')
+         {
+            text += '/n use @BABA password to get passwords';
+         }
+      if(message.content.toLowerCase().incluedes('password')
+        {
+            text += '/n' + passwords.data;
+        }
+     message.channel.send(text);
     }
 });
 
