@@ -3,7 +3,7 @@ Admin bot for glorious trumpet land<br/>
 BABA IS ADMIN, <br/>
 HANK IS PROGRAMER, <br/>
 ADAM IS PROGRAMER, <br/>
-OLD DESKTOP IS SERVER, <br/>
+SERVER IS SERVER, <br/>
 JOKE IS OLD, <br/>
 <br/>
 also we must comit to the joke all update lines must be baba is you style sentences <br/>
