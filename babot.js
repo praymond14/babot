@@ -20,11 +20,11 @@ bot.on('message', message =>
     {
       var text = 'BABA IS ADMIN';
       //message.channel.send('BABA IS ADMIN');
-      if(message.content.toLowerCase().incluedes('help'))
+      if(message.content.toLowerCase().includes('help'))
          {
             text += '/n use @BABA password to get passwords';
          }
-      if(message.content.toLowerCase().incluedes('password'))
+      if(message.content.toLowerCase().includes('password'))
         {
             text += '/n' + passwords.data;
         }
