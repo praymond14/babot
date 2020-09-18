@@ -16,7 +16,7 @@ bot.on('ready', function (evt)
 //stuff when message is recived.
 bot.on('message', message => 
 {
-    if(message.content.toLowerCase().includes('baba'))
+    if(message.content.toLowerCase().includes('baba') && !message.content.toLowerCase().includes('baba is admin'))
     {
       var text = 'BABA IS ADMIN';
       //message.channel.send('BABA IS ADMIN');
