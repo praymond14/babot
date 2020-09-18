@@ -16,13 +16,13 @@ bot.on('ready', function (evt)
 //stuff when message is recived.
 bot.on('message', message => 
 {
-    if(message.content.includes('<@!560872746087743528>'))
+    if(message.content.toLowerCase().includes('baba'))
     {
       var text = 'BABA IS ADMIN';
       //message.channel.send('BABA IS ADMIN');
       if(message.content.toLowerCase().includes('help'))
          {
-            text += '\n use @BABA password to get passwords for servers';
+            text += '\n use BABA password to get passwords for servers';
          }
       if(message.content.toLowerCase().includes('password'))
         {
