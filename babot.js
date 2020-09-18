@@ -16,19 +16,32 @@ bot.on('ready', function (evt)
 //stuff when message is recived.
 bot.on('message', message => 
 {
-    if(message.content.includes('<@!560872746087743528>'))
+    if(message.author.bot) return; //Needed or there will be an INFINITE loop on baba only channel.
+
+    if(message.content.toLowerCase().includes('getidplz'))
     {
-      var text = 'BABA IS ADMIN';
-      //message.channel.send('BABA IS ADMIN');
-      if(message.content.toLowerCase().includes('help'))
-         {
+        message.channel.send(message.channel.id);
+    }
+    
+    if (message.channel.id == 756626022761234502) //Need to get the id of the baba only channel and place it here
+    {
+        message.delete();
+        message.channel.send(message.content);
+    }
+
+    if(message.content.includes('baba'))
+    {
+        var text = 'BABA IS ADMIN';
+        //message.channel.send('BABA IS ADMIN');
+        if(message.content.toLowerCase().includes('help'))
+        {
             text += '\n use @BABA password to get passwords for servers';
-         }
-      if(message.content.toLowerCase().includes('password'))
+        }
+        if(message.content.toLowerCase().includes('password'))
         {
             text += '\n' + passwords.data;
         }
-     message.channel.send(text);
+        message.channel.send(text);
     }
 });
 
