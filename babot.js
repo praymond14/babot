@@ -16,20 +16,19 @@ bot.on('ready', function (evt)
 //stuff when message is recived.
 bot.on('message', message => 
 {
-    if(message.author.bot) return; //Needed or there will be an INFINITE loop on baba only channel.
-
     if(message.content.toLowerCase().includes('getidplz'))
     {
         message.channel.send(message.channel.id);
     }
     
-    if (message.channel.id == 756626022761234502) //Need to get the id of the baba only channel and place it here
+    if (message.channel.id == 0) //Need to get the id of the baba only channel and place it here
     {
+        if(message.author.bot) return; //Needed or there will be an INFINITE loop on baba only channel.
         message.delete();
         message.channel.send(message.content);
     }
 
-    if(message.content.includes('baba'))
+    if(message.content.includes('baba') && !message.content.toLowerCase().includes('baba is admin'))
     {
         var text = 'BABA IS ADMIN';
         //message.channel.send('BABA IS ADMIN');
