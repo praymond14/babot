@@ -16,12 +16,17 @@ bot.on('ready', function (evt)
 //stuff when message is recived.
 bot.on('message', message => 
 {
-    
     //code to do log stuff
     if(message.content.toLowerCase().includes('baba') && !message.content.toLowerCase().includes('baba is admin'))
     {
       var text = 'BABA IS ADMIN';
       //message.channel.send('BABA IS ADMIN');
+      if(message.content.toLowerCase().includes('!baba delete')//code to del and move to log
+         {
+            //check if admin
+            //log message
+            //del message
+         }
       if(message.content.toLowerCase().includes('help'))
          {
             text += '\n use BABA password to get passwords for servers';
