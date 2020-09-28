@@ -1,12 +1,10 @@
 var Discord = require('discord.js'); //discord stuff
-var auth = require('./bauth.json'); //auth for discord
-var passwords = require('./pass.json');//passwords
-var babadata = require('./babotdata.json');//will be combining all json files into this one
+var babadata = require('./babotdata.json');//contains all data for baba to run
 
 // Initialize Discord Bot
 var bot = new Discord.Client();
 
-bot.login(auth.token); //login
+bot.login(babadata.token); //login
 
 //not shure what this does but it was in jeremy's code so
 bot.on('ready', function (evt) 
@@ -24,7 +22,7 @@ bot.on('message', message =>
       //message.channel.send('BABA IS ADMIN');
       if(message.content.toLowerCase().includes('!delete')//code to del and move to log
          {
-            if(message.member.roles.cache.has(babadata.admin_id)//check if admin
+            if(message.member.roles.cache.has(babadata.adminid)//check if admin
                 {
                     var message_id = message.content.replace(/\D/g,''); //get message id
                     //log message
@@ -37,7 +35,7 @@ bot.on('message', message =>
          }
       if(message.content.toLowerCase().includes('password'))
         {
-            text += '\n' + passwords.data;
+            text += '\n' + babadata.pass;
         }
      message.channel.send(text);
     }
