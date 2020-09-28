@@ -23,9 +23,11 @@ bot.on('message', message =>
       //message.channel.send('BABA IS ADMIN');
       if(message.content.toLowerCase().includes('!delete')//code to del and move to log
          {
-            //check if admin
-            //log message
-            //del message
+            if(message.member.roles.cache.has('id')//check if admin
+                {
+                    //log message
+                    //del message
+                }
          }
       if(message.content.toLowerCase().includes('help'))
          {
