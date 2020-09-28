@@ -16,6 +16,10 @@ bot.on('ready', function (evt)
 //stuff when message is recived.
 bot.on('message', message => 
 {
+    if(message.content.toLowerCase().includes('getidplz')) // will need for deployment writen by sami would credit properly but too dumb to figure out how so insert something about cats and green
+    {
+        message.channel.send(message.channel.id);
+    }
     //code to do log stuff
     if(message.content.toLowerCase().includes('baba') && !message.content.toLowerCase().includes('baba is admin'))
     {
