@@ -25,6 +25,7 @@ bot.on('message', message =>
          {
             if(message.member.roles.cache.has('id')//check if admin
                 {
+                    var message_id = message.content.replace(/\D/g,''); //get message id
                     //log message
                     //del message
                 }
