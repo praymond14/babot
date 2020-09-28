@@ -1,6 +1,7 @@
 var Discord = require('discord.js'); //discord stuff
 var auth = require('./bauth.json'); //auth for discord
 var passwords = require('./pass.json');//passwords
+var babadata = require('./babotdata.json');//will be combining all json files into this one
 
 // Initialize Discord Bot
 var bot = new Discord.Client();
@@ -23,7 +24,7 @@ bot.on('message', message =>
       //message.channel.send('BABA IS ADMIN');
       if(message.content.toLowerCase().includes('!delete')//code to del and move to log
          {
-            if(message.member.roles.cache.has('id')//check if admin
+            if(message.member.roles.cache.has(babadata.admin_id)//check if admin
                 {
                     var message_id = message.content.replace(/\D/g,''); //get message id
                     //log message
