@@ -54,7 +54,7 @@ bot.on('message', message =>
 //archive the message and delete it
 function deleteAndArchive(msg){
     //gets the special archive channel
-    var hiddenChan = msg.guild.channels.cache.get("760287146790879272");
+    var hiddenChan = msg.guild.channels.cache.get(babadata.logchn);
     //gets the user that sent the message
     var usr = msg.author;
     //sets the header of the message to mention the original poster
