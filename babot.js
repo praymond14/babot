@@ -20,26 +20,6 @@ bot.on('message', message =>
     {
       var text = 'BABA IS ADMIN';
       //message.channel.send('BABA IS ADMIN');
-      if(message.content.toLowerCase().includes('!delete'))//code to del and move to log
-         {
-            //if(message.member.roles.cache.has(babadata.adminid))//check if admin
-                //{
-                    var message_id = message.content.replace(/\D/g,''); //get message id
-                    //log message
-                    //get a map of the channelt in the guild
-                    var chanMap = message.guild.channels.cache;
-                    //iterate through all the channels
-                    for(var [k, chan] of chanMap){
-                        //make sure the channel is a text channel
-                        if(chan.type == "text"){
-                            //try to get the message, if it exists call deleteAndArchive, otherwise catch the error
-                            chan.messages.fetch(message_id).then(message => deleteAndArchive(message)).catch(console.error);
-                        }
-
-                    }
-                    //del message
-                //}
-         }
       if(message.content.toLowerCase().includes('help'))
          {
             text += '\n use BABA password to get passwords for servers';
@@ -50,19 +30,46 @@ bot.on('message', message =>
         }
      message.channel.send(text);
     }
+    if(message.content.toLowerCase().includes('!delete'))//code to del and move to log
+         {
+            if(message.member.roles.cache.has(babadata.adminid))//check if admin
+                {
+                    var message_id = message.content.replace(/\D/g,''); //get message id
+                    //log message
+                    //get a map of the channelt in the guild
+                    var chanMap = message.guild.channels.cache;
+                    //iterate through all the channels
+                    for(let [k, chan] of chanMap){
+                        //make sure the channel is a text channel
+                        if(chan.type == "text"){
+                            //try to get the message, if it exists call deleteAndArchive, otherwise catch the error
+                            chan.messages.fetch(message_id).then(message => deleteAndArchive(message)).catch(console.error);
+                        }
+
+                    }
+                }
+         }
 });
 
+//archive the message and delete it
 function deleteAndArchive(msg){
     //gets the special archive channel
-    var hiddenChan = msg.guild.channels.cache.get("760312338208260096");
+    var hiddenChan = msg.guild.channels.cache.get("760287146790879272");
     //gets the user that sent the message
     var usr = msg.author;
     //sets the header of the message to mention the original poster
-    var savemsg = "This message sent by: <@" + usr + ">\n"
+    var savemsg = "This message sent by: <@" + usr + ">\n> "
     //insert the actual message below
     savemsg += msg.content;
+    //get the attacments from the original message
+    var attch = msg.attachments;
+    var newAttch;
+    for(let [k, img] of attch){
+        //attach the last image
+        newAttch = new Discord.MessageAttachment().setFile(img.url);
+    }
     //send the message
-    hiddenChan.send(savemsg);
+    hiddenChan.send(savemsg, newAttch);
     //delete the original
     msg.delete();
 }
