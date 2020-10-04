@@ -58,7 +58,7 @@ function deleteAndArchive(msg)
 	for(let [k, img] of attch)
 	{
 		newAttch = new Discord.MessageAttachment().setFile(img.url);//get images
-		hiddenChan.send('attachment :'+k,newAttch)//send images
+		hiddenChan.send('attachment :'+k,newAttch);//send images
 	}
 	msg.delete();//delete the original
 }
