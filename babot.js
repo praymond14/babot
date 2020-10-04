@@ -54,11 +54,12 @@ function deleteAndArchive(msg)
 	savemsg += msg.content;//insert the actual message below
 	var attch = msg.attachments;//get the attacments from the original message
 	var newAttch;
+	hiddenChan.send(savemsg,);//send the text
 	for(let [k, img] of attch)
 	{
-		newAttch = new Discord.MessageAttachment().setFile(img.url);//attach the last image
+		newAttch = new Discord.MessageAttachment().setFile(img.url);//get images
+		hiddenChan.send('attachment :'+k,newAttch)//send images
 	}
-	hiddenChan.send(savemsg, newAttch);//send the message
 	msg.delete();//delete the original
 }
 
