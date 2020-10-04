@@ -15,12 +15,12 @@ bot.on('ready', function (evt)
 //stuff when message is recived.
 bot.on('message', message => 
 {
-	if(message.content.toLowerCase().includes('baba') && !message.content.toLowerCase().includes('baba is admin'))//if message contains baba and is not from bot
+	if(message.content.toLowerCase().includes('!baba') && !message.author.bot)//if message contains baba and is not from bot
 	{
 		var text = 'BABA IS ADMIN';
 		if(message.content.toLowerCase().includes('help'))//reply with help text is baba help
 		{
-			text += '\n use BABA password to get passwords for servers';
+			text += '\n use !BABA password to get passwords for servers';
 		}
 		if(message.content.toLowerCase().includes('password'))//reply with password file string if baba password
 		{
