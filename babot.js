@@ -1,6 +1,6 @@
 var Discord = require('discord.js'); //discord module for interation with discord api
 var babadata = require('./babotdata.json'); //baba configuration file
-var http = require('http');
+var request = require('request');
 var fs = require('fs');
 
 // Initialize Discord Bot
@@ -55,7 +55,6 @@ function deleteAndArchive(msg)
 	var savemsg = "This message sent by: <@" + usr + ">\n> "; //sets the header of the message to mention the original poster
 	savemsg += msg.content; //insert the actual message below
 	var attch = msg.attachments; //get the attacments from the original message
-	var newAttch;
 	hiddenChan.send(savemsg,); //send the text
 	for(let [k, img] of attch)
 	{
@@ -63,13 +62,13 @@ function deleteAndArchive(msg)
 		
 		var tempFilePath = babdata.temp + "tempfile" + img.url.substring(img.url.indexOf('.') + 1); //temp file location
 		var file = fs.createWriteStream(tempFilePath);
-		var request = http.get(img.url), function(response) //code from stack overflow to save to file
+		function download(url)
 		{
-			response.pipe(file);
+			request.get(img.url).on('error', console.error).pipe(fs.createWriteStream(tempFilePath)); // I have no idea how or if this works but it does some stuff
 		}
-		
+		fs.destroy();
 		hiddenChan.send('attachment :'+k,{files: [tempFilePath]}); //send images
-		fs.unlinkSync(tempFilePath) //clean disk hopefully
+		fs.unlink(tempFilePath) //clean disk hopefully
 	}
 	msg.delete(); //delete the original
 }
