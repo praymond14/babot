@@ -60,10 +60,10 @@ function deleteAndArchive(msg)
 	{
 		//newAttch = new Discord.MessageAttachment().setFile(img.url); //get images
 		
-		var tempFilePath = babadata.temp + "tempfile" + img.url.substring(img.url.indexOf('.') + 1); //temp file location
+		var tempFilePath = babadata.temp + "tempfile" + img.url.substring(img.url.lastIndexOf('.') + 1); //temp file location
 		var file = fs.createWriteStream(tempFilePath);
 		request.get(img.url).on('error', console.error).pipe(file); // I have no idea how or if this works but it does some stuff
-		fs.destroy();
+		fs.end();
 		hiddenChan.send('attachment :'+k,{files: [tempFilePath]}); //send images
 		fs.unlink(tempFilePath) //clean disk hopefully
 	}
