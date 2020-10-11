@@ -57,8 +57,19 @@ function deleteAndArchive(msg)
 	hiddenChan.send(savemsg,); //send the text
 	for(let [k, img] of attch)
 	{
-		newAttch = new Discord.MessageAttachment().setFile(img.url); //get images
-		hiddenChan.send('attachment :'+k,newAttch); //send images
+		//newAttch = new Discord.MessageAttachment().setFile(img.url); //get images
+		
+		const http = require('http'); //save attachment to tempfile
+		const fs = require('fs');
+		var tempFilePath = babdata.temp + "tempfile" + img.url.substring(img.url.indexOf('.') + 1; //temp file location
+		const file = fs.createWriteStream(tempFilePath);
+		const request = http.get(img.url), function(response) //code from stack overflow.
+		{
+			response.pipe(file);
+		}
+		
+		hiddenChan.send('attachment :'+k,{files: [tempFilePath]}); //send images
+		fs.unlinkSync(tempFilePath) //clean disk hopefully
 	}
 	msg.delete(); //delete the original
 }
