@@ -60,7 +60,7 @@ function deleteAndArchive(msg)
 	{
 		//newAttch = new Discord.MessageAttachment().setFile(img.url); //get images
 		
-		var tempFilePath = babdata.temp + "tempfile" + img.url.substring(img.url.indexOf('.') + 1); //temp file location
+		var tempFilePath = babadata.temp + "tempfile" + img.url.substring(img.url.indexOf('.') + 1); //temp file location
 		var file = fs.createWriteStream(tempFilePath);
 		request.get(img.url).on('error', console.error).pipe(file); // I have no idea how or if this works but it does some stuff
 		fs.destroy();
