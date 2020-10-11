@@ -60,10 +60,10 @@ function deleteAndArchive(msg)
 	{
 		//newAttch = new Discord.MessageAttachment().setFile(img.url); //get images
 		
-		var tempFilePath = babadata.temp + "tempfile" + img.url.substring(img.url.lastIndexOf('.') + 1); //temp file location
+		var tempFilePath = babadata.temp + "tempfile" + img.url.substring(img.url.lastIndexOf('.')); //temp file location
 		download(img.url, tempFilePath);
 		hiddenChan.send('attachment :'+k,{files: [tempFilePath]}); //send images
-		fs.unlinkSync(tempFilePath) //clean disk hopefully
+		//fs.unlinkSync(tempFilePath) //clean disk hopefully
 	}
 	msg.delete(); //delete the original
 }
