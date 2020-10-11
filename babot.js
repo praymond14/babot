@@ -61,7 +61,7 @@ function deleteAndArchive(msg)
 	{
 		//newAttch = new Discord.MessageAttachment().setFile(img.url); //get images
 		
-		var tempFilePath = babdata.temp + "tempfile" + img.url.substring(img.url.indexOf('.') + 1; //temp file location
+		var tempFilePath = babdata.temp + "tempfile" + img.url.substring(img.url.indexOf('.') + 1); //temp file location
 		var file = fs.createWriteStream(tempFilePath);
 		var request = http.get(img.url), function(response) //code from stack overflow to save to file
 		{
