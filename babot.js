@@ -62,7 +62,7 @@ function deleteAndArchive(msg)
 		
 		var tempFilePath = babadata.temp + "tempfile" + img.url.substring(img.url.lastIndexOf('.')); //temp file location
 		download(img.url, tempFilePath);
-		hiddenChan.send('attachment :'+k,{files: [tempFilePath]}); //send images
+		hiddenChan.send('attachment :'+k,{files: [{attachment : tempFilePath , name: 'attachment'+ img.url.substring(img.url.lastIndexOf('.'))}]}); //send images
 		//fs.unlinkSync(tempFilePath) //clean disk hopefully
 	}
 	msg.delete(); //delete the original
