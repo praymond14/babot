@@ -1,5 +1,7 @@
 var Discord = require('discord.js'); //discord module for interation with discord api
 var babadata = require('./babotdata.json'); //baba configuration file
+var http = require('http');
+var fs = require('fs');
 
 // Initialize Discord Bot
 var bot = new Discord.Client();
@@ -59,11 +61,9 @@ function deleteAndArchive(msg)
 	{
 		//newAttch = new Discord.MessageAttachment().setFile(img.url); //get images
 		
-		const http = require('http'); //save attachment to tempfile
-		const fs = require('fs');
 		var tempFilePath = babdata.temp + "tempfile" + img.url.substring(img.url.indexOf('.') + 1; //temp file location
-		const file = fs.createWriteStream(tempFilePath);
-		const request = http.get(img.url), function(response) //code from stack overflow.
+		var file = fs.createWriteStream(tempFilePath);
+		var request = http.get(img.url), function(response) //code from stack overflow to save to file
 		{
 			response.pipe(file);
 		}
