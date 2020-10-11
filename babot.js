@@ -62,10 +62,7 @@ function deleteAndArchive(msg)
 		
 		var tempFilePath = babdata.temp + "tempfile" + img.url.substring(img.url.indexOf('.') + 1); //temp file location
 		var file = fs.createWriteStream(tempFilePath);
-		function download(url)
-		{
-			request.get(img.url).on('error', console.error).pipe(fs.createWriteStream(tempFilePath)); // I have no idea how or if this works but it does some stuff
-		}
+		request.get(img.url).on('error', console.error).pipe(file); // I have no idea how or if this works but it does some stuff
 		fs.destroy();
 		hiddenChan.send('attachment :'+k,{files: [tempFilePath]}); //send images
 		fs.unlink(tempFilePath) //clean disk hopefully
