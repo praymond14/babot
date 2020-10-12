@@ -68,26 +68,26 @@ function deleteAndArchive(msg)
 	msg.delete(); //delete the original
 }
 async function download(url, path)
-{
+{ return new Promise<void>(resolve => {
 	request.get(url)
 	.on('error', console.error)
 	.pipe(fs.createWriteStream(path));
-}
+}}
 async function sendmessage(url , path, number) // send image
-{
+{ return new Promise<void>(resolve => {
 	hiddenChan.send('attachment :'+number,{files: [{attachment : path , name: 'attachment'+ url.substring(url.lastIndexOf('.'))}]});
-}
+}}
 async function deletefile(path)
-{
+{ return new Promise<void>(resolve => {
 	fs.unlinkSync(path); //clean disk hopefully
-}
+}}
 
 //not shure what this does also but it was in jeremy's code so
 var cleanupFn = function cleanup() 
-{
+{ return new Promise<void>(resolve => {
 	console.log("Logging off");
 	bot.destroy();
-}
+}}
 
 process.on('SIGINT', cleanupFn);
 process.on('SIGTERM', cleanupFn);
