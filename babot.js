@@ -61,17 +61,25 @@ function deleteAndArchive(msg)
 		//newAttch = new Discord.MessageAttachment().setFile(img.url); //get images
 		
 		var tempFilePath = babadata.temp + "tempfile" + img.url.substring(img.url.lastIndexOf('.')); //temp file location
-		download(img.url, tempFilePath);
-		hiddenChan.send('attachment :'+k,{files: [{attachment : tempFilePath , name: 'attachment'+ img.url.substring(img.url.lastIndexOf('.'))}]}); //send images
-		//fs.unlinkSync(tempFilePath) //clean disk hopefully
+		await download(img.url, tempFilePath);
+		await sendmessage(img.url,tempFilePath,k);
+		await deletefile(tempFilePath);
 	}
 	msg.delete(); //delete the original
 }
-function download(url, path)
+async function download(url, path)
 {
 	request.get(url)
 	.on('error', console.error)
 	.pipe(fs.createWriteStream(path));
+}
+async function sendmessage(url , path, number) // send image
+{
+	hiddenChan.send('attachment :'+number,{files: [{attachment : path , name: 'attachment'+ url.substring(url.lastIndexOf('.'))}]});
+}
+async function deletefile(path)
+{
+	fs.unlinkSync(path); //clean disk hopefully
 }
 
 //not shure what this does also but it was in jeremy's code so
