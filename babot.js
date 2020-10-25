@@ -48,7 +48,7 @@ bot.on('message', message =>
 });
 
 //archive the message and delete it
-function deleteAndArchive(msg)
+async function deleteAndArchive(msg)
 {
 	var hiddenChan = msg.guild.channels.cache.get(babadata.logchn); //gets the special archive channel
 	var usr = msg.author; //gets the user that sent the message
@@ -67,17 +67,17 @@ function deleteAndArchive(msg)
 	}
 	msg.delete(); //delete the original
 }
-async function download(url, path)
+function download(url, path) //download
 { return new Promise<void>(resolve => {
 	request.get(url)
 	.on('error', console.error)
 	.pipe(fs.createWriteStream(path));
 }}
-async function sendmessage(url , path, number) // send image
+function sendmessage(url , path, number) // send image
 { return new Promise<void>(resolve => {
 	hiddenChan.send('attachment :'+number,{files: [{attachment : path , name: 'attachment'+ url.substring(url.lastIndexOf('.'))}]});
 }}
-async function deletefile(path)
+function deletefile(path) //delete temp
 { return new Promise<void>(resolve => {
 	fs.unlinkSync(path); //clean disk hopefully
 }}
