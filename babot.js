@@ -112,5 +112,12 @@ const download = (url, path, callback) => { //download function
 	})
   }
 
-//process.on('SIGINT', cleanupFn);
-//process.on('SIGTERM', cleanupFn);
+//not shure what this does also but it was in jeremy's code so
+var cleanupFn = function cleanup() 	
+{	
+	console.log("Logging off");	
+	bot.destroy();	
+}
+
+process.on('SIGINT', cleanupFn);
+process.on('SIGTERM', cleanupFn);
