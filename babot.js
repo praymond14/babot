@@ -47,7 +47,7 @@ bot.on('message', message =>
 			if (dow <= 3 && !(dy == 26 && my == 12)) // modify weeks for wednesdays
 				weeks = weeks + 1;
 
-			var tempFilePath = babadata.temp + "/Christmas/" + weeks + "christmaswed512.png"; //temp file location 
+			var tempFilePath = babadata.temp + "/Christmas/" + weeks + "christmaswed512.png"; // temp file location 
 			newAttch = new Discord.MessageAttachment().setFile(tempFilePath); //makes a new discord attachment
 			message.channel.send(text, newAttch); // send file
 		}
@@ -83,25 +83,36 @@ async function deleteAndArchive(msg)
 	var attch = msg.attachments; //get the attacments from the original message
 	hiddenChan.send(savemsg,); //send the text
 	var newAttach;
+	var icount = 0;
 	for(let [k, img] of attch)
 	{
-		//newAttch = new Discord.MessageAttachment().setFile(img.url); //get images
-		
-		var tempFilePath = babadata.temp + "tempfile" + img.url.substring(img.url.lastIndexOf('.')); //temp file location 
-		var url = img.url;
+		setTimeout(function()
+		{ 
+			DelayedDeletion(hiddenChan, img); //download the image and reupload it
+		}, 3000 * icount); //delayed so all images can get loaded
 
-		download(url, tempFilePath, () => { //downloads the file to the system at tempfile location
-			console.log('✅ Done!')
-		})
-
-		newAttch = new Discord.MessageAttachment().setFile(tempFilePath); //makes a new discord attachment
-
-		setTimeout(function(){ hiddenChan.send("", newAttch); }, 1000); //sends the attachment (delayed by 1 sec to allow for download)
-
-		setTimeout(function(){ fs.unlinkSync(tempFilePath); }, 3000); //deletes file from local system (delayed by 3 sec to allow for download and upload)
+		icount ++;
 	}
 
-	setTimeout(function(){ msg.delete(); }, 5000); //deletes the og message (delayed for the file transfer)
+	var waittime = icount == 0 ? 0 : 2000 + (2000 * icount);
+
+	setTimeout(function(){ msg.delete(); }, waittime); //deletes the og message (delayed for the file transfer)
+}
+
+async function DelayedDeletion(hiddenChan, img) //download function used when the delay call is ran
+{
+	var tempFilePath = babadata.temp + "tempfile" + img.url.substring(img.url.lastIndexOf('.')); // temp file location 
+	var url = img.url;
+
+	download(url, tempFilePath, () => { //downloads the file to the system at tempfile location
+		console.log('✅ Done!')
+	})
+
+	newAttch = new Discord.MessageAttachment().setFile(tempFilePath); //makes a new discord attachment
+
+	setTimeout(function(){ hiddenChan.send("", newAttch); }, 1000); //sends the attachment (delayed by 1 sec to allow for download)
+
+	setTimeout(function(){ fs.unlinkSync(tempFilePath); }, 2000); //deletes file from local system (delayed by 3 sec to allow for download and upload)
 }
 
 const download = (url, path, callback) => { //download function
@@ -111,6 +122,13 @@ const download = (url, path, callback) => { //download function
 		.on('close', callback)
 	})
   }
+  
+//not shure what this does also but it was in jeremy's code so
+var cleanupFn = function cleanup() 
+{
+	  console.log("Logging off");
+	  bot.destroy();
+}
 
-//process.on('SIGINT', cleanupFn);
-//process.on('SIGTERM', cleanupFn);
+process.on('SIGINT', cleanupFn);
+process.on('SIGTERM', cleanupFn);
