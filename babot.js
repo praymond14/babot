@@ -1,7 +1,7 @@
 var Discord = require('discord.js'); //discord module for interation with discord api
 var babadata = require('./babotdata.json'); //baba configuration file
-var request = require('request');
-var fs = require('fs');
+let request = require(`request`);
+let fs = require(`fs`);
 
 // Initialize Discord Bot
 var bot = new Discord.Client();
@@ -28,7 +28,33 @@ bot.on('message', message =>
 		{
 			text += '\n' + babadata.pass;
 		}
-		message.channel.send(text);
+		if(message.content.toLowerCase().includes('christmas') && message.content.toLowerCase().includes('wednesday')) //reply with password file string if baba password
+		{
+			var yr = new Date().getFullYear(); //get this year
+			var dy = new Date().getDate() + 1; //get this day
+			var my = new Date().getMonth() + 1; //get this month
+
+			let d1 = new Date(yr, my, dy); //get today
+			let d2 = new Date(yr, 12, 25); //get christmas
+
+			var dow = (d1.getDay() + 5) % 7;//get day of week
+
+			if (d2.getTime() < d1.getTime()) //check if day is post christmas and make next xmas year + 1
+				d2 = new Date(yr + 1, 12, 25);
+
+			let weeks = Math.floor(Math.abs((d1.getTime() - d2.getTime()) / 3600000 / 24 / 7)); // how many weeks
+
+			if (dow <= 3 && !(dy == 26 && my == 12)) // modify weeks for wednesdays
+				weeks = weeks + 1;
+
+			var tempFilePath = babadata.temp + "/Christmas/" + weeks + "christmaswed512.png"; // temp file location 
+			newAttch = new Discord.MessageAttachment().setFile(tempFilePath); //makes a new discord attachment
+			message.channel.send(text, newAttch); // send file
+		}
+		else
+		{
+			message.channel.send(text);
+		}
 	}
 	if(message.content.toLowerCase().includes('!delete')) //code to del and move to log
 	{
@@ -56,38 +82,53 @@ async function deleteAndArchive(msg)
 	savemsg += msg.content; //insert the actual message below
 	var attch = msg.attachments; //get the attacments from the original message
 	hiddenChan.send(savemsg,); //send the text
+	var newAttach;
+	var icount = 0;
 	for(let [k, img] of attch)
 	{
-		//newAttch = new Discord.MessageAttachment().setFile(img.url); //get images
-		
-		var tempFilePath = babadata.temp + "tempfile" + img.url.substring(img.url.lastIndexOf('.')); //temp file location
-		await download(img.url, tempFilePath);
-		await sendmessage(img.url,tempFilePath,k);
-		await deletefile(tempFilePath);
-	}
-	msg.delete(); //delete the original
-}
-function download(url, path) //download
-{ return new Promise<void>(resolve => {
-	request.get(url)
-	.on('error', console.error)
-	.pipe(fs.createWriteStream(path));
-}}
-function sendmessage(url , path, number) // send image
-{ return new Promise<void>(resolve => {
-	hiddenChan.send('attachment :'+number,{files: [{attachment : path , name: 'attachment'+ url.substring(url.lastIndexOf('.'))}]});
-}}
-function deletefile(path) //delete temp
-{ return new Promise<void>(resolve => {
-	fs.unlinkSync(path); //clean disk hopefully
-}}
+		setTimeout(function()
+		{ 
+			DelayedDeletion(hiddenChan, img); //download the image and reupload it
+		}, 3000 * icount); //delayed so all images can get loaded
 
+		icount ++;
+	}
+
+	var waittime = icount == 0 ? 0 : 2000 + (2000 * icount);
+
+	setTimeout(function(){ msg.delete(); }, waittime); //deletes the og message (delayed for the file transfer)
+}
+
+async function DelayedDeletion(hiddenChan, img) //download function used when the delay call is ran
+{
+	var tempFilePath = babadata.temp + "tempfile" + img.url.substring(img.url.lastIndexOf('.')); // temp file location 
+	var url = img.url;
+
+	download(url, tempFilePath, () => { //downloads the file to the system at tempfile location
+		console.log('✅ Done!')
+	})
+
+	newAttch = new Discord.MessageAttachment().setFile(tempFilePath); //makes a new discord attachment
+
+	setTimeout(function(){ hiddenChan.send("", newAttch); }, 1000); //sends the attachment (delayed by 1 sec to allow for download)
+
+	setTimeout(function(){ fs.unlinkSync(tempFilePath); }, 2000); //deletes file from local system (delayed by 3 sec to allow for download and upload)
+}
+
+const download = (url, path, callback) => { //download function
+	request.head(url, (err, res, body) => {
+	  request(url)
+		.pipe(fs.createWriteStream(path))
+		.on('close', callback)
+	})
+  }
+  
 //not shure what this does also but it was in jeremy's code so
 var cleanupFn = function cleanup() 
-{ return new Promise<void>(resolve => {
-	console.log("Logging off");
-	bot.destroy();
-}}
+{
+	  console.log("Logging off");
+	  bot.destroy();
+}
 
 process.on('SIGINT', cleanupFn);
 process.on('SIGTERM', cleanupFn);
