@@ -49,20 +49,21 @@ bot.on('message', message =>
 			{
 				var holidayinfo = holidays[IsHoliday[i]];
 
+				var dateoveride = [false, 12, 26]; //allows for overiding date manually (testing)
+
 				var yr = new Date().getFullYear(); //get this year
-				var dy = new Date().getDate() + 1; //get this day
-				var my = new Date().getMonth() + 1; //get this month
+				var dy = dateoveride[0] ? dateoveride[2] : new Date().getDate(); //get this day
+				var my = dateoveride[0] ? dateoveride[1] - 1 : new Date().getMonth(); //get this month
 
 				let d1 = new Date(yr, my, dy); //get today
-				//d1 = new Date(yr, 3, 17);  //Testing specific days
 
 				let d2 = GetDate(yr, holidayinfo);
 
 				if (d2.getTime() < d1.getTime()) //check if day is post holiday and make next holiday year + 1
 					d2 = GetDate(yr + 1, holidayinfo);
 
-				var dow_d1 = (d1.getDay() + 1) % 7;//get day of week
-				var dow_d2 = (d2.getDay() + 2) % 7;//get day of week
+				var dow_d1 = (d1.getDay() + 4) % 7;//get day of week (making wed = 0)
+				var dow_d2 = (d2.getDay() + 4) % 7;//get day of week (making wed = 0)
 
 				let d1_useage = new Date(d1.getFullYear(), d1.getMonth(), 1); //today that has been wednesday shifted
 				let d2_useage = new Date(d2.getFullYear(), d2.getMonth(), 1); //holiday that has been wednesday shifted
@@ -71,9 +72,12 @@ bot.on('message', message =>
 				d2_useage.setDate(d2.getDate() - dow_d2);// modify holiday for wednesdays
 
 				let weeks = Math.abs((d1_useage.getTime() - d2_useage.getTime()) / 3600000 / 24 / 7); // how many weeks
-
+				
 				if (weeks > 52) //edge case for the day after sometimes being dumb and a week off
 					weeks = 52;
+
+				if (weeks < .3) //for when it is the week before and set to .142
+					weeks = 0;
 
 				var wednesdayoverlay = "Wednesday_Plural.png"; //gets the wednesday portion
 				if (weeks == 1)
@@ -126,6 +130,18 @@ bot.on('message', message =>
 	}
 });
 
+async function tempoutput(msg, lp)  //temporary output function for testing
+{
+	var t = "";
+
+	for (i = 0; i < lp.length; i++) 
+	{
+		t += lp[i] + "\n";
+	}
+
+	msg.channel.send(t);
+}
+
 //archive the message and delete it
 async function deleteAndArchive(msg)
 {
@@ -157,14 +173,14 @@ function GetDate(yr, holidayinfo) //Gets the specified date from the selected ho
 	let d2 = new Date();
 
 	if(holidayinfo[2] > 0)
-		d2 = new Date(yr, holidayinfo[1], holidayinfo[2]); //get holiday
+		d2 = new Date(yr, holidayinfo[1] - 1, holidayinfo[2]); //get holiday
 	else
 	{ // gets the holiday for days that are specific weekday events ex: thanksgiving
 		d2 = new Date(yr, holidayinfo[1], 1);
 		var dtcalc = 7 * (holidayinfo[3] - 1);
 		dtcalc = dtcalc + (holidayinfo[4] - ((d2.getDay() + 5) % 7)) + 1;
 
-		d2 = new Date(yr, holidayinfo[1], dtcalc);
+		d2 = new Date(yr, holidayinfo[1] - 1, dtcalc);
 	}
 	return d2;
 }
