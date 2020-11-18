@@ -12,7 +12,7 @@ other usefull info <br/>
 dependencies <br/>
 ~discord.js : npm install discord.js <br/>
 ~forever : npm install forever -g <br/>
-~images : npm install images
+~images : npm install images <br/>
 to start <br/>
 ~forever start babot.js <br/>
 to update <br/>
