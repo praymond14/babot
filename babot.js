@@ -143,6 +143,18 @@ bot.on('message', message =>
 			}
 		}
 	}
+	if(message.content.toLowerCase().includes('jar')) //jar code
+	{
+		var message_id = message.content.replace(/\D/g,''); //get message id
+		var chanMap = message.guild.channels.cache; //get a map of the channelt in the guild
+		for(let [k, chan] of chanMap) //iterate through all the channels
+			{
+				if(chan.type == "text") //make sure the channel is a text channel
+				{
+					chan.messages.fetch(message_id).then(message => setVBH(message)).catch(console.error); //try to get the message, if it exists call deleteAndArchive, otherwise catch the error
+				}
+			}
+	}
 });
 
 async function tempoutput(msg, lp)  //temporary output function for testing
@@ -164,6 +176,13 @@ async function setVote(msg)
 
 	msg.react('👍');
 	msg.react('👎');
+}
+async function setVBH(msg)
+{
+	var hiddenChan = msg.guild.channels.cache.get(babadata.logchn); //gets the special archive channel
+	var usr = msg.author; //gets the user that sent the message
+
+	msg.react(':VintageBanHammer:');
 }
 
 //archive the message and delete it
