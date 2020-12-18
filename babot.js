@@ -128,6 +128,21 @@ bot.on('message', message =>
 			}
 		}
 	}
+	if(message.content.toLowerCase().includes('!setvote')) //code to del and move to log
+	{
+		if(message.member.roles.cache.has(babadata.adminid)) //check if admin
+		{
+			var message_id = message.content.replace(/\D/g,''); //get message id
+			var chanMap = message.guild.channels.cache; //get a map of the channelt in the guild
+			for(let [k, chan] of chanMap) //iterate through all the channels
+			{
+				if(chan.type == "text") //make sure the channel is a text channel
+				{
+					chan.messages.fetch(message_id).then(message => setVote(message)).catch(console.error); //try to get the message, if it exists call deleteAndArchive, otherwise catch the error
+				}
+			}
+		}
+	}
 });
 
 async function tempoutput(msg, lp)  //temporary output function for testing
@@ -140,6 +155,15 @@ async function tempoutput(msg, lp)  //temporary output function for testing
 	}
 
 	msg.channel.send(t);
+}
+
+async function setVote(msg)
+{
+	var hiddenChan = msg.guild.channels.cache.get(babadata.logchn); //gets the special archive channel
+	var usr = msg.author; //gets the user that sent the message
+
+	msg.react('👍');
+	msg.react('👎');
 }
 
 //archive the message and delete it
