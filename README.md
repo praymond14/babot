@@ -6,8 +6,6 @@ ADAM IS PROGRAMER, <br/>
 SERVER IS SERVER, <br/>
 JOKE IS OLD, <br/>
 <br/>
-also we must comit to the joke all update lines must be baba is you style sentences <br/>
- <br/>
 other usefull info <br/>
 dependencies <br/>
 ~discord.js : npm install discord.js <br/>
@@ -19,3 +17,11 @@ to update <br/>
 ~forever stop babot.js <br/>
 ~wget -O babot.js https://raw.githubusercontent.com/Aconka/babot/master/babot.js <br/>
 ~forever start babot.js <br/>
+<br/>
+setting up babotdata.json
+{"token":<bot token as string>,"pass":<response for password command as string>,"adminid":<admin id as string>,"logchn":<log chanel id as string>,"temp":<temp file location as string>,"wednesdaylocation":<location of data unpacked from FrogHolidays.zip as string>}<br/>
+<br/>
+commands for admins:<br/>
+!setvote <msg ID> : creates a vote with reactions on the message<br/>
+!delete <msg ID> : sends message to the deleted channel and removes the original<br/>
+to get user commands type !baba help (note only command  is !baba passwords at the moment)
