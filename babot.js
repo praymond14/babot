@@ -182,7 +182,7 @@ async function setVBH(msg)
 	var hiddenChan = msg.guild.channels.cache.get(babadata.logchn); //gets the special archive channel
 	var usr = msg.author; //gets the user that sent the message
 
-	msg.react(':VintageBanHammer:');
+	msg.react('502348536147345408.');
 }
 
 //archive the message and delete it
