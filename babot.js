@@ -143,7 +143,7 @@ bot.on('message', message =>
 			}
 		}
 	}
-	if(message.content.toLowerCase().includes('jar')) //jar code
+	if(message.content.toLowerCase().includes('!ban')) //jar code
 	{
 		var message_id = message.content.replace(/\D/g,''); //get message id
 		var chanMap = message.guild.channels.cache; //get a map of the channelt in the guild
