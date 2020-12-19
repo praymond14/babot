@@ -143,7 +143,7 @@ bot.on('message', message =>
 			}
 		}
 	}
-	if(message.content.toLowerCase().includes('!ban')) //jar code
+	if(message.content.toLowerCase().includes('!ban_hammer')) //jar code
 	{
 		if(message.member.roles.cache.has(babadata.adminid)) //check if admin
 		{
