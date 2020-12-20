@@ -1,8 +1,8 @@
 var Discord = require('discord.js'); //discord module for interation with discord api
 var babadata = require('./babotdata.json'); //baba configuration file
-let request = require(`request`);
-let fs = require(`fs`);
-var images = require("images");
+let request = require('request'); // not sure what this is used for
+let fs = require('fs'); //file stream used for del fuction
+var images = require("images"); //image manipulation used for the wednesday frogs
 
 // Initialize Discord Bot
 var bot = new Discord.Client();
@@ -31,7 +31,7 @@ bot.on('message', message =>
 {
 	if(message.content.toLowerCase().includes('!baba') && !message.author.bot) //if message contains baba and is not from bot
 	{
-		var text = 'BABA IS ADMIN';
+		var text = 'BABA IS ADMIN'; //start of reply string for responce message.
 		if(message.content.toLowerCase().includes('help')) //reply with help text is baba help
 		{
 			text += '\n use !BABA password to get passwords for servers';
@@ -128,7 +128,7 @@ bot.on('message', message =>
 			}
 		}
 	}
-	if(message.content.toLowerCase().includes('!setvote')) //code to del and move to log
+	if(message.content.toLowerCase().includes('!setvote')) //code to set vote
 	{
 		if(message.member.roles.cache.has(babadata.adminid)) //check if admin
 		{
@@ -138,12 +138,12 @@ bot.on('message', message =>
 			{
 				if(chan.type == "text") //make sure the channel is a text channel
 				{
-					chan.messages.fetch(message_id).then(message => setVote(message)).catch(console.error); //try to get the message, if it exists call deleteAndArchive, otherwise catch the error
+					chan.messages.fetch(message_id).then(message => setVote(message)).catch(console.error); //try to get the message, if it exists call setVote, otherwise catch the error
 				}
 			}
 		}
 	}
-	if(message.content.toLowerCase().includes('!banhammer')) //jar code
+	if(message.content.toLowerCase().includes('!banhammer')) //code to set ban hammer
 	{
 		if(message.member.roles.cache.has(babadata.adminid)) //check if admin
 		{
@@ -153,26 +153,26 @@ bot.on('message', message =>
 			{
 				if(chan.type == "text") //make sure the channel is a text channel
 				{
-					chan.messages.fetch(message_id).then(message => setVBH(message)).catch(console.error); //try to get the message, if it exists call deleteAndArchive, otherwise catch the error
+					chan.messages.fetch(message_id).then(message => setVBH(message)).catch(console.error); //try to get the message, if it exists call setVBH, otherwise catch the error
 				}
 			}
 		}
 	}
 });
 
-async function tempoutput(msg, lp)  //temporary output function for testing
-{
-	var t = "";
+//async function tempoutput(msg, lp)  //temporary output function for testing
+//{
+//	var t = "";
+//
+//	for (i = 0; i < lp.length; i++) 
+//	{
+//		t += lp[i] + "\n";
+//	}
+//
+//	msg.channel.send(t);
+//}
 
-	for (i = 0; i < lp.length; i++) 
-	{
-		t += lp[i] + "\n";
-	}
-
-	msg.channel.send(t);
-}
-
-async function setVote(msg)
+async function setVote(msg) //reacts to message with 👍 and 👎 for votes
 {
 	var hiddenChan = msg.guild.channels.cache.get(babadata.logchn); //gets the special archive channel
 	var usr = msg.author; //gets the user that sent the message
@@ -180,16 +180,16 @@ async function setVote(msg)
 	msg.react('👍');
 	msg.react('👎');
 }
-async function setVBH(msg)
+
+async function setVBH(msg) //reacts to message with emoji defined by babadata.emoji (in json file)
 {
 	var hiddenChan = msg.guild.channels.cache.get(babadata.logchn); //gets the special archive channel
 	var usr = msg.author; //gets the user that sent the message
 
-	msg.react(babadata.emoji);
+	msg.react(babadata.emoji); //reply with ban hammer emoji
 }
 
-//archive the message and delete it
-async function deleteAndArchive(msg)
+async function deleteAndArchive(msg) //archive the message and delete it
 {
 	var hiddenChan = msg.guild.channels.cache.get(babadata.logchn); //gets the special archive channel
 	var usr = msg.author; //gets the user that sent the message
@@ -243,7 +243,7 @@ function CheckHoliday(msg) //checks if any of the holiday list is said in the me
 			ct++;
 		}
 	}
-	return retme; //teturns list of holidays asked for
+	return retme; //returns list of holidays asked for
 }
 
 async function DelayedDeletion(hiddenChan, img) //download function used when the delay call is ran
@@ -252,7 +252,7 @@ async function DelayedDeletion(hiddenChan, img) //download function used when th
 	var url = img.url;
 
 	download(url, tempFilePath, () => { //downloads the file to the system at tempfile location
-		console.log('✅ Done!')
+		console.log('Done!')
 	})
 
 	newAttch = new Discord.MessageAttachment().setFile(tempFilePath); //makes a new discord attachment
