@@ -162,8 +162,9 @@ bot.on('message', message =>
 	{
 		if(message.member.roles.cache.has(babadata.adminid)) //check if admin
 		{
-			role_name = message.content //still needs to be formated
-			var message_id = message.content.replace(/\D/g,''); //get message id
+			role_name = message.content.split(' ').slice(0, 2).join(' '); //still needs to be formated
+			var message_id = message.content.replace(role_name,''); //remove role name from string
+			message_id = message_id.replace(/\D/g,''); //get message id
 			var chanMap = message.guild.channels.cache; //get a map of the channelt in the guild
 			for(let [k, chan] of chanMap) //iterate through all the channels
 			{
