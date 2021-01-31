@@ -158,6 +158,22 @@ bot.on('message', message =>
 			}
 		}
 	}
+	if(message.content.toLowerCase().includes('!grole')) //code to set game role
+	{
+		if(message.member.roles.cache.has(babadata.adminid)) //check if admin
+		{
+			role_name = message.content //still needs to be formated
+			var message_id = message.content.replace(/\D/g,''); //get message id
+			var chanMap = message.guild.channels.cache; //get a map of the channelt in the guild
+			for(let [k, chan] of chanMap) //iterate through all the channels
+			{
+				if(chan.type == "text") //make sure the channel is a text channel
+				{
+					chan.messages.fetch(message_id).then(message => setGrole(message, role_name)).catch(console.error); //try to get the message, if it exists call setGrole, otherwise catch the error
+				}
+			}
+		}
+	}
 });
 
 //async function tempoutput(msg, lp)  //temporary output function for testing
@@ -171,7 +187,12 @@ bot.on('message', message =>
 //
 //	msg.channel.send(t);
 //}
-
+async function setGrole(msg, name) //creates role and sets users
+{
+	//create role with permisions
+	//get user list from reacations
+	//set users to role
+}
 async function setVote(msg) //reacts to message with 👍 and 👎 for votes
 {
 	var hiddenChan = msg.guild.channels.cache.get(babadata.logchn); //gets the special archive channel
