@@ -190,9 +190,9 @@ bot.on('message', message =>
 //}
 async function setGrole(msg, name) //creates role and sets users
 {
-	//create role with permisions
+	//create role with no permisions, gray color that can be @ by every one
 	//get user list from reacations
-	//set users to role
+	//give users role
 }
 async function setVote(msg) //reacts to message with 👍 and 👎 for votes
 {
