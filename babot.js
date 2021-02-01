@@ -1,8 +1,8 @@
 var Discord = require('discord.js'); //discord module for interation with discord api
 var babadata = require('./babotdata.json'); //baba configuration file
-let request = require(`request`);
-let fs = require(`fs`);
-var images = require("images");
+let request = require('request'); // not sure what this is used for
+let fs = require('fs'); //file stream used for del fuction
+var images = require("images"); //image manipulation used for the wednesday frogs
 
 // Initialize Discord Bot
 var bot = new Discord.Client();
@@ -31,7 +31,7 @@ bot.on('message', message =>
 {
 	if(message.content.toLowerCase().includes('!baba') && !message.author.bot) //if message contains baba and is not from bot
 	{
-		var text = 'BABA IS ADMIN';
+		var text = 'BABA IS ADMIN'; //start of reply string for responce message.
 		if(message.content.toLowerCase().includes('help')) //reply with help text is baba help
 		{
 			text += '\n use !BABA password to get passwords for servers';
@@ -128,7 +128,7 @@ bot.on('message', message =>
 			}
 		}
 	}
-	if(message.content.toLowerCase().includes('!setvote')) //code to del and move to log
+	if(message.content.toLowerCase().includes('!setvote')) //code to set vote
 	{
 		if(message.member.roles.cache.has(babadata.adminid)) //check if admin
 		{
@@ -138,7 +138,39 @@ bot.on('message', message =>
 			{
 				if(chan.type == "text") //make sure the channel is a text channel
 				{
-					chan.messages.fetch(message_id).then(message => setVote(message)).catch(console.error); //try to get the message, if it exists call deleteAndArchive, otherwise catch the error
+					chan.messages.fetch(message_id).then(message => setVote(message)).catch(console.error); //try to get the message, if it exists call setVote, otherwise catch the error
+				}
+			}
+		}
+	}
+	if(message.content.toLowerCase().includes('!banhammer')) //code to set ban hammer
+	{
+		if(message.member.roles.cache.has(babadata.adminid)) //check if admin
+		{
+			var message_id = message.content.replace(/\D/g,''); //get message id
+			var chanMap = message.guild.channels.cache; //get a map of the channelt in the guild
+			for(let [k, chan] of chanMap) //iterate through all the channels
+			{
+				if(chan.type == "text") //make sure the channel is a text channel
+				{
+					chan.messages.fetch(message_id).then(message => setVBH(message)).catch(console.error); //try to get the message, if it exists call setVBH, otherwise catch the error
+				}
+			}
+		}
+	}
+	if(message.content.toLowerCase().includes('!grole')) //code to set game role
+	{
+		if(message.member.roles.cache.has(babadata.adminid)) //check if admin
+		{
+			role_name = message.content.split(' ').slice(0, 2).join(' ').substring(6).replace(' ',''); //get the name for the role
+			var message_id = message.content.replace(role_name,''); //remove role name from string
+			message_id = message_id.replace(/\D/g,''); //get message id
+			var chanMap = message.guild.channels.cache; //get a map of the channelt in the guild
+			for(let [k, chan] of chanMap) //iterate through all the channels
+			{
+				if(chan.type == "text") //make sure the channel is a text channel
+				{
+					chan.messages.fetch(message_id).then(message => setGrole(message, role_name)).catch(console.error); //try to get the message, if it exists call setGrole, otherwise catch the error
 				}
 			}
 		}
@@ -223,17 +255,52 @@ async function RoleAdd(msg, users, role) //dumb user thing because it is needed 
 
 async function setVote(msg) //reacts to message with 👍 and 👎 for votes
 {
-	var t = "";
-
-	for (i = 0; i < lp.length; i++) 
+	try 
 	{
-		t += lp[i] + "\n";
-	}
+		var role = msg.guild.roles.cache.find(r => r.name === rname); //get the role if already made (in case of redundancy)
+	
+		if (role == null) //if null make new role
+		{
+			console.log("Creating Role + " + rname);
 
-	msg.channel.send(t);
+			//create the role
+			await msg.guild.roles.create({
+				data: {
+				  name: rname
+				},
+				reason: 'bot do bot thing',
+			  }).catch(console.error);
+
+			role = msg.guild.roles.cache.find(r => r.name === rname); //set role to the role that was made
+		}
+
+		var reactMap = msg.reactions.cache; //get a map of the reactions
+		for(let [k, reee] of reactMap) //iterate through all the reactions
+		{
+			reee.users.fetch().then((users) => {
+				RoleAdd(msg, users, role); //call the dumb roll function to do the work (had to be done)
+			}).catch(console.error);
+		}
+		//create role with no permisions, gray color that can be @ by every one
+		//get user list from reacations
+		//give users role
+	} 
+	catch (error) 
+	{
+		console.log("nos"); //if error this goes
+	}
 }
 
-async function setVote(msg)
+async function RoleAdd(msg, users, role) //dumb user thing because it is needed to work
+{
+	for(let [k, uboat] of users) //iterate through all the users
+	{
+		let mem = msg.guild.member(uboat); //check if user is memeber
+		mem.roles.add(role); //add role to user
+	}
+}
+
+async function setVote(msg) //reacts to message with 👍 and 👎 for votes
 {
 	var hiddenChan = msg.guild.channels.cache.get(babadata.logchn); //gets the special archive channel
 	var usr = msg.author; //gets the user that sent the message
@@ -242,8 +309,15 @@ async function setVote(msg)
 	msg.react('👎');
 }
 
-//archive the message and delete it
-async function deleteAndArchive(msg)
+async function setVBH(msg) //reacts to message with emoji defined by babadata.emoji (in json file)
+{
+	var hiddenChan = msg.guild.channels.cache.get(babadata.logchn); //gets the special archive channel
+	var usr = msg.author; //gets the user that sent the message
+
+	msg.react(babadata.emoji); //reply with ban hammer emoji
+}
+
+async function deleteAndArchive(msg) //archive the message and delete it
 {
 	var hiddenChan = msg.guild.channels.cache.get(babadata.logchn); //gets the special archive channel
 	var usr = msg.author; //gets the user that sent the message
@@ -297,7 +371,7 @@ function CheckHoliday(msg) //checks if any of the holiday list is said in the me
 			ct++;
 		}
 	}
-	return retme; //teturns list of holidays asked for
+	return retme; //returns list of holidays asked for
 }
 
 async function DelayedDeletion(hiddenChan, img) //download function used when the delay call is ran
@@ -306,7 +380,7 @@ async function DelayedDeletion(hiddenChan, img) //download function used when th
 	var url = img.url;
 
 	download(url, tempFilePath, () => { //downloads the file to the system at tempfile location
-		console.log('✅ Done!')
+		console.log('Done!')
 	})
 
 	newAttch = new Discord.MessageAttachment().setFile(tempFilePath); //makes a new discord attachment
