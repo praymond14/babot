@@ -175,6 +175,23 @@ bot.on('message', message =>
 			}
 		}
 	}
+	if(message.content.toLowerCase().includes('!grole')) //code to set game role
+	{
+		if(message.member.roles.cache.has(babadata.adminid)) //check if admin
+		{
+			role_name = message.content.split(' ').slice(0, 2).join(' ').substring(6).replace(' ',''); //get the name for the role
+			var message_id = message.content.replace(role_name,''); //remove role name from string
+			message_id = message_id.replace(/\D/g,''); //get message id
+			var chanMap = message.guild.channels.cache; //get a map of the channelt in the guild
+			for(let [k, chan] of chanMap) //iterate through all the channels
+			{
+				if(chan.type == "text") //make sure the channel is a text channel
+				{
+					chan.messages.fetch(message_id).then(message => setGrole(message, role_name)).catch(console.error); //try to get the message, if it exists call setGrole, otherwise catch the error
+				}
+			}
+		}
+	}
 });
 
 //async function tempoutput(msg, lp)  //temporary output function for testing
@@ -190,6 +207,53 @@ bot.on('message', message =>
 //}
 
 async function setGrole(msg, rname) //creates role and sets users
+{
+	try 
+	{
+		var role = msg.guild.roles.cache.find(r => r.name === rname); //get the role if already made (in case of redundancy)
+	
+		if (role == null) //if null make new role
+		{
+			console.log("Creating Role + " + rname);
+
+			//create the role
+			await msg.guild.roles.create({
+				data: {
+				  name: rname
+				},
+				reason: 'bot do bot thing',
+			  }).catch(console.error);
+
+			role = msg.guild.roles.cache.find(r => r.name === rname); //set role to the role that was made
+		}
+
+		var reactMap = msg.reactions.cache; //get a map of the reactions
+		for(let [k, reee] of reactMap) //iterate through all the reactions
+		{
+			reee.users.fetch().then((users) => {
+				RoleAdd(msg, users, role); //call the dumb roll function to do the work (had to be done)
+			}).catch(console.error);
+		}
+		//create role with no permisions, gray color that can be @ by every one
+		//get user list from reacations
+		//give users role
+	} 
+	catch (error) 
+	{
+		console.log("nos"); //if error this goes
+	}
+}
+
+async function RoleAdd(msg, users, role) //dumb user thing because it is needed to work
+{
+	for(let [k, uboat] of users) //iterate through all the users
+	{
+		let mem = msg.guild.member(uboat); //check if user is memeber
+		mem.roles.add(role); //add role to user
+	}
+}
+
+async function setVote(msg) //reacts to message with 👍 and 👎 for votes
 {
 	try 
 	{
