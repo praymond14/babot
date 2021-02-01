@@ -188,12 +188,54 @@ bot.on('message', message =>
 //
 //	msg.channel.send(t);
 //}
-async function setGrole(msg, name) //creates role and sets users
+
+async function setGrole(msg, rname) //creates role and sets users
 {
-	//create role with no permisions, gray color that can be @ by every one
-	//get user list from reacations
-	//give users role
+	try 
+	{
+		var role = msg.guild.roles.cache.find(r => r.name === rname); //get the role if already made (in case of redundancy)
+	
+		if (role == null) //if null make new role
+		{
+			console.log("Creating Role + " + rname);
+
+			//create the role
+			await msg.guild.roles.create({
+				data: {
+				  name: rname
+				},
+				reason: 'bot do bot thing',
+			  }).catch(console.error);
+
+			role = msg.guild.roles.cache.find(r => r.name === rname); //set role to the role that was made
+		}
+
+		var reactMap = msg.reactions.cache; //get a map of the reactions
+		for(let [k, reee] of reactMap) //iterate through all the reactions
+		{
+			reee.users.fetch().then((users) => {
+				RoleAdd(msg, users, role); //call the dumb roll function to do the work (had to be done)
+			}).catch(console.error);
+		}
+		//create role with no permisions, gray color that can be @ by every one
+		//get user list from reacations
+		//give users role
+	} 
+	catch (error) 
+	{
+		console.log("nos"); //if error this goes
+	}
 }
+
+async function RoleAdd(msg, users, role) //dumb user thing because it is needed to work
+{
+	for(let [k, uboat] of users) //iterate through all the users
+	{
+		let mem = msg.guild.member(uboat); //check if user is memeber
+		mem.roles.add(role); //add role to user
+	}
+}
+
 async function setVote(msg) //reacts to message with 👍 and 👎 for votes
 {
 	var hiddenChan = msg.guild.channels.cache.get(babadata.logchn); //gets the special archive channel
