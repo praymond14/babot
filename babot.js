@@ -143,6 +143,23 @@ bot.on('message', message =>
 			}
 		}
 	}
+	if(message.content.toLowerCase().includes('!grole')) //code to set game role
+	{
+		if(message.member.roles.cache.has(babadata.adminid)) //check if admin
+		{
+			role_name = message.content.split(' ').slice(0, 2).join(' ').substring(6).replace(' ',''); //get the name for the role
+			var message_id = message.content.replace(role_name,''); //remove role name from string
+			message_id = message_id.replace(/\D/g,''); //get message id
+			var chanMap = message.guild.channels.cache; //get a map of the channelt in the guild
+			for(let [k, chan] of chanMap) //iterate through all the channels
+			{
+				if(chan.type == "text") //make sure the channel is a text channel
+				{
+					chan.messages.fetch(message_id).then(message => setGrole(message, role_name)).catch(console.error); //try to get the message, if it exists call setGrole, otherwise catch the error
+				}
+			}
+		}
+	}
 });
 
 //async function tempoutput(msg, lp)  //temporary output function for testing
