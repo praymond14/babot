@@ -145,9 +145,6 @@ bot.on('message', message =>
 	}
 });
 
-<<<<<<< Updated upstream
-async function tempoutput(msg, lp)  //temporary output function for testing
-=======
 //async function tempoutput(msg, lp)  //temporary output function for testing
 //{
 //	var t = "";
@@ -159,6 +156,7 @@ async function tempoutput(msg, lp)  //temporary output function for testing
 //
 //	msg.channel.send(t);
 //}
+
 async function setGrole(msg, rname) //creates role and sets users
 {
 	try 
@@ -207,7 +205,6 @@ async function RoleAdd(msg, users, role) //dumb user thing because it is needed 
 }
 
 async function setVote(msg) //reacts to message with 👍 and 👎 for votes
->>>>>>> Stashed changes
 {
 	var t = "";
 
