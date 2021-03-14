@@ -6,16 +6,18 @@ var images = require("images"); //image manipulation used for the wednesday frog
 
 // Initialize Discord Bot
 var bot = new Discord.Client();
-var holidays = [
-	["christmas", 12, 25, 0, 0], 
+const { Console } = require('console');
+/* [ 	["christmas", 12, 25, 0, 0], 
 	["thanksgiving", 11, 0, 4, 4], 
 	["st patrick", 3, 17, 0, 0],
 	["halloween", 10, 31, 0, 0],
 	["new year", 1, 1, 0, 0],
 	["summer solstice", 6, 21, 0, 0],
 	["winter solstice", 12, 21, 0, 0],
-	["valentine", 2, 14, 0, 0]
-]; // ["name", month, day of week, week num, weekday] -- day of week for exact date holiday, week num + weekday for holidays that occur on specific week/day of week
+	["valentine", 2, 14, 0, 0],
+	["easter", 2, 14, 0, 0],
+	["friday", 2, 14, 0, 0]
+]; */ // ["name", month, day of week, week num, weekday] -- day of week for exact date holiday, week num + weekday for holidays that occur on specific week/day of week
 // 0 = Sunday, 1 = Monday ... 6 = Saturday for option 5
 
 bot.login(babadata.token); //login
@@ -41,71 +43,110 @@ bot.on('message', message =>
 			text += '\n' + babadata.pass;
 		}
 
-		var IsHoliday = CheckHoliday(message.content); //get the holidays that are reqested
-
-		if(IsHoliday.length > 0 && message.content.toLowerCase().includes('wednesday')) //reply with password file string if baba password
+		if (message.content.toLowerCase().includes('wednesday') || message.content.toLowerCase().includes('days until'))
 		{
-			for (i = 0; i < IsHoliday.length; i++) //loop through the holidays that are requested
+			let rawdata = fs.readFileSync(babadata.wednesdaylocation + "FrogHolidays/" + 'frogholidays.json'); //load file each time of calling wednesday
+			let holidays = JSON.parse(rawdata);
+	
+			var IsHoliday = CheckHoliday(message.content, holidays); //get the holidays that are reqested
+
+			if(IsHoliday.length > 0) //reply with password file string if baba password
 			{
-				var holidayinfo = holidays[IsHoliday[i]];
-
-				var dateoveride = [false, 12, 26]; //allows for overiding date manually (testing)
-
-				var yr = new Date().getFullYear(); //get this year
-				var dy = dateoveride[0] ? dateoveride[2] : new Date().getDate(); //get this day
-				var my = dateoveride[0] ? dateoveride[1] - 1 : new Date().getMonth(); //get this month
-
-				let d1 = new Date(yr, my, dy); //get today
-
-				let d2 = GetDate(yr, holidayinfo);
-
-				if (d2.getTime() < d1.getTime()) //check if day is post holiday and make next holiday year + 1
-					d2 = GetDate(yr + 1, holidayinfo);
-
-				var dow_d1 = (d1.getDay() + 4) % 7;//get day of week (making wed = 0)
-				var dow_d2 = (d2.getDay() + 4) % 7;//get day of week (making wed = 0)
-
-				let d1_useage = new Date(d1.getFullYear(), d1.getMonth(), 1); //today that has been wednesday shifted
-				let d2_useage = new Date(d2.getFullYear(), d2.getMonth(), 1); //holiday that has been wednesday shifted
-
-				d1_useage.setDate(d1.getDate() - dow_d1);// modify today for wednesdays
-				d2_useage.setDate(d2.getDate() - dow_d2);// modify holiday for wednesdays
-
-				let weeks = Math.abs((d1_useage.getTime() - d2_useage.getTime()) / 3600000 / 24 / 7); // how many weeks
-				
-				if (weeks > 52) //edge case for the day after sometimes being dumb and a week off
-					weeks = 52;
-
-				if (weeks < .3) //for when it is the week before and set to .142
-					weeks = 0;
-
-				var wednesdayoverlay = "Wednesday_Plural.png"; //gets the wednesday portion
-				if (weeks == 1)
-					wednesdayoverlay = "Wednesday_Single.png"; //one week means single info
-
-				var templocal = babadata.wednesdaylocation + "FrogHolidays/"; //creates the output frog image
-
-				var outputname = "outputfrog_" + i + ".png"; //default output name
-				if (d1.getTime() - d2.getTime() == 0)
+				for (i = 0; i < IsHoliday.length; i++) //loop through the holidays that are requested
 				{
-					outputname =  holidayinfo[0] + ".png"; //if today is the event, show something cool
+					var holidayinfo = IsHoliday[i];
+	
+					var dateoveride = [false, 1, 3]; //allows for overiding date manually (testing)
+	
+					var yr = 2021;//new Date().getFullYear(); //get this year
+					var dy = dateoveride[0] ? dateoveride[2] : new Date().getDate(); //get this day
+					var my = dateoveride[0] ? dateoveride[1] - 1 : new Date().getMonth(); //get this month
+	
+					let d1 = new Date(yr, my, dy); //get today
+	
+					let d2 = GetDate(d1, yr, holidayinfo);
+					if (message.content.toLowerCase().includes('days until')) //custom days until text output - for joseph
+					{
+						var diff = Math.abs(d2 - d1); //milliseconds
+						var int = Math.ceil(diff / 1000 / 60/ 60 / 24); //convert to days and round up
+
+						if (int != 0)
+							text += "\n" + int + " Days until " + holidayinfo.safename; //future text
+						
+						if (!message.content.toLowerCase().includes('wednesday') && int != 0) //if no wednesday found, send output
+						{
+							message.channel.send(text);
+							return;
+						}
+					}
+	
+					var dow_d1 = (d1.getDay() + 4) % 7;//get day of week (making wed = 0)
+					var dow_d2 = (d2.getDay() + 4) % 7;//get day of week (making wed = 0)
+	
+					let d1_useage = new Date(d1.getFullYear(), d1.getMonth(), 1); //today that has been wednesday shifted
+					let d2_useage = new Date(d2.getFullYear(), d2.getMonth(), 1); //holiday that has been wednesday shifted
+	
+					d1_useage.setDate(d1.getDate() - dow_d1);// modify today for wednesdays
+					d2_useage.setDate(d2.getDate() - dow_d2);// modify holiday for wednesdays
+	
+					let weeks = Math.abs((d1_useage.getTime() - d2_useage.getTime()) / 3600000 / 24 / 7); // how many weeks
+					
+					if (weeks > 52) //edge case for the day after sometimes being dumb and a week off
+						weeks = 52;
+	
+					if (weeks < .3) //for when it is the week before and set to .142
+						weeks = 0;
+	
+					var wednesdayoverlay = "Wednesday_Plural.png"; //gets the wednesday portion
+					if (weeks == 1)
+						wednesdayoverlay = "Wednesday_Single.png"; //one week means single info
+	
+					var templocal = babadata.wednesdaylocation + "FrogHolidays/"; //creates the output frog image
+	
+	
+					var outputname = "outputfrog_" + i + ".png"; //default output name
+					if (d1.getTime() - d2.getTime() == 0)
+					{
+						outputname =  holidayinfo.name + ".png"; //if today is the event, show something cool
+					}
+					else
+					{
+						weeks = Math.floor(weeks);
+						var base = holidayinfo.name + "_base.png";
+						try 
+						{
+							images(templocal + base) //creates the image using secified overlays
+								.draw(images(templocal + "mydudes.png"), 0, 0)
+								.draw(images(templocal + wednesdayoverlay), 0, 0)
+								.draw(images(templocal + weeks + ".png"), 0, 0)
+								.draw(images(templocal + wednesdayoverlay), 0, 0)
+								.save(templocal + outputname);
+						}
+						catch(err)
+						{
+							images(templocal + "default_base.png") //creates the image using secified overlays (default fail image)
+								.draw(images(templocal + "mydudes.png"), 0, 0)
+								.draw(images(templocal + wednesdayoverlay), 0, 0)
+								.draw(images(templocal + weeks + ".png"), 0, 0)
+								.draw(images(templocal + wednesdayoverlay), 0, 0)
+								.save(templocal + outputname);
+						}
+						
+					}
+					
+					var tempFilePath = templocal + outputname; // temp file location
+	
+					newAttch = new Discord.MessageAttachment().setFile(tempFilePath); //makes a new discord attachment
+					message.channel.send(text, newAttch).catch(error => {
+						newAttch = new Discord.MessageAttachment().setFile(templocal + "error.png"); //makes a new discord attachment (default fail image)
+						message.channel.send(text, newAttch); // send file
+					});
+					text = "";
 				}
-				else
-				{
-					weeks = Math.ceil(weeks);
-					var base = holidayinfo[0] + "_base.png";
-					images(templocal + base) //creates the image using secified overlays
-						.draw(images(templocal + "mydudes.png"), 0, 0)
-						.draw(images(templocal + wednesdayoverlay), 0, 0)
-						.draw(images(templocal + weeks + ".png"), 0, 0)
-						.draw(images(templocal + wednesdayoverlay), 0, 0)
-						.save(templocal + outputname);
-				}
-				
-				var tempFilePath = templocal + outputname; // temp file location 
-				newAttch = new Discord.MessageAttachment().setFile(tempFilePath); //makes a new discord attachment
-				message.channel.send(text, newAttch); // send file
-				text = "";
+			}
+			else
+			{
+				message.channel.send(text + "\nIt is Wednesday, My Dudes");
 			}
 		}
 		else
@@ -342,33 +383,122 @@ async function deleteAndArchive(msg) //archive the message and delete it
 	setTimeout(function(){ msg.delete(); }, waittime); //deletes the og message (delayed for the file transfer)
 }
 
-function GetDate(yr, holidayinfo) //Gets the specified date from the selected holiday at the year provided
+function GetDate(d1, yr, holidayinfo) //Gets the specified date from the selected holiday at the year provided
 {
-	let d2 = new Date();
+	let d2 = new Date(); //new Date
+	switch(holidayinfo.mode)
+	{
+		case 0:
+			d2 = new Date(yr, holidayinfo.month - 1, holidayinfo.day); //get holiday
+			break;
+		case 1:
+			d2 = new Date(yr, holidayinfo.month - 1, 1); //get first of specified month
+			var dtcalc = 1 + (holidayinfo.dayofweek - d2.getDay() - 7) % 7;
+			dtcalc = dtcalc + (7 * holidayinfo.week); //calculate the day of the month
 
-	if(holidayinfo[2] > 0)
-		d2 = new Date(yr, holidayinfo[1] - 1, holidayinfo[2]); //get holiday
-	else
-	{ // gets the holiday for days that are specific weekday events ex: thanksgiving
-		d2 = new Date(yr, holidayinfo[1], 1);
-		var dtcalc = 7 * (holidayinfo[3] - 1);
-		dtcalc = dtcalc + (holidayinfo[4] - ((d2.getDay() + 5) % 7)) + 1;
+			d2 = new Date(yr, holidayinfo.month - 1, dtcalc); //get holiday
+			break;
+		case 2:
+			var sm = d1.getMonth() + 1; //get the month to start on
+			if (d1.getDate() > holidayinfo.day) //add one month if day is past specified day
+				sm++;
 
-		d2 = new Date(yr, holidayinfo[1] - 1, dtcalc);
+			let retd = new Date(d1.getFullYear(), d1.getMonth(), d1.getDate() - 1); //set to day before today
+			for (var i = sm; i <= 12; i++)
+			{
+				let d3 = new Date(yr, i - 1, holidayinfo.day); //get each months specified day
+				if (d3.getDay() == holidayinfo.dayofweek) //check each months specified day is correct DOW
+				{
+					retd = d3; //set day
+					break;
+				}
+			}
+			d2 = retd;
+			break;
+		case 3:
+			var ea = getEaster(yr); //get easter
+			d2 = new Date(yr, ea[0] - 1, ea[1]); //get holiday
+			break;
+		default:
+			console.log(holidayinfo);
 	}
+
+	if (d2.getTime() < d1.getTime()) //check if day is post holiday and make next holiday year + 1
+	{
+		d2 = GetDate(new Date(yr + 1, 0, 1), yr + 1, holidayinfo); //re-call function w/year of next
+	}
+
 	return d2;
 }
 
-function CheckHoliday(msg) //checks if any of the holiday list is said in the message
+function getEaster(year) //Thanks to Jeremy's Link
+{
+	var f = Math.floor,
+		G = year % 19,
+		C = f(year / 100),
+		H = (C - f(C / 4) - f((8 * C + 13)/25) + 19 * G + 15) % 30,
+		I = H - f(H/28) * (1 - f(29/(H + 1)) * f((21-G)/11)),
+		J = (year + f(year / 4) + I + 2 - C + f(C / 4)) % 7,
+		L = I - J,
+		month = 3 + f((L + 40)/44),
+		day = L + 28 - 31 * f(month / 4);
+
+	return [month, day];
+}
+
+function CheckHoliday(msg, holdaylist) //checks if any of the holiday list is said in the message
 {
 	var retme = [];
 	var ct = 0;
-	for (i = 0; i < holidays.length; i++) 
+	for (x in holdaylist) 
 	{
-		if (msg.toLowerCase().includes(holidays[i][0])) //checks if the holiday name is in the message
+		var hol = holdaylist[x];
+		for (i = 0; i < hol.name.length; i++) 
 		{
-			retme[ct] = i; //adds the holidat id to list
-			ct++;
+			if (msg.toLowerCase().includes(hol.name[i].replace("[NY]", new Date().getFullYear() + 1))) //checks if the holiday name is in the message
+			{
+				var item = {};
+				item.name = x; //picture lookup value
+				item.mode = hol.mode; //date calc value
+				item.safename = hol.safename; //display value
+				switch(hol.mode)
+				{
+					case -1: //Nested Holiday
+						var tempret = CheckHoliday(msg, hol.sub) //Check all the subs
+						for (i = 0; i < tempret.length; i++) 
+						{
+							retme[ct] = tempret[i]; //Add items in return list to current returnlist
+							retme[ct].name = item.name + retme[ct].name; //modify name for picture finding
+							retme[ct].safename = retme[ct].safename + " " + item.safename; //display text name modify
+							ct++; //counter add
+						}
+						break;
+					case 0: //Normal Day/Month Item
+						item.day = hol.day;
+						item.month = hol.month;
+						break;
+					case 1: //Day of Week and Week Number per Month - Ex: Thanksgiving
+						item.week = hol.week;
+						item.dayofweek = hol.dayofweek;
+						item.month = hol.month;
+						break;
+					case 2: //Day of Month based on a day of week - Ex: Friday the 13th
+						item.day = hol.day;
+						item.dayofweek = hol.dayofweek;
+						break;
+					case 3: //Easter
+						break;
+					default:
+						console.log(hol);
+				}
+				if (hol.mode != -1)
+				{
+					retme[ct] = item;
+					ct++;
+				}
+
+				break;
+			}
 		}
 	}
 	return retme; //returns list of holidays asked for
