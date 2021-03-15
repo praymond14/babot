@@ -3,6 +3,7 @@ Admin bot for glorious trumpet land<br/>
 BABA IS ADMIN, <br/>
 HANK IS PROGRAMER, <br/>
 ADAM IS PROGRAMER, <br/>
+SAMI IS PROGRAMER, <br/>
 SERVER IS SERVER, <br/>
 JOKE IS OLD, <br/>
 <br/>
