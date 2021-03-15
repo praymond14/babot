@@ -4,6 +4,8 @@ let request = require('request'); // not sure what this is used for
 let fs = require('fs'); //file stream used for del fuction
 var images = require("images"); //image manipulation used for the wednesday frogs
 
+//Nice
+
 // Initialize Discord Bot
 var bot = new Discord.Client();
 const { Console } = require('console');
