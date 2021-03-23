@@ -4,7 +4,12 @@ let request = require('request'); // not sure what this is used for
 let fs = require('fs'); //file stream used for del fuction
 var images = require("images"); //image manipulation used for the wednesday frogs
 
-//Nice
+//To Do:
+/*
+	- Stop Calls to Funciton until images posted! - Sami
+	- Bruh Mode - Ryan
+	- Days until next Wednesday - Isaac
+*/
 
 // Initialize Discord Bot
 var bot = new Discord.Client();
@@ -73,7 +78,12 @@ bot.on('message', message =>
 						var int = Math.ceil(diff / 1000 / 60/ 60 / 24); //convert to days and round up
 
 						if (int != 0)
-							text += "\n" + int + " Days until " + holidayinfo.safename; //future text
+						{
+							if (int == 1)
+								text += "\n" + int + " Day until " + holidayinfo.safename; //future text
+							else
+								text += "\n" + int + " Days until " + holidayinfo.safename; //future text
+						}
 						
 						if (!message.content.toLowerCase().includes('wednesday') && int != 0) //if no wednesday found, send output
 						{
