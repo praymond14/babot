@@ -7,7 +7,7 @@ var images = require("images"); //image manipulation used for the wednesday frog
 //To Do:
 /*
 	- Stop Calls to Funciton until images posted! - Sami
-	- Bruh Mode - Ryan
+	- Bruh Mode? - Ryan
 */
 
 // Initialize Discord Bot
