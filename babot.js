@@ -4,7 +4,11 @@ let request = require('request'); // not sure what this is used for
 let fs = require('fs'); //file stream used for del fuction
 var images = require("images"); //image manipulation used for the wednesday frogs
 
-//Nice
+//To Do:
+/*
+	- Stop Calls to Funciton until images posted! - Sami
+	- Bruh Mode? - Ryan
+*/
 
 // Initialize Discord Bot
 var bot = new Discord.Client();
@@ -49,6 +53,26 @@ bot.on('message', message =>
 		{
 			let rawdata = fs.readFileSync(babadata.wednesdaylocation + "FrogHolidays/" + 'frogholidays.json'); //load file each time of calling wednesday
 			let holidays = JSON.parse(rawdata);
+
+			var dateoveride = [false, 1, 3]; //allows for overiding date manually (testing)
+	
+			var yr = 2021;//new Date().getFullYear(); //get this year
+			var dy = dateoveride[0] ? dateoveride[2] : new Date().getDate(); //get this day
+			var my = dateoveride[0] ? dateoveride[1] - 1 : new Date().getMonth(); //get this month
+
+			let d1 = new Date(yr, my, dy); //get today
+			var dow_d1 = (d1.getDay() + 4) % 7;//get day of week (making wed = 0)
+			let d1_useage = new Date(d1.getFullYear(), d1.getMonth(), 1); //today that has been wednesday shifted
+			d1_useage.setDate(d1.getDate() - dow_d1);// modify today for wednesdays
+
+			if (message.content.toLowerCase().includes('days until next wednesday'))
+			{
+				var ct = 7 - dow_d1;
+				if (ct == 1)
+					text += "\nIt is only " + ct + " day until the next Wednesday!"
+				else
+					text += "\nIt is only " + ct + " days until the next Wednesday!"
+			}
 	
 			var IsHoliday = CheckHoliday(message.content, holidays); //get the holidays that are reqested
 
@@ -58,14 +82,6 @@ bot.on('message', message =>
 				{
 					var holidayinfo = IsHoliday[i];
 	
-					var dateoveride = [false, 1, 3]; //allows for overiding date manually (testing)
-	
-					var yr = 2021;//new Date().getFullYear(); //get this year
-					var dy = dateoveride[0] ? dateoveride[2] : new Date().getDate(); //get this day
-					var my = dateoveride[0] ? dateoveride[1] - 1 : new Date().getMonth(); //get this month
-	
-					let d1 = new Date(yr, my, dy); //get today
-	
 					let d2 = GetDate(d1, yr, holidayinfo);
 					if (message.content.toLowerCase().includes('days until')) //custom days until text output - for joseph
 					{
@@ -73,7 +89,12 @@ bot.on('message', message =>
 						var int = Math.ceil(diff / 1000 / 60/ 60 / 24); //convert to days and round up
 
 						if (int != 0)
-							text += "\n" + int + " Days until " + holidayinfo.safename; //future text
+						{
+							if (int == 1)
+								text += "\n" + int + " Day until " + holidayinfo.safename; //future text
+							else
+								text += "\n" + int + " Days until " + holidayinfo.safename; //future text
+						}
 						
 						if (!message.content.toLowerCase().includes('wednesday') && int != 0) //if no wednesday found, send output
 						{
@@ -82,13 +103,8 @@ bot.on('message', message =>
 						}
 					}
 	
-					var dow_d1 = (d1.getDay() + 4) % 7;//get day of week (making wed = 0)
 					var dow_d2 = (d2.getDay() + 4) % 7;//get day of week (making wed = 0)
-	
-					let d1_useage = new Date(d1.getFullYear(), d1.getMonth(), 1); //today that has been wednesday shifted
 					let d2_useage = new Date(d2.getFullYear(), d2.getMonth(), 1); //holiday that has been wednesday shifted
-	
-					d1_useage.setDate(d1.getDate() - dow_d1);// modify today for wednesdays
 					d2_useage.setDate(d2.getDate() - dow_d2);// modify holiday for wednesdays
 	
 					let weeks = Math.abs((d1_useage.getTime() - d2_useage.getTime()) / 3600000 / 24 / 7); // how many weeks
@@ -104,7 +120,6 @@ bot.on('message', message =>
 						wednesdayoverlay = "Wednesday_Single.png"; //one week means single info
 	
 					var templocal = babadata.wednesdaylocation + "FrogHolidays/"; //creates the output frog image
-	
 	
 					var outputname = "outputfrog_" + i + ".png"; //default output name
 					if (d1.getTime() - d2.getTime() == 0)
@@ -148,7 +163,10 @@ bot.on('message', message =>
 			}
 			else
 			{
-				message.channel.send(text + "\nIt is Wednesday, My Dudes");
+				if (text.includes('Wednesday'))
+					message.channel.send(text);
+				else
+					message.channel.send(text + "\nIt is Wednesday, My Dudes");
 			}
 		}
 		else
