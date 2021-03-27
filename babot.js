@@ -1,6 +1,7 @@
 var Discord = require('discord.js'); //discord module for interation with discord api
 var babadata = require('./babotdata.json'); //baba configuration file
-let request = require('request'); // not sure what this is used for
+//let request = require('request'); // not sure what this is used for //depricated
+var request = require ('node-fetch');
 let fs = require('fs'); //file stream used for del fuction
 var images = require("images"); //image manipulation used for the wednesday frogs
 
@@ -376,12 +377,12 @@ async function deleteAndArchive(msg) //archive the message and delete it
 		setTimeout(function()
 		{ 
 			DelayedDeletion(hiddenChan, img); //download the image and reupload it
-		}, 3000 * icount); //delayed so all images can get loaded
+		}, 4000 * icount); //delayed so all images can get loaded
 
 		icount ++;
 	}
 
-	var waittime = icount == 0 ? 0 : 2000 + (2000 * icount);
+	var waittime = icount == 0 ? 0 : 3000 + (4000 * icount);
 
 	setTimeout(function(){ msg.delete(); }, waittime); //deletes the og message (delayed for the file transfer)
 }
@@ -518,18 +519,28 @@ async function DelayedDeletion(hiddenChan, img) //download function used when th
 
 	newAttch = new Discord.MessageAttachment().setFile(tempFilePath); //makes a new discord attachment
 
-	setTimeout(function(){ hiddenChan.send("", newAttch); }, 1000); //sends the attachment (delayed by 1 sec to allow for download)
+	setTimeout(function(){ hiddenChan.send("", newAttch); }, 2000); //sends the attachment (delayed by 1 sec to allow for download)
 
-	setTimeout(function(){ fs.unlinkSync(tempFilePath); }, 2000); //deletes file from local system (delayed by 3 sec to allow for download and upload)
+	setTimeout(function(){ fs.unlinkSync(tempFilePath); }, 3000); //deletes file from local system (delayed by 3 sec to allow for download and upload)
 }
 
-const download = (url, path, callback) => { //download function
-	request.head(url, (err, res, body) => {
-	  request(url)
-		.pipe(fs.createWriteStream(path))
-		.on('close', callback)
-	})
-  }
+//const download = (url, path, callback) => { //download function //depricated
+//	request.head(url, (err, res, body) => {
+//	  request(url)
+//		.pipe(fs.createWriteStream(path))
+//		.on('close', callback)
+//	})
+//  }
+
+const download = (url, path, callback) => 
+{ //download function
+    request(url)
+        .then(res => {
+            const dest = fs.createWriteStream(path);
+            res.body.pipe(dest);
+    });
+}
+
   
 //not shure what this does also but it was in jeremy's code so
 var cleanupFn = function cleanup() 
