@@ -4,16 +4,22 @@ var babadata = require('./babotdata.json'); //baba configuration file
 var request = require ('node-fetch');
 let fs = require('fs'); //file stream used for del fuction
 var images = require("images"); //image manipulation used for the wednesday frogs
+var Jimp = require("jimp"); //image ability to add text
+
+const options = { year: 'numeric', month: 'long', day: 'numeric' }; // for date parsing to string
 
 //To Do:
 /*
 	- Stop Calls to Funciton until images posted! - Sami
 	- Bruh Mode? - Ryan
+	- Every Day Options - Exclude 7/4 and 5/5
+	- Expand Frogs to be more than 52 weeks
 */
 
 // Initialize Discord Bot
 var bot = new Discord.Client();
 const { Console } = require('console');
+const { SSL_OP_SSLEAY_080_CLIENT_DH_BUG } = require('constants');
 /* [ 	["christmas", 12, 25, 0, 0], 
 	["thanksgiving", 11, 0, 4, 4], 
 	["st patrick", 3, 17, 0, 0],
@@ -76,9 +82,14 @@ bot.on('message', message =>
 			}
 	
 			var IsHoliday = CheckHoliday(message.content, holidays); //get the holidays that are reqested
-
+			var IsDate = FindDate(IsHoliday, message.content);
+			
+			if (IsDate != null)
+				IsHoliday.push(IsDate);
+			
 			if(IsHoliday.length > 0) //reply with password file string if baba password
 			{
+				var templocationslist = [];
 				for (i = 0; i < IsHoliday.length; i++) //loop through the holidays that are requested
 				{
 					var holidayinfo = IsHoliday[i];
@@ -86,8 +97,7 @@ bot.on('message', message =>
 					let d2 = GetDate(d1, yr, holidayinfo);
 					if (message.content.toLowerCase().includes('days until')) //custom days until text output - for joseph
 					{
-						var diff = Math.abs(d2 - d1); //milliseconds
-						var int = Math.ceil(diff / 1000 / 60/ 60 / 24); //convert to days and round up
+						var int = dateDiffInDays(d1, d2); //convert to days difference
 
 						if (int != 0)
 						{
@@ -110,9 +120,6 @@ bot.on('message', message =>
 	
 					let weeks = Math.abs((d1_useage.getTime() - d2_useage.getTime()) / 3600000 / 24 / 7); // how many weeks
 					
-					if (weeks > 52) //edge case for the day after sometimes being dumb and a week off
-						weeks = 52;
-	
 					if (weeks < .3) //for when it is the week before and set to .142
 						weeks = 0;
 	
@@ -126,41 +133,60 @@ bot.on('message', message =>
 					if (d1.getTime() - d2.getTime() == 0)
 					{
 						outputname =  holidayinfo.name + ".png"; //if today is the event, show something cool
+
+						if (holidayinfo.name == "date")
+						{
+							images(templocal + outputname).save(templocal + "outputfrog_0.png");
+
+							Jimp.read(templocal + outputname)
+								.then(function (image) {
+									loadedImage = image;
+									return Jimp.loadFont(Jimp.FONT_SANS_32_BLACK);
+								})
+								.then(function (font) {
+									loadedImage.print(font, 190, 20, holidayinfo.safename)
+											.write(templocal + "outputfrog_0.png");
+								})
+								.catch(function (err) {
+									console.error(err);
+								});
+
+							outputname = "outputfrog_0.png";
+						}
 					}
 					else
 					{
 						weeks = Math.floor(weeks);
 						var base = holidayinfo.name + "_base.png";
+
 						try 
 						{
-							images(templocal + base) //creates the image using secified overlays
-								.draw(images(templocal + "mydudes.png"), 0, 0)
-								.draw(images(templocal + wednesdayoverlay), 0, 0)
-								.draw(images(templocal + weeks + ".png"), 0, 0)
-								.draw(images(templocal + wednesdayoverlay), 0, 0)
-								.save(templocal + outputname);
+							MakeImage(templocal, base, wednesdayoverlay, weeks, outputname, holidayinfo);
 						}
 						catch(err)
 						{
-							images(templocal + "default_base.png") //creates the image using secified overlays (default fail image)
-								.draw(images(templocal + "mydudes.png"), 0, 0)
-								.draw(images(templocal + wednesdayoverlay), 0, 0)
-								.draw(images(templocal + weeks + ".png"), 0, 0)
-								.draw(images(templocal + wednesdayoverlay), 0, 0)
-								.save(templocal + outputname);
+							MakeImage(templocal, "default_base.png", wednesdayoverlay, weeks, outputname, holidayinfo);
 						}
 						
 					}
 					
 					var tempFilePath = templocal + outputname; // temp file location
-	
-					newAttch = new Discord.MessageAttachment().setFile(tempFilePath); //makes a new discord attachment
-					message.channel.send(text, newAttch).catch(error => {
-						newAttch = new Discord.MessageAttachment().setFile(templocal + "error.png"); //makes a new discord attachment (default fail image)
-						message.channel.send(text, newAttch); // send file
-					});
+					templocationslist.push(tempFilePath);
+
 					text = "";
 				}
+
+				setTimeout(function()
+				{ 
+					for (var j = 0; j < templocationslist.length; j++)
+					{
+						newAttch = new Discord.MessageAttachment().setFile(templocationslist[j]); //makes a new discord attachment
+						message.channel.send(text, newAttch).catch(error => {
+							newAttch = new Discord.MessageAttachment().setFile(templocal + "error.png"); //makes a new discord attachment (default fail image)
+							message.channel.send(text, newAttch); // send file
+						});
+					}
+				}, 500);
 			}
 			else
 			{
@@ -392,7 +418,14 @@ function GetDate(d1, yr, holidayinfo) //Gets the specified date from the selecte
 	let d2 = new Date(); //new Date
 	switch(holidayinfo.mode)
 	{
+		case 5:
+			if (holidayinfo.year)
+			{
+				yr = holidayinfo.year;
+				holidayinfo.year = 0;
+			}
 		case 0:
+			//console.log(yr);
 			d2 = new Date(yr, holidayinfo.month - 1, holidayinfo.day); //get holiday
 			break;
 		case 1:
@@ -427,12 +460,71 @@ function GetDate(d1, yr, holidayinfo) //Gets the specified date from the selecte
 			console.log(holidayinfo);
 	}
 
+	if (holidayinfo.day != d2.getDate())
+	{
+		d2 = GetDate(new Date(yr + 1, 0, 1), yr + 1, holidayinfo); //re-call function w/year of next
+	}
+
 	if (d2.getTime() < d1.getTime()) //check if day is post holiday and make next holiday year + 1
 	{
 		d2 = GetDate(new Date(yr + 1, 0, 1), yr + 1, holidayinfo); //re-call function w/year of next
 	}
 
+	if (holidayinfo.name == "date")
+		holidayinfo.safename = d2.toLocaleDateString('en-US', options); //display value
+
 	return d2;
+}
+
+function MakeImage(templocal, base, wednesdayoverlay, weeks, outputname, holidayinfo) //Image Creation is now function
+{
+	var bonus = 0;
+
+	if (weeks > 100) //set bonus val and reset weeks to between 1 - 100
+	{
+		bonus = Math.floor(weeks / 100);
+		weeks = weeks % 100;
+	}
+
+	var im = images(templocal + base) //creates the image using secified overlays
+		.draw(images(templocal + "mydudes.png"), 0, 0)
+		.draw(images(templocal + wednesdayoverlay), 0, 0);
+
+	if (!(bonus > 0 && weeks == 0)) //if weeks is 0 and bonus is real - no printing zero
+	{
+		im = im.draw(images(templocal + weeks + ".png"), 0, 0)
+			   .draw(images(templocal + wednesdayoverlay), 0, 0);
+	}
+
+	var res = BonusGenerator(bonus, im, templocal, weeks, 1, (weeks == 0 ? 0 : 1));
+	im = res[0];
+	var textlocal = res[1];
+
+	im.save(templocal + outputname); //save the image
+
+	if (holidayinfo.name == "date") //overide the image with text if a date
+	{
+		Jimp.read(templocal + outputname)
+			.then(function (image) {
+				loadedImage = image;
+				return Jimp.loadFont(Jimp.FONT_SANS_32_BLACK);
+			})
+			.then(function (font) {
+				loadedImage.print(font, 90, textlocal, holidayinfo.safename)
+						.write(templocal + outputname);
+			})
+			.catch(function (err) {
+				console.error(err);
+			});
+	}
+}
+
+function dateDiffInDays(a, b) //helper function that does DST helping conversions
+{
+  const utc1 = Date.UTC(a.getFullYear(), a.getMonth(), a.getDate());
+  const utc2 = Date.UTC(b.getFullYear(), b.getMonth(), b.getDate());
+
+  return Math.floor((utc2 - utc1) / (1000 * 60 * 60 * 24));
 }
 
 function getEaster(year) //Thanks to Jeremy's Link
@@ -450,6 +542,214 @@ function getEaster(year) //Thanks to Jeremy's Link
 	return [month, day];
 }
 
+function FindDate(holidaysfound, message) //Not Thanks to Jeremy's Link
+{
+	var outps = message.replace("!baba", "") //there is no point to this, i did it because i wanted too
+		.replace("wednesday", "")
+		.replace("days", "")
+		.replace("until", "")
+		.replace("next", "")
+		.split(" ");
+
+	var day = 0;
+	var month = 0;
+	var year = 0;
+
+	for (i = 0; i < outps.length; i++)  //loop all the text
+	{
+		var item = outps[i];
+		if (month == 0) //set month to a detected month
+		{
+			if (item == "")
+				month = 0;
+			else if ("january".includes(item))
+				month = 1;
+			else if ("february".includes(item))
+				month = 2;
+			else if ("march".includes(item))
+				month = 3;
+			else if ("april".includes(item))
+				month = 4;
+			else if ("may".includes(item))
+				month = 5;
+			else if ("june".includes(item))
+				month = 6;
+			else if ("july".includes(item))
+				month = 7;
+			else if ("august".includes(item))
+				month = 8;
+			else if ("september".includes(item))
+				month = 9;
+			else if ("october".includes(item))
+				month = 10;
+			else if ("november".includes(item))
+				month = 11;
+			else if ("december".includes(item))
+				month = 12;
+		}
+
+		if (day == 0) //set year to first day
+		{
+			var iv = parseInt(item);
+			if (iv <= 31)
+			{
+				day = iv;
+			}
+		}
+
+		if (year == 0) //set year to first year found
+		{
+			var iv = parseInt(item);
+			if (iv >= new Date().getFullYear())
+			{
+				year = iv;
+			}
+		}
+	}
+
+	var months = [ //Another lookup table - Hank likes these :)
+		[29, 2],
+		[30, 4, 6, 9, 11]
+	]
+
+	for (i = 0; i < months.length; i++) 
+	{
+		var limit = months[i][0]; //limit moth checker
+		for (j = 1; j < months[i].length; j++) 
+		{
+			if (months[i][j] == month) //month checked = motnh got
+			{
+				if (day > limit)
+					return null;
+			}
+		}
+	}
+
+	if (month == 0)
+		return null;
+
+	if (day == 0)
+		return null;
+
+	if (year == 0)
+		year = new Date().getFullYear();
+
+	var item = {};
+	item.name = "date"; //picture lookup value
+	item.mode = 5; //date calc value
+
+	item.day = day;
+	item.month = month;
+	item.year = year;
+
+	return item;
+}
+
+function BonusGenerator(bonus, im, templocal, weeks, ct, ln) //for more than 100 weeks
+{
+	var mult = (40 * ln); //for text output
+	var textlocal = 93 + mult - 38; //numbwr
+
+	var kip = false; // for skiping the image being printed
+
+	if (bonus > 0) //creates images for more than 100 weeks
+	{
+		var bonusbonus = 0; //new bonus value
+
+		var invisbonus = false; //for 1000 line only
+		var max = ct == 3 ? 100 : 10; //check if over 1K
+
+		if (bonus >= max) //new values coming soon
+		{
+			bonusbonus = Math.floor(bonus / max); //calc bonus for next set
+			bonus = bonus % max; //current bonus is less than max now
+			if (bonus == 0 && ct != 2) //for skiping
+			{
+				kip = true;
+			}
+		}
+
+		if (ct == 2 && bonus == 0) //make sure 1000 is printed
+		{
+			invisbonus = true;
+			bonus = 1;
+		}
+
+		if (!kip) //not skipped
+		{
+			textlocal += 38; //move down text
+			var ni = images(427, 512 + mult); //new imgre
+		
+			var h = Math.pow(10, (ct + 1) % 4) * bonus; // value of the image
+			
+			if (h > 1000)
+				h = 1000;
+
+			var whitenm = "White" + GetWhite(Math.pow(100, (ct - 1) % 4) * weeks) + ".png"; //white overaly because otherwise there will be 1000 image
+			
+			if (ct != 3 && weeks != 0) //only block white on values where last line wasnt 1000
+				im.draw(images(templocal + whitenm), 0, 0);
+
+			ni.draw(images(templocal + h + ".png"), 0, 0) //make new image with hundred mult and old image
+				.draw(im, 0, (ln == 0 ? 0 : 40)) // redraw img
+				.draw(images(templocal + h + ".png"), 0, 0);//make new image with hundred mult and old image
+			
+			if (ln != 0)
+				ni.draw(images(templocal + "TopWhite.png"), 0, 0);//get rid of black spots
+		
+			im = ni;
+		}
+
+		if (invisbonus) //reset bonus so no ecxtra 1 is printed
+			bonus = 0;
+
+		if (ct == 2) //push value through on 1000's
+		{
+			bonusbonus = (bonusbonus * 10) + bonus;
+		}
+
+		var res = BonusGenerator(bonusbonus, im, templocal, (kip ? weeks : bonus), (ct == 3 ? ct + 2 : ct + 1), ln + (kip ? 0 : 1)); //do it again
+		
+		im = res[0];
+		textlocal = res[1];
+
+		return [im, textlocal]; //return textlocal for text spot and image
+	}
+	else return [im, textlocal]; //return textlocal for text spot and image
+}
+
+function GetWhite(weekct) //For frogs more than 100 weeks; "Retarded Lookup Table" - Hank 2021
+{
+	var wites = [
+		["1", 0,1,2,4,5,6,9,10], 
+		["2", 3,8],
+		["3", 7,11,12,14,15,16,18,19],
+		["4", 13,17,20],
+		["5", 21,22,23,24,25,26,28,29,31,32,33,34,35,37,38,39],
+		["6", 27],
+		["7", 30,40,50,60,70,80,90],
+		["8", 36,41,42,43,44,45,46,47,48,49,
+				 51,52,53,54,55,56,57,58,59,
+				 61,62,63,64,65,66,67,68,69,
+				 71,72,73,74,75,76,77,78,79,
+				 81,82,83,84,85,86,87,88,89,
+				 91,92,93,94,95,96,97,98,99],
+		["9", 100,200,300,400,500,600,700,800,900]
+	]; // for more than 100 week
+
+	for (i = 0; i < wites.length; i++) 
+	{
+		var retme = wites[i][0]; //white value
+		for (j = 0; j < wites[i].length; j++) 
+		{
+			if (wites[i][j] == weekct) //check for the day in list
+				return retme;
+		}
+	}
+
+	return "8";
+}
+
 function CheckHoliday(msg, holdaylist) //checks if any of the holiday list is said in the message
 {
 	var retme = [];
@@ -465,6 +765,7 @@ function CheckHoliday(msg, holdaylist) //checks if any of the holiday list is sa
 				item.name = x; //picture lookup value
 				item.mode = hol.mode; //date calc value
 				item.safename = hol.safename; //display value
+				item.ignoredays = hol.ignoredays; //for days with custom images
 				switch(hol.mode)
 				{
 					case -1: //Nested Holiday
