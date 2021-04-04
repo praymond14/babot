@@ -161,11 +161,11 @@ bot.on('message', message =>
 
 						try 
 						{
-							MakeImage(templocal, base, wednesdayoverlay, weeks, outputname, holidayinfo);
+							MakeImage(templocal, base, wednesdayoverlay, weeks, outputname, holidayinfo, false);
 						}
 						catch(err)
 						{
-							MakeImage(templocal, "default_base.png", wednesdayoverlay, weeks, outputname, holidayinfo);
+							MakeImage(templocal, "date_base.png", wednesdayoverlay, weeks, outputname, holidayinfo, true);
 						}
 						
 					}
@@ -460,7 +460,7 @@ function GetDate(d1, yr, holidayinfo) //Gets the specified date from the selecte
 			console.log(holidayinfo);
 	}
 
-	if (holidayinfo.day != d2.getDate())
+	if (holidayinfo.name == "date" && holidayinfo.day != d2.getDate())
 	{
 		d2 = GetDate(new Date(yr + 1, 0, 1), yr + 1, holidayinfo); //re-call function w/year of next
 	}
@@ -476,7 +476,7 @@ function GetDate(d1, yr, holidayinfo) //Gets the specified date from the selecte
 	return d2;
 }
 
-function MakeImage(templocal, base, wednesdayoverlay, weeks, outputname, holidayinfo) //Image Creation is now function
+function MakeImage(templocal, base, wednesdayoverlay, weeks, outputname, holidayinfo, textoverlay) //Image Creation is now function
 {
 	var bonus = 0;
 
@@ -502,7 +502,7 @@ function MakeImage(templocal, base, wednesdayoverlay, weeks, outputname, holiday
 
 	im.save(templocal + outputname); //save the image
 
-	if (holidayinfo.name == "date") //overide the image with text if a date
+	if (holidayinfo.name == "date" || textoverlay) //overide the image with text if a date
 	{
 		Jimp.read(templocal + outputname)
 			.then(function (image) {
@@ -510,7 +510,7 @@ function MakeImage(templocal, base, wednesdayoverlay, weeks, outputname, holiday
 				return Jimp.loadFont(Jimp.FONT_SANS_32_BLACK);
 			})
 			.then(function (font) {
-				loadedImage.print(font, 90, textlocal, holidayinfo.safename)
+				loadedImage.print(font, textoverlay ? 50 : 90, textlocal, holidayinfo.safename, textoverlay ? 367 : 0)
 						.write(templocal + outputname);
 			})
 			.catch(function (err) {
