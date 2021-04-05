@@ -93,6 +93,9 @@ bot.on('message', message =>
 				{
 					var holidayinfo = IsHoliday[i];
 	
+					if (holidayinfo.name != "date" && holidayinfo.year)
+						yr = holidayinfo.year;
+
 					let d2 = GetDate(d1, yr, holidayinfo);
 					if (message.content.toLowerCase().includes('days until')) //custom days until text output - for joseph
 					{
@@ -482,6 +485,7 @@ function GetDate(d1, yr, holidayinfo) //Gets the specified date from the selecte
 function MakeImage(templocal, base, wednesdayoverlay, weeks, outputname, holidayinfo, textoverlay) //Image Creation is now function
 {
 	var bonus = 0;
+	var yeartop = holidayinfo.year && holidayinfo.name != "date" ? true : false;
 
 	if (weeks > 100) //set bonus val and reset weeks to between 1 - 100
 	{
@@ -505,7 +509,7 @@ function MakeImage(templocal, base, wednesdayoverlay, weeks, outputname, holiday
 
 	im.save(templocal + outputname); //save the image
 
-	if (holidayinfo.name == "date" || textoverlay) //overide the image with text if a date
+	if (holidayinfo.name == "date" || textoverlay || yeartop) //overide the image with text if a date
 	{
 		Jimp.read(templocal + outputname)
 			.then(function (image) {
@@ -513,8 +517,12 @@ function MakeImage(templocal, base, wednesdayoverlay, weeks, outputname, holiday
 				return Jimp.loadFont(Jimp.FONT_SANS_32_BLACK);
 			})
 			.then(function (font) {
-				loadedImage.print(font, textoverlay ? 50 : 90, textlocal, holidayinfo.safename, textoverlay ? 367 : 467)
-						.write(templocal + outputname);
+				loadedImage.print(font, 
+								  yeartop ? 10 : (textoverlay ? 50 : 90),
+								  textlocal + (yeartop ? 35 : 0),
+								  yeartop ? holidayinfo.year : holidayinfo.safename,
+								  textoverlay ? 367 : 467)
+								  .write(templocal + outputname);
 			})
 			.catch(function (err) {
 				console.error(err);
@@ -769,6 +777,26 @@ function CheckHoliday(msg, holdaylist) //checks if any of the holiday list is sa
 				item.mode = hol.mode; //date calc value
 				item.safename = hol.safename; //display value
 				item.ignoredays = hol.ignoredays; //for days with custom images
+
+				var outps = msg.toLowerCase().split(" ");
+
+				var year = 0;
+				for (i = 0; i < outps.length; i++)
+				{
+					var block = outps[i];
+					if (year == 0) //set year to first year found
+					{
+						var iv = parseInt(block);
+						if (iv > new Date().getFullYear())
+						{
+							year = iv;
+						}
+					}
+				}
+
+				if (year != 0)
+					item.year = year;
+
 				switch(hol.mode)
 				{
 					case -1: //Nested Holiday
