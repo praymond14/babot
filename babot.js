@@ -467,7 +467,13 @@ function GetDate(d1, yr, holidayinfo) //Gets the specified date from the selecte
 
 	if (d2.getTime() < d1.getTime()) //check if day is post holiday and make next holiday year + 1
 	{
-		d2 = GetDate(new Date(yr + 1, 0, 1), yr + 1, holidayinfo); //re-call function w/year of next
+		if (holidayinfo.mode == 3)
+		{
+			var ea = getEaster(yr + 1); //get easter
+			d2 = new Date(yr + 1, ea[0] - 1, ea[1]); //get holiday
+		}
+		else
+			d2 = GetDate(new Date(yr + 1, 0, 1), yr + 1, holidayinfo); //re-call function w/year of next
 	}
 
 	if (holidayinfo.name == "date")
@@ -510,7 +516,7 @@ function MakeImage(templocal, base, wednesdayoverlay, weeks, outputname, holiday
 				return Jimp.loadFont(Jimp.FONT_SANS_32_BLACK);
 			})
 			.then(function (font) {
-				loadedImage.print(font, textoverlay ? 50 : 90, textlocal, holidayinfo.safename, textoverlay ? 367 : 0)
+				loadedImage.print(font, textoverlay ? 50 : 90, textlocal, holidayinfo.safename, textoverlay ? 367 : 467)
 						.write(templocal + outputname);
 			})
 			.catch(function (err) {
@@ -544,7 +550,7 @@ function getEaster(year) //Thanks to Jeremy's Link
 
 function FindDate(holidaysfound, message) //Not Thanks to Jeremy's Link
 {
-	var outps = message.replace("!baba", "") //there is no point to this, i did it because i wanted too
+	var outps = message.toLowerCase().replace("!baba", "") //there is no point to this, i did it because i wanted too
 		.replace("wednesday", "")
 		.replace("days", "")
 		.replace("until", "")
