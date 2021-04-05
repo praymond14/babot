@@ -12,8 +12,6 @@ const options = { year: 'numeric', month: 'long', day: 'numeric' }; // for date 
 /*
 	- Stop Calls to Funciton until images posted! - Sami
 	- Bruh Mode? - Ryan
-	- Every Day Options - Exclude 7/4 and 5/5
-	- Expand Frogs to be more than 52 weeks
 */
 
 // Initialize Discord Bot
@@ -90,6 +88,7 @@ bot.on('message', message =>
 			if(IsHoliday.length > 0) //reply with password file string if baba password
 			{
 				var templocationslist = [];
+
 				for (i = 0; i < IsHoliday.length; i++) //loop through the holidays that are requested
 				{
 					var holidayinfo = IsHoliday[i];
@@ -113,7 +112,7 @@ bot.on('message', message =>
 							return;
 						}
 					}
-	
+
 					var dow_d2 = (d2.getDay() + 4) % 7;//get day of week (making wed = 0)
 					let d2_useage = new Date(d2.getFullYear(), d2.getMonth(), 1); //holiday that has been wednesday shifted
 					d2_useage.setDate(d2.getDate() - dow_d2);// modify holiday for wednesdays
@@ -172,8 +171,6 @@ bot.on('message', message =>
 					
 					var tempFilePath = templocal + outputname; // temp file location
 					templocationslist.push(tempFilePath);
-
-					text = "";
 				}
 
 				setTimeout(function()
