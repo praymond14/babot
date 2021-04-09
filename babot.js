@@ -426,6 +426,12 @@ function GetDate(d1, yr, holidayinfo) //Gets the specified date from the selecte
 			}
 		case 0:
 			//console.log(yr);
+			if (holidayinfo.month == 0)
+				holidayinfo.month = 1;
+
+			if (holidayinfo.day == 0)
+				holidayinfo.day = 1;
+
 			d2 = new Date(yr, holidayinfo.month - 1, holidayinfo.day); //get holiday
 			break;
 		case 1:
