@@ -13,7 +13,7 @@ dependencies <br/>
 ~forever : npm install forever -g <br/>
 ~images : npm install images <br/>
 ~node-fetch : npm install node-fetch<br/>
-jimp : npm install jimp<br>
+~jimp : npm install jimp<br>
 to start <br/>
 ~forever start babot.js <br/>
 ~setting up babotdata.json
