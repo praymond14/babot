@@ -54,21 +54,51 @@ bot.on('message', message =>
 			text += '\n' + babadata.pass;
 		}
 
+		var dateoveride = [true, 5, 2]; //allows for overiding date manually (testing)
+
+		var yr = 2021;//new Date().getFullYear(); //get this year
+		var dy = dateoveride[0] ? dateoveride[2] : new Date().getDate(); //get this day
+		var my = dateoveride[0] ? dateoveride[1] - 1 : new Date().getMonth(); //get this month
+
+		if (message.content.toLowerCase().includes('flag') && (message.content.toLowerCase().includes('night shift') || message.content.toLowerCase().includes('vibe time')))
+		{
+			d1 = new Date(yr, my, dy) //todayish
+			text += " AND VIBE TIME";; //V I B E  T I M E
+			let d1_useage = new Date(d1.getFullYear(), d1.getMonth(), 1); //today that has been wednesday shifted
+			d1_useage.setDate(d1.getDate() - d1.getDay()); //modify today for wed
+
+			d1_useage.setDate(d1_useage.getDate() + (d1_useage.getMonth() % 7)); //modify today for wed
+
+			var seed = (d1_useage.getDate() % 9) + (d1_useage.getMonth() % 5); //seeds are cool
+
+			var locals = [ //another thing hank doesnt like, but it is needed
+				[0,1,2,3,4,5,6],
+				[6,5,4,3,2,1,0], 
+				[1,3,5,0,2,4,6],
+				[0,2,4,6,5,3,1],
+				[0,4,5,1,2,6,2],
+				[5,6,1,4,3,2,0],
+				[4,0,6,2,1,5,3]
+			]
+
+			var sood = locals[seed % 7][(d1.getDay() + d1_useage.getDate()) % 7]; // "the mommy number and daddy numbers get drunk and invite cousins" - Caden 2021
+			
+			newAttch = new Discord.MessageAttachment().setFile(babadata.datalocation + "Flags/" + "Night_Shift_" + sood + ".png"); //makes a new discord attachment
+			message.channel.send("", newAttch).catch(error => {
+				newAttch = new Discord.MessageAttachment().setFile(babadata.datalocation + "Flags/" + "error.png"); //makes a new discord attachment (default fail image)
+				message.channel.send(text, newAttch); // send file
+			});
+		}
+
 		if (message.content.toLowerCase().includes('wednesday') || message.content.toLowerCase().includes('days until'))
 		{
-			let rawdata = fs.readFileSync(babadata.wednesdaylocation + "FrogHolidays/" + 'frogholidays.json'); //load file each time of calling wednesday
+			let rawdata = fs.readFileSync(babadata.datalocation + "FrogHolidays/" + 'frogholidays.json'); //load file each time of calling wednesday
 			let holidays = JSON.parse(rawdata);
-
-			var dateoveride = [false, 1, 3]; //allows for overiding date manually (testing)
-	
-			var yr = 2021;//new Date().getFullYear(); //get this year
-			var dy = dateoveride[0] ? dateoveride[2] : new Date().getDate(); //get this day
-			var my = dateoveride[0] ? dateoveride[1] - 1 : new Date().getMonth(); //get this month
 
 			let d1 = new Date(yr, my, dy); //get today
 			var dow_d1 = (d1.getDay() + 4) % 7;//get day of week (making wed = 0)
 			let d1_useage = new Date(d1.getFullYear(), d1.getMonth(), 1); //today that has been wednesday shifted
-			d1_useage.setDate(d1.getDate() - dow_d1);// modify today for wednesdays
+			d1_useage.setDate(d1.getDate() - dow_d1); //modify today for wednesdays
 
 			if (message.content.toLowerCase().includes('days until next wednesday'))
 			{
@@ -129,7 +159,7 @@ bot.on('message', message =>
 					if (weeks == 1)
 						wednesdayoverlay = "Wednesday_Single.png"; //one week means single info
 	
-					var templocal = babadata.wednesdaylocation + "FrogHolidays/"; //creates the output frog image
+					var templocal = babadata.datalocation + "FrogHolidays/"; //creates the output frog image
 	
 					var outputname = "outputfrog_" + i + ".png"; //default output name
 					if (d1.getTime() - d2.getTime() == 0)
@@ -395,7 +425,21 @@ async function deleteAndArchive(msg) //archive the message and delete it
 	var savemsg = "This message sent by: <@" + usr + ">\n> "; //sets the header of the message to mention the original poster
 	savemsg += msg.content; //insert the actual message below
 	var attch = msg.attachments; //get the attacments from the original message
+
 	hiddenChan.send(savemsg,); //send the text
+
+	var reactMap = msg.reactions.cache; //get a map of the reactions
+	var memgage = "";
+	for(let [k, reee] of reactMap) //iterate through all the reactions
+	{
+		memgage += k + ": " + reee.count + " reactions\n";
+	}
+
+	if (memgage != "")
+	{
+		hiddenChan.send("```" + memgage + "```",); //send the text
+	}
+
 	var newAttach;
 	var icount = 0;
 	for(let [k, img] of attch)
