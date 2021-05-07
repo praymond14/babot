@@ -54,7 +54,7 @@ bot.on('message', message =>
 			text += '\n' + babadata.pass;
 		}
 
-		var dateoveride = [true, 5, 2]; //allows for overiding date manually (testing)
+		var dateoveride = [false, 5, 2]; //allows for overiding date manually (testing)
 
 		var yr = 2021;//new Date().getFullYear(); //get this year
 		var dy = dateoveride[0] ? dateoveride[2] : new Date().getDate(); //get this day
