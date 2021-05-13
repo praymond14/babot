@@ -17,7 +17,7 @@ dependencies <br/>
 to start <br/>
 ~forever start babot.js <br/>
 ~setting up babotdata.json
-{"token":bot token as string,"pass":response for password command as string,"adminid":admin id as string,"logchn":log chanel id as string,"temp":temp file location as string,"wednesdaylocation":location of data unpacked from FrogHolidays.zip as string,"emoji":server ban hammer emoji}<br/>
+{"token":bot token as string,"pass":response for password command as string,"adminid":admin id as string,"logchn":log chanel id as string,"temp":temp file location as string,"datalocation":location of data unpacked from FrogHolidays.zip as string,"emoji":server ban hammer emoji}<br/>
 <br/>
 commands for admins:<br/>
 !setvote <msg ID> : creates a vote with reactions on the message<br/>
