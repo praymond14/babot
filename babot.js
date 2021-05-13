@@ -225,6 +225,14 @@ bot.on('message', message =>
 				else
 					message.channel.send(text + "\nIt is Wednesday, My Dudes");
 			}
+
+			if (message.content.toLowerCase().includes('super cursed'))
+			{
+				setTimeout(function()
+				{ 
+					message.channel.send(holidays.help.outp);
+				}, 100);
+			}
 		}
 		else
 		{
@@ -818,6 +826,10 @@ function CheckHoliday(msg, holdaylist) //checks if any of the holiday list is sa
 	for (x in holdaylist) 
 	{
 		var hol = holdaylist[x];
+
+		if (hol.mode == -2) //skip help info
+			continue;
+
 		for (i = 0; i < hol.name.length; i++) 
 		{
 			if (msg.toLowerCase().includes(hol.name[i].replace("[NY]", new Date().getFullYear() + 1))) //checks if the holiday name is in the message
