@@ -53,6 +53,11 @@ bot.on('message', message =>
 		{
 			text += '\n' + babadata.pass;
 		}
+		
+		if (message.content.includes("847324692288765993"))
+		{
+			text = "LET'S SAUSAGE\n" + text;
+		}
 
 		var dateoveride = [false, 5, 2]; //allows for overiding date manually (testing)
 
@@ -114,6 +119,9 @@ bot.on('message', message =>
 			
 			if (IsDate != null)
 				IsHoliday.push(IsDate);
+			
+			if (message.content.toLowerCase().includes('next event'))
+				IsHoliday.push(FindNextHoliday(d1, yr, CheckHoliday("ALL", holidays)));
 			
 			if(IsHoliday.length > 0) //reply with password file string if baba password
 			{
@@ -819,6 +827,24 @@ function GetWhite(weekct) //For frogs more than 100 weeks; "Retarded Lookup Tabl
 	return "8";
 }
 
+function FindNextHoliday(d1, yr, simpleholidays)
+{
+	let diff = 100000;
+	var retme = null;
+	for (var i = 0; i < simpleholidays.length; i++)
+	{
+		let d2 = GetDate(d1, yr, simpleholidays[i]);
+		let dbigdiff = dateDiffInDays(d1, d2);
+
+		if (dbigdiff < diff)
+		{
+			retme = simpleholidays[i];
+			diff = dbigdiff;
+		}
+	}
+	return retme;
+}
+
 function CheckHoliday(msg, holdaylist) //checks if any of the holiday list is said in the message
 {
 	var retme = [];
@@ -832,7 +858,7 @@ function CheckHoliday(msg, holdaylist) //checks if any of the holiday list is sa
 
 		for (i = 0; i < hol.name.length; i++) 
 		{
-			if (msg.toLowerCase().includes(hol.name[i].replace("[NY]", new Date().getFullYear() + 1))) //checks if the holiday name is in the message
+			if (msg == "ALL" || msg.toLowerCase().includes(hol.name[i].replace("[NY]", new Date().getFullYear() + 1))) //checks if the holiday name is in the message
 			{
 				var item = {};
 				item.name = x; //picture lookup value
