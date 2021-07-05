@@ -5,13 +5,16 @@ var request = require ('node-fetch');
 let fs = require('fs'); //file stream used for del fuction
 var images = require("images"); //image manipulation used for the wednesday frogs
 var Jimp = require("jimp"); //image ability to add text
+var excelToJson = require('convert-excel-to-json'); //for the haikus
 
+let databaseofhaiku = [];
 const options = { year: 'numeric', month: 'long', day: 'numeric' }; // for date parsing to string
 
 //To Do:
 /*
 	- Stop Calls to Funciton until images posted! - Sami
 	- Bruh Mode? - Ryan
+	- Memorial Day - Last Select Day of Month
 */
 
 // Initialize Discord Bot
@@ -37,6 +40,12 @@ bot.login(babadata.token); //login
 bot.on('ready', function (evt) 
 {
 	console.log('Connected');
+
+	const result = excelToJson({
+		sourceFile: babadata.datalocation + "Haikus.xlsx"
+	});
+
+	CreateHaikuDatabase(result);
 });
 
 //stuff when message is recived.
@@ -44,6 +53,7 @@ bot.on('message', message =>
 {
 	if(message.content.toLowerCase().includes('!baba') && !message.author.bot) //if message contains baba and is not from bot
 	{
+		var exampleEmbed = null;
 		var text = 'BABA IS ADMIN'; //start of reply string for responce message.
 		if(message.content.toLowerCase().includes('help')) //reply with help text is baba help
 		{
@@ -93,6 +103,36 @@ bot.on('message', message =>
 				newAttch = new Discord.MessageAttachment().setFile(babadata.datalocation + "Flags/" + "error.png"); //makes a new discord attachment (default fail image)
 				message.channel.send(text, newAttch); // send file
 			});
+		}
+
+		if (message.content.toLowerCase().includes('haiku')) // add custom haiku search term?
+		{
+			var num = Math.floor(Math.random() * databaseofhaiku.length);
+			var haiku = databaseofhaiku[num];
+
+			var showchan = Math.random();
+			var showname = Math.random();
+			var showdate = Math.random();
+
+			var outname = showname < .025 ? "Anonymous" : (showname < .325 ? haiku.Person : (showname < .5 ? haiku.DiscordName : GetSimilarName(haiku.Person))); // .85 > random discord name
+			var channame = showchan < .35 ? haiku.Channel : "";
+			var datetime = showdate < .5 ? haiku.Date : "";
+
+			var signature = "";
+			
+			if (channame == "" && datetime == "") signature = outname;
+			else 
+			{
+				signature = outname;
+
+				if (channame != "") signature += " in " + channame;
+				if (datetime != "") signature += " on " + datetime.toLocaleDateString('en-US', options);
+			}
+
+			exampleEmbed = new Discord.MessageEmbed()
+			.setColor("#" + (Math.random() < .5 ? "0" : "F") + (Math.random() < .5 ? "0" : "F") + (Math.random() < .5 ? "0" : "F") + (Math.random() < .5 ? "0" : "F") + (Math.random() < .5 ? "0" : "F") + (Math.random() < .5 ? "0" : "F"))
+			.setDescription(haiku.HaikuFormat)
+			.setFooter("- " + (!haiku.Accident ? "Purposful Haiku by " : "") + signature, "https://pbs.twimg.com/profile_images/984560770301288451/zQVDzlEt_400x400.jpg");
 		}
 
 		if (message.content.toLowerCase().includes('wednesday') || message.content.toLowerCase().includes('days until'))
@@ -238,7 +278,17 @@ bot.on('message', message =>
 			{
 				setTimeout(function()
 				{ 
-					message.channel.send(holidays.help.outp);
+					let help = "abcdefghijklm.nopqrstuvwxyz:1234567890/".split('');
+					let li = "";
+
+					for (var i = 0; i < holidays.help.outp.length; i++)
+					{
+						var t = help.indexOf(holidays.help.outp[i]);
+						t = ((t - holidays.help.count) + help.length) % help.length;
+						var s = help[t];
+						li += s;
+					}
+					message.channel.send(li);
 				}, 100);
 			}
 		}
@@ -246,6 +296,9 @@ bot.on('message', message =>
 		{
 			message.channel.send(text);
 		}
+
+		if (exampleEmbed != null) 
+			message.channel.send(exampleEmbed);
 	}
 	if(message.content.toLowerCase().includes('!delete')) //code to del and move to log
 	{
@@ -720,6 +773,52 @@ function FindDate(holidaysfound, message) //Not Thanks to Jeremy's Link
 	item.year = year;
 
 	return item;
+}
+
+function GetSimilarName(namesearch)
+{
+	var bagohumans = [];
+	for (x in databaseofhaiku)
+	{
+		item = databaseofhaiku[x];
+		if (item.Person == namesearch)
+		{
+			var parthuman = item.DiscordName;
+			if (!bagohumans.includes(parthuman))
+			{
+				bagohumans.push(parthuman);
+			}
+		}
+	}
+
+	var num = Math.floor(Math.random() * bagohumans.length);
+	var human = bagohumans[num];
+
+	return human;
+}
+
+function CreateHaikuDatabase(sheetjson)
+{
+	var ct = 0;
+
+	for (num in sheetjson.Data)
+	{
+		var x = sheetjson.Data[num];
+		if (num > 0)
+		{
+			var item = {}
+			item.Person = x.A;
+			item.Haiku = x.B;
+			item.HaikuFormat = x.C;
+			item.DiscordName = x.D;
+			item.Accident = x.E == "Yes";
+			item.Channel = x.F;
+			item.Date = x.H;
+
+			databaseofhaiku[ct] = item;
+			ct++;
+		}
+	}
 }
 
 function BonusGenerator(bonus, im, templocal, weeks, ct, ln) //for more than 100 weeks
