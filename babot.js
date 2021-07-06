@@ -5,7 +5,6 @@ var request = require ('node-fetch');
 let fs = require('fs'); //file stream used for del fuction
 var images = require("images"); //image manipulation used for the wednesday frogs
 var Jimp = require("jimp"); //image ability to add text
-var excelToJson = require('convert-excel-to-json'); //for the haikus
 
 let databaseofhaiku = [];
 const options = { year: 'numeric', month: 'long', day: 'numeric' }; // for date parsing to string
@@ -41,9 +40,14 @@ bot.on('ready', function (evt)
 {
 	console.log('Connected');
 
-	const result = excelToJson({
-		sourceFile: babadata.datalocation + "Haikus.xlsx"
-	});
+	let rawdata = fs.readFileSync(babadata.datalocation + "haikus.json");
+	let result = JSON.parse(rawdata);
+
+	//const result = excelToJson({
+	//	sourceFile: babadata.datalocation + "Haikus.xlsx"
+	//});
+	//let data = JSON.stringify(result);
+	//fs.writeFileSync(babadata.datalocation + "haikus.json", data);
 
 	CreateHaikuDatabase(result);
 });
@@ -116,7 +120,7 @@ bot.on('message', message =>
 
 			var outname = showname < .025 ? "Anonymous" : (showname < .325 ? haiku.Person : (showname < .5 ? haiku.DiscordName : GetSimilarName(haiku.Person))); // .85 > random discord name
 			var channame = showchan < .35 ? haiku.Channel : "";
-			var datetime = showdate < .5 ? haiku.Date : "";
+			var datetime = showdate < .5 ? new Date(haiku.Date) : "";
 
 			var signature = "";
 			
