@@ -271,23 +271,23 @@ bot.on('message', message =>
 					message.channel.send(text + "\nIt is Wednesday, My Dudes");
 			}
 
-			if (message.content.toLowerCase().includes('super cursed'))
-			{
-				setTimeout(function()
-				{ 
-					let help = "abcdefghijklm.nopqrstuvwxyz:1234567890/".split('');
-					let li = "";
+			//if (message.content.toLowerCase().includes('super cursed'))
+			//{
+			//	setTimeout(function()
+			//	{ 
+			//		let help = "abcdefghijklm.nopqrstuvwxyz:1234567890/".split('');
+			//		let li = "";
 
-					for (var i = 0; i < holidays.help.outp.length; i++)
-					{
-						var t = help.indexOf(holidays.help.outp[i]);
-						t = ((t - holidays.help.count) + help.length) % help.length;
-						var s = help[t];
-						li += s;
-					}
-					message.channel.send(li);
-				}, 100);
-			}
+			//		for (var i = 0; i < holidays.help.outp.length; i++)
+			//		{
+			//			var t = help.indexOf(holidays.help.outp[i]);
+			//			t = ((t - holidays.help.count) + help.length) % help.length;
+			//			var s = help[t];
+			//			li += s;
+			//		}
+			//		message.channel.send(li);
+			//	}, 100);
+			//}
 		}
 		else
 		{
