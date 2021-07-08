@@ -6,7 +6,7 @@ let fs = require('fs'); //file stream used for del fuction
 var images = require("images"); //image manipulation used for the wednesday frogs
 var Jimp = require("jimp"); //image ability to add text
 
-let databaseofhaiku = [];
+let databaseofhaiku = []; //haiku list
 const options = { year: 'numeric', month: 'long', day: 'numeric' }; // for date parsing to string
 
 //To Do:
@@ -40,7 +40,7 @@ bot.on('ready', function (evt)
 {
 	console.log('Connected');
 
-	CreateHaikuDatabase();
+	CreateHaikuDatabase(); // load it in
 });
 
 //stuff when message is recived.
@@ -102,7 +102,7 @@ bot.on('message', message =>
 
 		if (message.content.toLowerCase().includes('haiku')) // add custom haiku search term?
 		{
-			CreateHaikuDatabase();
+			CreateHaikuDatabase(); // in case new haikus
 			var num = Math.floor(Math.random() * databaseofhaiku.length);
 			var haiku = databaseofhaiku[num];
 
@@ -110,13 +110,14 @@ bot.on('message', message =>
 			var showname = Math.random();
 			var showdate = Math.random();
 
+			//get signiture and things
 			var outname = showname < .025 ? "Anonymous" : (showname < .325 ? haiku.Person : (showname < .5 ? haiku.DiscordName : GetSimilarName(haiku.Person))); // .85 > random discord name
 			var channame = showchan < .35 ? haiku.Channel : "";
 			var datetime = showdate < .5 ? new Date(haiku.Date) : "";
 
 			var signature = "";
 			
-			if (channame == "" && datetime == "") signature = outname;
+			if (channame == "" && datetime == "") signature = outname; // randomness is great, dont judge
 			else 
 			{
 				signature = outname;
@@ -125,7 +126,7 @@ bot.on('message', message =>
 				if (datetime != "") signature += " on " + datetime.toLocaleDateString('en-US', options);
 			}
 
-			exampleEmbed = new Discord.MessageEmbed()
+			exampleEmbed = new Discord.MessageEmbed() // embed for the haiku
 			.setColor("#" + (Math.random() < .5 ? "0" : "F") + (Math.random() < .5 ? "0" : "F") + (Math.random() < .5 ? "0" : "F") + (Math.random() < .5 ? "0" : "F") + (Math.random() < .5 ? "0" : "F") + (Math.random() < .5 ? "0" : "F"))
 			.setDescription(haiku.HaikuFormat)
 			.setFooter("- " + (!haiku.Accident ? "Purposful Haiku by " : "") + signature, "https://pbs.twimg.com/profile_images/984560770301288451/zQVDzlEt_400x400.jpg");
@@ -771,46 +772,46 @@ function FindDate(holidaysfound, message) //Not Thanks to Jeremy's Link
 	return item;
 }
 
-function GetSimilarName(namesearch)
+function GetSimilarName(namesearch) //list of names based on person
 {
-	var bagohumans = [];
+	var bagohumans = []; // for the randomness
 	for (x in databaseofhaiku)
 	{
-		item = databaseofhaiku[x];
+		item = databaseofhaiku[x]; //get the item
 		if (item.Person == namesearch)
 		{
 			var parthuman = item.DiscordName;
 			if (!bagohumans.includes(parthuman))
 			{
-				bagohumans.push(parthuman);
+				bagohumans.push(parthuman); //add the name to the list
 			}
 		}
 	}
 
-	var num = Math.floor(Math.random() * bagohumans.length);
+	var num = Math.floor(Math.random() * bagohumans.length); //pick a random one
 	var human = bagohumans[num];
 
 	return human;
 }
 
-function CreateHaikuDatabase()
+function CreateHaikuDatabase() //database of haikus making
 {
-	let rawdata = fs.readFileSync(babadata.datalocation + "haikus.json");
+	let rawdata = fs.readFileSync(babadata.datalocation + "haikus.json"); //load file
 	let sheetjson = JSON.parse(rawdata);
 
-	if (sheetjson.Data.length - 1 == databaseofhaiku.length)
+	if (sheetjson.Data.length - 1 == databaseofhaiku.length) //skip if size is same is fine
 		return;
 
 	databaseofhaiku = [];
 
 	var ct = 0;
 
-	for (num in sheetjson.Data)
+	for (num in sheetjson.Data) // loop though data sheet
 	{
 		var x = sheetjson.Data[num];
 		if (num > 0)
 		{
-			var item = {}
+			var item = {} //create the item
 			item.Person = x.A;
 			item.Haiku = x.B;
 			item.HaikuFormat = x.C;
