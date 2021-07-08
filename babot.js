@@ -40,16 +40,7 @@ bot.on('ready', function (evt)
 {
 	console.log('Connected');
 
-	let rawdata = fs.readFileSync(babadata.datalocation + "haikus.json");
-	let result = JSON.parse(rawdata);
-
-	//const result = excelToJson({
-	//	sourceFile: babadata.datalocation + "Haikus.xlsx"
-	//});
-	//let data = JSON.stringify(result);
-	//fs.writeFileSync(babadata.datalocation + "haikus.json", data);
-
-	CreateHaikuDatabase(result);
+	CreateHaikuDatabase();
 });
 
 //stuff when message is recived.
@@ -111,6 +102,7 @@ bot.on('message', message =>
 
 		if (message.content.toLowerCase().includes('haiku')) // add custom haiku search term?
 		{
+			CreateHaikuDatabase();
 			var num = Math.floor(Math.random() * databaseofhaiku.length);
 			var haiku = databaseofhaiku[num];
 
@@ -801,8 +793,16 @@ function GetSimilarName(namesearch)
 	return human;
 }
 
-function CreateHaikuDatabase(sheetjson)
+function CreateHaikuDatabase()
 {
+	let rawdata = fs.readFileSync(babadata.datalocation + "haikus.json");
+	let sheetjson = JSON.parse(rawdata);
+
+	if (sheetjson.Data.length - 1 == databaseofhaiku.length)
+		return;
+
+	databaseofhaiku = [];
+
 	var ct = 0;
 
 	for (num in sheetjson.Data)
