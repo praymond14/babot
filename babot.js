@@ -132,7 +132,7 @@ bot.on('message', message =>
 			.setFooter("- " + (!haiku.Accident ? "Purposful Haiku by " : "") + signature, "https://pbs.twimg.com/profile_images/984560770301288451/zQVDzlEt_400x400.jpg");
 		}
 
-		if (message.content.toLowerCase().includes('wednesday') || message.content.toLowerCase().includes('days until'))
+		if (message.content.toLowerCase().includes('wednesday') || message.content.toLowerCase().includes('days until') || message.content.toLowerCase().includes('when is'))
 		{
 			let rawdata = fs.readFileSync(babadata.datalocation + "FrogHolidays/" + 'frogholidays.json'); //load file each time of calling wednesday
 			let holidays = JSON.parse(rawdata);
@@ -176,12 +176,32 @@ bot.on('message', message =>
 					{
 						var int = dateDiffInDays(d1, d2); //convert to days difference
 
+						var bonustext = holidayinfo.year != undefined ? " " + holidayinfo.year : "";
+
 						if (int != 0)
 						{
 							if (int == 1)
 								text += "\n" + int + " Day until " + holidayinfo.safename; //future text
 							else
-								text += "\n" + int + " Days until " + holidayinfo.safename; //future text
+								text += "\n" + int + " Days until " + holidayinfo.safename + bonustext; //future text
+						}
+						
+						if (!message.content.toLowerCase().includes('wednesday') && int != 0) //if no wednesday found, send output
+						{
+							message.channel.send(text);
+							return;
+						}
+					}
+
+					if (message.content.toLowerCase().includes('when is')) //outputs the next occurance of the event
+					{
+						var bonustext = holidayinfo.year != undefined ? " " + holidayinfo.year : "";
+						
+						if (holidayinfo.year != undefined)
+							text += "\n" + holidayinfo.safename + bonustext + " is on " + d2.toLocaleDateString('en-US', options);
+						else
+						{
+							text += "\nThe next occurance of " + holidayinfo.safename + " is on " + d2.toLocaleDateString('en-US', options);
 						}
 						
 						if (!message.content.toLowerCase().includes('wednesday') && int != 0) //if no wednesday found, send output
