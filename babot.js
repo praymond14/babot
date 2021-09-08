@@ -1,4 +1,5 @@
-var Discord = require('discord.js'); //discord module for interation with discord api
+const { Client, Intents } = require('discord.js'); //discord module for interation with discord api
+const Discord = require('discord.js'); //discord module for interation with discord api
 var babadata = require('./babotdata.json'); //baba configuration file
 //let request = require('request'); // not sure what this is used for //depricated
 var request = require ('node-fetch'); //replaced request
@@ -6,7 +7,7 @@ let fs = require('fs'); //file stream used for del fuction
 var images = require("images"); //image manipulation used for the wednesday frogs
 var Jimp = require("jimp"); //image ability to add text
 
-let databaseofhaiku = [];
+let databaseofhaiku = []; //haiku list
 const options = { year: 'numeric', month: 'long', day: 'numeric' }; // for date parsing to string
 
 //To Do:
@@ -19,7 +20,8 @@ const options = { year: 'numeric', month: 'long', day: 'numeric' }; // for date 
 */
 
 // Initialize Discord Bot
-var bot = new Discord.Client();
+const bot = new Client({ intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MESSAGES] });
+
 const { Console } = require('console');
 const { SSL_OP_SSLEAY_080_CLIENT_DH_BUG } = require('constants');
 /* [ 	["christmas", 12, 25, 0, 0], 
@@ -42,12 +44,57 @@ bot.on('ready', function (evt)
 {
 	console.log('Connected');
 
-	CreateHaikuDatabase();
+	CreateHaikuDatabase(); // load it in
 });
 
 //stuff when message is recived.
-bot.on('message', message => 
+bot.on('messageCreate', message => 
 {
+	if (babadata.holidaychan == null)
+	{
+		let rawdata = fs.readFileSync(__dirname + '\\babotdata.json');
+		let baadata = JSON.parse(rawdata);
+		baadata.holidaychan = "0";
+		baadata.holidayval = "null";
+		let n = JSON.stringify(baadata)
+		fs.writeFileSync(__dirname + '\\babotdata.json', n);
+
+		babadata = baadata;
+	}
+
+	var dateoveride = [false, 1, 1]; //allows for overiding date manually (testing)
+
+	var yr = new Date().getFullYear(); //get this year
+	var dy = dateoveride[0] ? dateoveride[2] : new Date().getDate(); //get this day
+	var my = dateoveride[0] ? dateoveride[1] - 1 : new Date().getMonth(); //get this month
+	d1 = new Date(yr, my, dy) //todayish
+
+	if (babadata.holidayval == "defeat")
+	{
+		//560231259842805770  563063109422415872
+		if(message.content.toLowerCase().includes(yr - 1) && message.content.toLowerCase().includes("698728993762836512") && message.content.toLowerCase().includes("698755560295759894") && !message.author.bot) //if message contains baba and is not from bot
+		{
+			SetHolidayChan(message, "null", 0);
+		}
+	}
+
+	if (d1.getMonth() < 9)
+	{
+		if (d1.getMonth() == 0 && d1.getDate() == 1 && babadata.holidayval != "null")
+		{
+			SetHolidayChan(message, "defeat");
+		}
+	}
+	else if (d1.getMonth() >= 9)
+	{
+		if (babadata.holidaychan == 0)
+		{
+			var server = message.guild;
+			CreateChannel(server, "text channels", message, d1);
+		}
+		MonthsPlus(message, d1);
+	}
+
 	if(message.content.toLowerCase().includes('!baba') && !message.author.bot) //if message contains baba and is not from bot
 	{
 		var exampleEmbed = null;
@@ -66,15 +113,8 @@ bot.on('message', message =>
 			text += "LET'S SAUSAGE\n";
 		}
 
-		var dateoveride = [false, 5, 2]; //allows for overiding date manually (testing)
-
-		var yr = 2021;//new Date().getFullYear(); //get this year
-		var dy = dateoveride[0] ? dateoveride[2] : new Date().getDate(); //get this day
-		var my = dateoveride[0] ? dateoveride[1] - 1 : new Date().getMonth(); //get this month
-
 		if (message.content.toLowerCase().includes('flag') && (message.content.toLowerCase().includes('night shift') || message.content.toLowerCase().includes('vibe time')))
 		{
-			d1 = new Date(yr, my, dy) //todayish
 			text += " AND VIBE TIME";; //V I B E  T I M E
 			let d1_useage = new Date(d1.getFullYear(), d1.getMonth(), 1); //today that has been wednesday shifted
 			d1_useage.setDate(d1.getDate() - d1.getDay()); //modify today for wed
@@ -104,7 +144,7 @@ bot.on('message', message =>
 
 		if (message.content.toLowerCase().includes('haiku')) // add custom haiku search term?
 		{
-			CreateHaikuDatabase();
+			CreateHaikuDatabase(); // in case new haikus
 			var num = Math.floor(Math.random() * databaseofhaiku.length);
 			var haiku = databaseofhaiku[num];
 
@@ -112,13 +152,14 @@ bot.on('message', message =>
 			var showname = Math.random();
 			var showdate = Math.random();
 
+			//get signiture and things
 			var outname = showname < .025 ? "Anonymous" : (showname < .325 ? haiku.Person : (showname < .5 ? haiku.DiscordName : GetSimilarName(haiku.Person))); // .85 > random discord name
 			var channame = showchan < .35 ? haiku.Channel : "";
 			var datetime = showdate < .5 ? new Date(haiku.Date) : "";
 
 			var signature = "";
 			
-			if (channame == "" && datetime == "") signature = outname;
+			if (channame == "" && datetime == "") signature = outname; // randomness is great, dont judge
 			else 
 			{
 				signature = outname;
@@ -127,13 +168,13 @@ bot.on('message', message =>
 				if (datetime != "") signature += " on " + datetime.toLocaleDateString('en-US', options);
 			}
 
-			exampleEmbed = new Discord.MessageEmbed()
+			exampleEmbed = new Discord.MessageEmbed() // embed for the haiku
 			.setColor("#" + (Math.random() < .5 ? "0" : "F") + (Math.random() < .5 ? "0" : "F") + (Math.random() < .5 ? "0" : "F") + (Math.random() < .5 ? "0" : "F") + (Math.random() < .5 ? "0" : "F") + (Math.random() < .5 ? "0" : "F"))
 			.setDescription(haiku.HaikuFormat)
 			.setFooter("- " + (!haiku.Accident ? "Purposful Haiku by " : "") + signature, "https://pbs.twimg.com/profile_images/984560770301288451/zQVDzlEt_400x400.jpg");
 		}
 
-		if (message.content.toLowerCase().includes('wednesday') || message.content.toLowerCase().includes('days until'))
+		if (message.content.toLowerCase().includes('wednesday') || message.content.toLowerCase().includes('days until') || message.content.toLowerCase().includes('when is'))
 		{
 			let rawdata = fs.readFileSync(babadata.datalocation + "FrogHolidays/" + 'frogholidays.json'); //load file each time of calling wednesday
 			let holidays = JSON.parse(rawdata);
@@ -177,12 +218,32 @@ bot.on('message', message =>
 					{
 						var int = dateDiffInDays(d1, d2); //convert to days difference
 
+						var bonustext = holidayinfo.year != undefined ? " " + holidayinfo.year : "";
+
 						if (int != 0)
 						{
 							if (int == 1)
 								text += "\n" + int + " Day until " + holidayinfo.safename; //future text
 							else
-								text += "\n" + int + " Days until " + holidayinfo.safename; //future text
+								text += "\n" + int + " Days until " + holidayinfo.safename + bonustext; //future text
+						}
+						
+						if (!message.content.toLowerCase().includes('wednesday') && int != 0) //if no wednesday found, send output
+						{
+							message.channel.send(text);
+							return;
+						}
+					}
+
+					if (message.content.toLowerCase().includes('when is')) //outputs the next occurance of the event
+					{
+						var bonustext = holidayinfo.year != undefined ? " " + holidayinfo.year : "";
+						
+						if (holidayinfo.year != undefined)
+							text += "\n" + holidayinfo.safename + bonustext + " is on " + d2.toLocaleDateString('en-US', options);
+						else
+						{
+							text += "\nThe next occurance of " + holidayinfo.safename + " is on " + d2.toLocaleDateString('en-US', options);
 						}
 						
 						if (!message.content.toLowerCase().includes('wednesday') && int != 0) //if no wednesday found, send output
@@ -257,9 +318,9 @@ bot.on('message', message =>
 					for (var j = 0; j < templocationslist.length; j++)
 					{
 						newAttch = new Discord.MessageAttachment().setFile(templocationslist[j]); //makes a new discord attachment
-						message.channel.send(text, newAttch).catch(error => {
+						message.channel.send({ content: text, files: [newAttch] }).catch(error => {
 							newAttch = new Discord.MessageAttachment().setFile(templocal + "error.png"); //makes a new discord attachment (default fail image)
-							message.channel.send(text, newAttch); // send file
+							message.channel.send({ content: text, files: [newAttch] }); // send file
 						});
 					}
 				}, 500);
@@ -296,7 +357,7 @@ bot.on('message', message =>
 		}
 
 		if (exampleEmbed != null) 
-			message.channel.send(exampleEmbed);
+			message.channel.send({ embeds: [exampleEmbed] });
 	}
 	if(message.content.toLowerCase().includes('!delete')) //code to del and move to log
 	{
@@ -773,46 +834,171 @@ function FindDate(holidaysfound, message) //Not Thanks to Jeremy's Link
 	return item;
 }
 
-function GetSimilarName(namesearch)
+function SetHolidayChan(msg, name, resetid = -1)
 {
-	var bagohumans = [];
+	let rawdata = fs.readFileSync(__dirname + '\\babotdata.json');
+	let baadata = JSON.parse(rawdata);
+	if (resetid > 0)
+		baadata.holidaychan = resetid.toString();
+
+	if (resetid < 0)
+	{
+		var holidaychan = msg.guild.channels.cache.get(babadata.holidaychan); //gets the holiday channel
+		if (holidaychan != null)
+		{
+			switch(name)
+			{
+				case "spook": //Spooky
+					holidaychan.setName("💀👻 Spooky Time 🎃🕸️");
+					break;
+				case "thanks": //Thanks
+					holidaychan.setName("Thanksgiving AKA Turkey Time 🦃");
+					break;
+				case "crimbo": //Crimbo
+					holidaychan.setName("🎁 Holidays aka Crimbo 🎄");
+					break;
+				case "defeat": //New Year
+					holidaychan.setName("New Year, New Wednesday 🎉");
+					break;
+				default:
+					console.log(name);
+			}
+		}
+	}
+	else if (resetid == 0)
+	{
+		var holidaychan = msg.guild.channels.cache.get(babadata.holidaychan); //gets the holiday channel
+		if (holidaychan != null)
+		{
+			msg.guild.channels.fetch().then(channels => {
+				channels.each(chan => {
+					if (chan.type == "GUILD_CATEGORY")
+					{
+						if (chan.name.toLowerCase() === "archive")
+						{
+							holidaychan.setParent(chan);
+							holidaychan.permissionOverwrites.create(msg.guild.roles.everyone, { SEND_MESSAGES: false });
+							baadata.holidaychan = "0";
+						}
+					}
+				});
+			})
+		}
+	}
+	
+	baadata.holidayval = name;
+
+	let n = JSON.stringify(baadata)
+	fs.writeFileSync(__dirname + '\\babotdata.json', n);
+
+	babadata = baadata;
+}
+
+function MonthsPlus(message, d1)
+{
+	var yr = d1.getFullYear();
+	console.log(d1);
+	if (d1.getMonth() == 9 && babadata.holidayval != "spook")
+	{
+		SetHolidayChan(message, "spook");
+
+		//set channel info
+	}
+	else if (d1.getMonth() == 10)
+	{
+		var hi = {};
+		hi.dayofweek = 4;
+		hi.week = 4;
+		hi.mode = 1;
+		hi.month = 11;
+
+		var tgday = GetDate(d1, yr, hi);
+
+		if (tgday.getFullYear() == yr && babadata.holidayval != "thanks")
+		{
+			SetHolidayChan(message, "thanks");
+		}
+		else
+		{
+			if (babadata.holidayval != "crimbo")
+			{
+				SetHolidayChan(message, "crimbo");
+			}
+		}
+	}
+	
+	if (d1.getMonth() == 11 && babadata.holidayval != "crimbo")
+	{
+		SetHolidayChan(message, "crimbo");
+	}
+}
+
+function CreateChannel(server, name, message, d1)
+{
+	server.channels.fetch().then(channels => {
+		channels.each(chan => {
+			if (chan.type == "GUILD_CATEGORY")
+			{
+				if (chan.name.toLowerCase() === name)
+				{
+					const tempo1 = server.channels.create('Temp Holiday Channel',{
+						type: 'GUILD_TEXT',
+						topic: 'Holidays brought to you by Baba!',
+						parent: chan,
+						position: 3
+					}).then(result => {
+						console.log('Here is channel id', result.id)
+						SetHolidayChan(message, "null", result.id)
+						MonthsPlus(message, d1);
+					})
+				}
+			}
+		});
+	})
+
+	return null;
+}
+
+function GetSimilarName(namesearch) //list of names based on person
+{
+	var bagohumans = []; // for the randomness
 	for (x in databaseofhaiku)
 	{
-		item = databaseofhaiku[x];
+		item = databaseofhaiku[x]; //get the item
 		if (item.Person == namesearch)
 		{
 			var parthuman = item.DiscordName;
 			if (!bagohumans.includes(parthuman))
 			{
-				bagohumans.push(parthuman);
+				bagohumans.push(parthuman); //add the name to the list
 			}
 		}
 	}
 
-	var num = Math.floor(Math.random() * bagohumans.length);
+	var num = Math.floor(Math.random() * bagohumans.length); //pick a random one
 	var human = bagohumans[num];
 
 	return human;
 }
 
-function CreateHaikuDatabase()
+function CreateHaikuDatabase() //database of haikus making
 {
-	let rawdata = fs.readFileSync(babadata.datalocation + "haikus.json");
+	let rawdata = fs.readFileSync(babadata.datalocation + "haikus.json"); //load file
 	let sheetjson = JSON.parse(rawdata);
 
-	if (sheetjson.Data.length - 1 == databaseofhaiku.length)
+	if (sheetjson.Data.length - 1 == databaseofhaiku.length) //skip if size is same is fine
 		return;
 
 	databaseofhaiku = [];
 
 	var ct = 0;
 
-	for (num in sheetjson.Data)
+	for (num in sheetjson.Data) // loop though data sheet
 	{
 		var x = sheetjson.Data[num];
 		if (num > 0)
 		{
-			var item = {}
+			var item = {} //create the item
 			item.Person = x.A;
 			item.Haiku = x.B;
 			item.HaikuFormat = x.C;
