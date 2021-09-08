@@ -1,4 +1,5 @@
-var Discord = require('discord.js'); //discord module for interation with discord api
+const { Client, Intents } = require('discord.js'); //discord module for interation with discord api
+const Discord = require('discord.js'); //discord module for interation with discord api
 var babadata = require('./babotdata.json'); //baba configuration file
 //let request = require('request'); // not sure what this is used for //depricated
 var request = require ('node-fetch');
@@ -17,7 +18,8 @@ const options = { year: 'numeric', month: 'long', day: 'numeric' }; // for date 
 */
 
 // Initialize Discord Bot
-var bot = new Discord.Client();
+const bot = new Client({ intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MESSAGES] });
+
 const { Console } = require('console');
 const { SSL_OP_SSLEAY_080_CLIENT_DH_BUG } = require('constants');
 /* [ 	["christmas", 12, 25, 0, 0], 
@@ -44,8 +46,53 @@ bot.on('ready', function (evt)
 });
 
 //stuff when message is recived.
-bot.on('message', message => 
+bot.on('messageCreate', message => 
 {
+	if (babadata.holidaychan == null)
+	{
+		let rawdata = fs.readFileSync(__dirname + '\\babotdata.json');
+		let baadata = JSON.parse(rawdata);
+		baadata.holidaychan = 0;
+		baadata.holidayval = "null";
+		let n = JSON.stringify(baadata)
+		fs.writeFileSync(__dirname + '\\babotdata.json', n);
+
+		babadata = baadata;
+	}
+
+	var dateoveride = [false, 1, 1]; //allows for overiding date manually (testing)
+
+	var yr = new Date().getFullYear(); //get this year
+	var dy = dateoveride[0] ? dateoveride[2] : new Date().getDate(); //get this day
+	var my = dateoveride[0] ? dateoveride[1] - 1 : new Date().getMonth(); //get this month
+	d1 = new Date(yr, my, dy) //todayish
+
+	if (babadata.holidayval == "defeat")
+	{
+		//560231259842805770  563063109422415872
+		if(message.content.toLowerCase().includes(yr - 1) && message.content.toLowerCase().includes("698728993762836512") && message.content.toLowerCase().includes("698755560295759894") && !message.author.bot) //if message contains baba and is not from bot
+		{
+			SetHolidayChan(message, "null", 0);
+		}
+	}
+
+	if (d1.getMonth() < 9)
+	{
+		if (d1.getMonth() == 0 && d1.getDate() == 1 && babadata.holidayval != "null")
+		{
+			SetHolidayChan(message, "defeat");
+		}
+	}
+	else if (d1.getMonth() >= 9)
+	{
+		if (babadata.holidaychan == 0)
+		{
+			var server = message.guild;
+			CreateChannel(server, "text channels", message, d1);
+		}
+		MonthsPlus(message, d1);
+	}
+
 	if(message.content.toLowerCase().includes('!baba') && !message.author.bot) //if message contains baba and is not from bot
 	{
 		var exampleEmbed = null;
@@ -64,15 +111,8 @@ bot.on('message', message =>
 			text = "LET'S SAUSAGE\n" + text;
 		}
 
-		var dateoveride = [false, 5, 2]; //allows for overiding date manually (testing)
-
-		var yr = 2021;//new Date().getFullYear(); //get this year
-		var dy = dateoveride[0] ? dateoveride[2] : new Date().getDate(); //get this day
-		var my = dateoveride[0] ? dateoveride[1] - 1 : new Date().getMonth(); //get this month
-
 		if (message.content.toLowerCase().includes('flag') && (message.content.toLowerCase().includes('night shift') || message.content.toLowerCase().includes('vibe time')))
 		{
-			d1 = new Date(yr, my, dy) //todayish
 			text += " AND VIBE TIME";; //V I B E  T I M E
 			let d1_useage = new Date(d1.getFullYear(), d1.getMonth(), 1); //today that has been wednesday shifted
 			d1_useage.setDate(d1.getDate() - d1.getDay()); //modify today for wed
@@ -276,9 +316,9 @@ bot.on('message', message =>
 					for (var j = 0; j < templocationslist.length; j++)
 					{
 						newAttch = new Discord.MessageAttachment().setFile(templocationslist[j]); //makes a new discord attachment
-						message.channel.send(text, newAttch).catch(error => {
+						message.channel.send({ content: text, files: [newAttch] }).catch(error => {
 							newAttch = new Discord.MessageAttachment().setFile(templocal + "error.png"); //makes a new discord attachment (default fail image)
-							message.channel.send(text, newAttch); // send file
+							message.channel.send({ content: text, files: [newAttch] }); // send file
 						});
 					}
 				}, 500);
@@ -315,7 +355,7 @@ bot.on('message', message =>
 		}
 
 		if (exampleEmbed != null) 
-			message.channel.send(exampleEmbed);
+			message.channel.send({ embeds: [exampleEmbed] });
 	}
 	if(message.content.toLowerCase().includes('!delete')) //code to del and move to log
 	{
@@ -790,6 +830,131 @@ function FindDate(holidaysfound, message) //Not Thanks to Jeremy's Link
 	item.year = year;
 
 	return item;
+}
+
+function SetHolidayChan(msg, name, resetid = -1)
+{
+	let rawdata = fs.readFileSync(__dirname + '\\babotdata.json');
+	let baadata = JSON.parse(rawdata);
+	if (resetid > 0)
+		baadata.holidaychan = resetid.toString();
+
+	if (resetid < 0)
+	{
+		var holidaychan = msg.guild.channels.cache.get(babadata.holidaychan); //gets the holiday channel
+		if (holidaychan != null)
+		{
+			switch(name)
+			{
+				case "spook": //Spooky
+					holidaychan.setName("💀👻 Spooky Time 🎃🕸️");
+					break;
+				case "thanks": //Thanks
+					holidaychan.setName("Thanksgiving AKA Turkey Time 🦃");
+					break;
+				case "crimbo": //Crimbo
+					holidaychan.setName("🎁 Holidays aka Crimbo 🎄");
+					break;
+				case "defeat": //New Year
+					holidaychan.setName("New Year, New Wednesday 🎉");
+					break;
+				default:
+					console.log(name);
+			}
+		}
+	}
+	else if (resetid == 0)
+	{
+		var holidaychan = msg.guild.channels.cache.get(babadata.holidaychan); //gets the holiday channel
+		if (holidaychan != null)
+		{
+			msg.guild.channels.fetch().then(channels => {
+				channels.each(chan => {
+					if (chan.type == "GUILD_CATEGORY")
+					{
+						if (chan.name.toLowerCase() === "archive")
+						{
+							holidaychan.setParent(chan);
+							holidaychan.permissionOverwrites.create(msg.guild.roles.everyone, { SEND_MESSAGES: false });
+							baadata.holidaychan = "0";
+						}
+					}
+				});
+			})
+		}
+	}
+	
+	baadata.holidayval = name;
+
+	let n = JSON.stringify(baadata)
+	fs.writeFileSync(__dirname + '\\babotdata.json', n);
+
+	babadata = baadata;
+}
+
+function MonthsPlus(message, d1)
+{
+	var yr = d1.getFullYear();
+	console.log(d1);
+	if (d1.getMonth() == 9 && babadata.holidayval != "spook")
+	{
+		SetHolidayChan(message, "spook");
+
+		//set channel info
+	}
+	else if (d1.getMonth() == 10)
+	{
+		var hi = {};
+		hi.dayofweek = 4;
+		hi.week = 4;
+		hi.mode = 1;
+		hi.month = 11;
+
+		var tgday = GetDate(d1, yr, hi);
+
+		if (tgday.getFullYear() == yr && babadata.holidayval != "thanks")
+		{
+			SetHolidayChan(message, "thanks");
+		}
+		else
+		{
+			if (babadata.holidayval != "crimbo")
+			{
+				SetHolidayChan(message, "crimbo");
+			}
+		}
+	}
+	
+	if (d1.getMonth() == 11 && babadata.holidayval != "crimbo")
+	{
+		SetHolidayChan(message, "crimbo");
+	}
+}
+
+function CreateChannel(server, name, message, d1)
+{
+	server.channels.fetch().then(channels => {
+		channels.each(chan => {
+			if (chan.type == "GUILD_CATEGORY")
+			{
+				if (chan.name.toLowerCase() === name)
+				{
+					const tempo1 = server.channels.create('Temp Holiday Channel',{
+						type: 'GUILD_TEXT',
+						topic: 'Holidays brought to you by Baba!',
+						parent: chan,
+						position: 3
+					}).then(result => {
+						console.log('Here is channel id', result.id)
+						SetHolidayChan(message, "null", result.id)
+						MonthsPlus(message, d1);
+					})
+				}
+			}
+		});
+	})
+
+	return null;
 }
 
 function GetSimilarName(namesearch) //list of names based on person
