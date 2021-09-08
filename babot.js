@@ -2,7 +2,7 @@ const { Client, Intents } = require('discord.js'); //discord module for interati
 const Discord = require('discord.js'); //discord module for interation with discord api
 var babadata = require('./babotdata.json'); //baba configuration file
 //let request = require('request'); // not sure what this is used for //depricated
-var request = require ('node-fetch');
+var request = require('node-fetch');
 let fs = require('fs'); //file stream used for del fuction
 var images = require("images"); //image manipulation used for the wednesday frogs
 var Jimp = require("jimp"); //image ability to add text
@@ -50,12 +50,12 @@ bot.on('messageCreate', message =>
 {
 	if (babadata.holidaychan == null)
 	{
-		let rawdata = fs.readFileSync(__dirname + '\\babotdata.json');
+		let rawdata = fs.readFileSync(__dirname + '/babotdata.json');
 		let baadata = JSON.parse(rawdata);
 		baadata.holidaychan = "0";
 		baadata.holidayval = "null";
 		let n = JSON.stringify(baadata)
-		fs.writeFileSync(__dirname + '\\babotdata.json', n);
+		fs.writeFileSync(__dirname + '/babotdata.json', n);
 
 		babadata = baadata;
 	}
@@ -834,7 +834,7 @@ function FindDate(holidaysfound, message) //Not Thanks to Jeremy's Link
 
 function SetHolidayChan(msg, name, resetid = -1)
 {
-	let rawdata = fs.readFileSync(__dirname + '\\babotdata.json');
+	let rawdata = fs.readFileSync(__dirname + '/babotdata.json');
 	let baadata = JSON.parse(rawdata);
 	if (resetid > 0)
 		baadata.holidaychan = resetid.toString();
@@ -887,7 +887,7 @@ function SetHolidayChan(msg, name, resetid = -1)
 	baadata.holidayval = name;
 
 	let n = JSON.stringify(baadata)
-	fs.writeFileSync(__dirname + '\\babotdata.json', n);
+	fs.writeFileSync(__dirname + '/babotdata.json', n);
 
 	babadata = baadata;
 }
