@@ -52,7 +52,7 @@ bot.on('messageCreate', message =>
 	{
 		let rawdata = fs.readFileSync(__dirname + '\\babotdata.json');
 		let baadata = JSON.parse(rawdata);
-		baadata.holidaychan = 0;
+		baadata.holidaychan = "0";
 		baadata.holidayval = "null";
 		let n = JSON.stringify(baadata)
 		fs.writeFileSync(__dirname + '\\babotdata.json', n);
