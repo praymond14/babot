@@ -48,6 +48,22 @@ bot.on('ready', function (evt)
 //stuff when message is recived.
 bot.on('messageCreate', message => 
 {
+	if (message.content.toLowerCase().includes("🐸 debug")) //0 null, 1 spook, 2 thanks, 3 crimbo, 4 defeat
+	{
+		if (message.content.toLowerCase().includes("0"))
+			SetHolidayChan(message, "null");
+		else if (message.content.toLowerCase().includes("1"))
+			SetHolidayChan(message, "spook");
+		else if (message.content.toLowerCase().includes("2"))
+			SetHolidayChan(message, "thanks");
+		else if (message.content.toLowerCase().includes("3"))
+			SetHolidayChan(message, "crimbo");
+		else if (message.content.toLowerCase().includes("4"))
+			SetHolidayChan(message, "defeat");
+
+		message.member.send("```HC: " + babadata.holidaychan + "\nHV: " + babadata.holidayval + "```");
+	}
+
 	if (babadata.holidaychan == null)
 	{
 		let rawdata = fs.readFileSync(__dirname + '/babotdata.json');
@@ -70,7 +86,7 @@ bot.on('messageCreate', message =>
 	if (babadata.holidayval == "defeat")
 	{
 		//560231259842805770  563063109422415872
-		if(message.content.toLowerCase().includes(yr - 1) && message.content.toLowerCase().includes("698728993762836512") && message.content.toLowerCase().includes("698755560295759894") && !message.author.bot) //if message contains baba and is not from bot
+		if(message.content.toLowerCase().includes(yr - 1) && message.content.toLowerCase().includes("560231259842805770") && message.content.toLowerCase().includes("563063109422415872") && !message.author.bot) //if message contains baba and is not from bot
 		{
 			SetHolidayChan(message, "null", 0);
 		}
@@ -134,9 +150,9 @@ bot.on('messageCreate', message =>
 			var sood = locals[seed % 7][(d1.getDay() + d1_useage.getDate()) % 7]; // "the mommy number and daddy numbers get drunk and invite cousins" - Caden 2021
 			
 			newAttch = new Discord.MessageAttachment().setFile(babadata.datalocation + "Flags/" + "Night_Shift_" + sood + ".png"); //makes a new discord attachment
-			message.channel.send("", newAttch).catch(error => {
+			message.channel.send({files: [newAttch] }).catch(error => {
 				newAttch = new Discord.MessageAttachment().setFile(babadata.datalocation + "Flags/" + "error.png"); //makes a new discord attachment (default fail image)
-				message.channel.send(text, newAttch); // send file
+				message.channel.send({files: [newAttch] }); // send file
 			});
 		}
 
@@ -362,14 +378,14 @@ bot.on('messageCreate', message =>
 		if(message.member.roles.cache.has(babadata.adminid)) //check if admin
 		{
 			var message_id = message.content.replace(/\D/g,''); //get message id
-			var chanMap = message.guild.channels.cache; //get a map of the channelt in the guild
-			for(let [k, chan] of chanMap) //iterate through all the channels
-			{
-				if(chan.type == "text") //make sure the channel is a text channel
-				{
-					chan.messages.fetch(message_id).then(message => deleteAndArchive(message)).catch(console.error); //try to get the message, if it exists call deleteAndArchive, otherwise catch the error
-				}
-			}
+			var chanMap = message.guild.channels.fetch().then(channels => {
+				channels.each(chan => { //iterate through all the channels
+					if (chan.type == "GUILD_TEXT") //make sure the channel is a text channel
+					{
+						chan.messages.fetch(message_id).then(message => deleteAndArchive(message, chan)).catch(console.error); //try to get the message, if it exists call deleteAndArchive, otherwise catch the error
+					}
+				});
+			}); //get a map of the channelt in the guild
 		}
 	}
 	if(message.content.toLowerCase().includes('!setvote')) //code to set vote
@@ -377,14 +393,14 @@ bot.on('messageCreate', message =>
 		if(message.member.roles.cache.has(babadata.adminid)) //check if admin
 		{
 			var message_id = message.content.replace(/\D/g,''); //get message id
-			var chanMap = message.guild.channels.cache; //get a map of the channelt in the guild
-			for(let [k, chan] of chanMap) //iterate through all the channels
-			{
-				if(chan.type == "text") //make sure the channel is a text channel
-				{
-					chan.messages.fetch(message_id).then(message => setVote(message)).catch(console.error); //try to get the message, if it exists call setVote, otherwise catch the error
-				}
-			}
+			var chanMap = message.guild.channels.fetch().then(channels => {
+				channels.each(chan => { //iterate through all the channels
+					if (chan.type == "GUILD_TEXT") //make sure the channel is a text channel
+					{
+						chan.messages.fetch(message_id).then(message => setVote(message)).catch(console.error); //try to get the message, if it exists call setVote, otherwise catch the error
+					}
+				});
+			});
 		}
 	}
 	if(message.content.toLowerCase().includes('!banhammer')) //code to set ban hammer
@@ -392,14 +408,14 @@ bot.on('messageCreate', message =>
 		if(message.member.roles.cache.has(babadata.adminid)) //check if admin
 		{
 			var message_id = message.content.replace(/\D/g,''); //get message id
-			var chanMap = message.guild.channels.cache; //get a map of the channelt in the guild
-			for(let [k, chan] of chanMap) //iterate through all the channels
-			{
-				if(chan.type == "text") //make sure the channel is a text channel
-				{
-					chan.messages.fetch(message_id).then(message => setVBH(message)).catch(console.error); //try to get the message, if it exists call setVBH, otherwise catch the error
-				}
-			}
+			var chanMap = message.guild.channels.fetch().then(channels => {
+				channels.each(chan => { //iterate through all the channels
+					if (chan.type == "GUILD_TEXT") //make sure the channel is a text channel
+					{
+						chan.messages.fetch(message_id).then(message => setVBH(message)).catch(console.error); //try to get the message, if it exists call setVBH, otherwise catch the error
+					}
+				});
+			});
 		}
 	}
 	if(message.content.toLowerCase().includes('!grole')) //code to set game role
@@ -409,14 +425,18 @@ bot.on('messageCreate', message =>
 			role_name = message.content.split(' ').slice(0, 2).join(' ').substring(6).replace(' ',''); //get the name for the role
 			var message_id = message.content.replace(role_name,''); //remove role name from string
 			message_id = message_id.replace(/\D/g,''); //get message id
-			var chanMap = message.guild.channels.cache; //get a map of the channelt in the guild
-			for(let [k, chan] of chanMap) //iterate through all the channels
-			{
-				if(chan.type == "text") //make sure the channel is a text channel
-				{
-					chan.messages.fetch(message_id).then(message => setGrole(message, role_name)).catch(console.error); //try to get the message, if it exists call setGrole, otherwise catch the error
-				}
-			}
+			var fnd = false;
+			var chanMap = message.guild.channels.fetch().then(channels => {
+				channels.each(chan => { //iterate through all the channels
+					if (!fnd && chan.type == "GUILD_TEXT") //make sure the channel is a text channel
+					{
+						chan.messages.fetch(message_id).then(message => {
+							fnd = true;
+							setGrole(message, role_name)
+						}).catch(console.error); //try to get the message, if it exists call setGrole, otherwise catch the error
+					}
+				});
+			});
 		}
 	}
 });
@@ -435,35 +455,54 @@ bot.on('messageCreate', message =>
 
 async function setGrole(msg, rname) //creates role and sets users
 {
+	console.log(msg);
 	try 
 	{
-		var role = msg.guild.roles.cache.find(r => r.name === rname); //get the role if already made (in case of redundancy)
-	
+		var role = null;
+		msg.guild.roles.fetch().then(roles => {
+			roles.each(r => { //iterate through all the channels
+				if (r.name === rname) //make sure the channel is a text channel
+				{
+					role = r;				
+				}
+			});
+		});
 		if (role == null) //if null make new role
 		{
-			console.log("Creating Role + " + rname);
+			console.log("Creating Role: " + rname);
 
 			//create the role
 			await msg.guild.roles.create({
-				data: {
-				  name: rname
-				},
+				name: rname,
 				reason: 'bot do bot thing',
-			  }).catch(console.error);
-
-			role = msg.guild.roles.cache.find(r => r.name === rname); //set role to the role that was made
-		}
-
-		var reactMap = msg.reactions.cache; //get a map of the reactions
-		for(let [k, reee] of reactMap) //iterate through all the reactions
-		{
-			reee.users.fetch().then((users) => {
-				RoleAdd(msg, users, role); //call the dumb roll function to do the work (had to be done)
 			}).catch(console.error);
+
+			msg.guild.roles.fetch().then(roles => {
+				roles.each(r => { //iterate through all the channels
+					if (r.name === rname) //make sure the channel is a text channel
+					{
+						role = r;				
+					}
+				});
+			});		
 		}
+
+		setTimeout(function()
+		{ 
+			var reactMap = msg.reactions.cache; //get a map of the reactions
+			for(let [k, reee] of reactMap) //iterate through all the reactions
+			{
+				reee.users.fetch().then((users) => {
+					RoleAdd(msg, users, role); //call the dumb roll function to do the work (had to be done)
+				}).catch(console.error);
+			}
+		}, 1000); //delayed
 		//create role with no permisions, gray color that can be @ by every one
 		//get user list from reacations
 		//give users role
+		
+		
+		msg.channel.send("Role created: " + rname);
 	} 
 	catch (error) 
 	{
@@ -475,55 +514,8 @@ async function RoleAdd(msg, users, role) //dumb user thing because it is needed 
 {
 	for(let [k, uboat] of users) //iterate through all the users
 	{
-		let mem = msg.guild.member(uboat); //check if user is memeber
-		mem.roles.add(role); //add role to user
-	}
-}
-
-async function setVote(msg) //reacts to message with 👍 and 👎 for votes
-{
-	try 
-	{
-		var role = msg.guild.roles.cache.find(r => r.name === rname); //get the role if already made (in case of redundancy)
-	
-		if (role == null) //if null make new role
-		{
-			console.log("Creating Role + " + rname);
-
-			//create the role
-			await msg.guild.roles.create({
-				data: {
-				  name: rname
-				},
-				reason: 'bot do bot thing',
-			  }).catch(console.error);
-
-			role = msg.guild.roles.cache.find(r => r.name === rname); //set role to the role that was made
-		}
-
-		var reactMap = msg.reactions.cache; //get a map of the reactions
-		for(let [k, reee] of reactMap) //iterate through all the reactions
-		{
-			reee.users.fetch().then((users) => {
-				RoleAdd(msg, users, role); //call the dumb roll function to do the work (had to be done)
-			}).catch(console.error);
-		}
-		//create role with no permisions, gray color that can be @ by every one
-		//get user list from reacations
-		//give users role
-	} 
-	catch (error) 
-	{
-		console.log("nos"); //if error this goes
-	}
-}
-
-async function RoleAdd(msg, users, role) //dumb user thing because it is needed to work
-{
-	for(let [k, uboat] of users) //iterate through all the users
-	{
-		let mem = msg.guild.member(uboat); //check if user is memeber
-		mem.roles.add(role); //add role to user
+		msg.guild.members.fetch(uboat.id).then(mem => mem.roles.add(role)); //check if user is memeber
+		//add role to user
 	}
 }
 
@@ -544,11 +536,11 @@ async function setVBH(msg) //reacts to message with emoji defined by babadata.em
 	msg.react(babadata.emoji); //reply with ban hammer emoji
 }
 
-async function deleteAndArchive(msg) //archive the message and delete it
+async function deleteAndArchive(msg, channel) //archive the message and delete it
 {
 	var hiddenChan = msg.guild.channels.cache.get(babadata.logchn); //gets the special archive channel
 	var usr = msg.author; //gets the user that sent the message
-	var savemsg = "This message sent by: <@" + usr + ">\n> "; //sets the header of the message to mention the original poster
+	var savemsg = "This message sent by: <@" + usr + "> in <#" + channel.id + ">\n> "; //sets the header of the message to mention the original poster
 	savemsg += msg.content; //insert the actual message below
 	var attch = msg.attachments; //get the attacments from the original message
 
