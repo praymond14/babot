@@ -15,6 +15,8 @@ const options = { year: 'numeric', month: 'long', day: 'numeric' }; // for date 
 	- Stop Calls to Funciton until images posted! - Sami
 	- Bruh Mode? - Ryan
 	- Memorial Day - Last Select Day of Month
+	- make a better to do list
+	- make if (message.content.includes("847324692288765993")) do somthing more interesting
 */
 
 // Initialize Discord Bot
@@ -106,9 +108,9 @@ bot.on('messageCreate', message =>
 			text += '\n' + babadata.pass;
 		}
 		
-		if (message.content.includes("847324692288765993"))
+		if (message.content.includes("847324692288765993")) //this could do something better but its ok for now
 		{
-			text = "LET'S SAUSAGE\n" + text;
+			text += "LET'S SAUSAGE\n";
 		}
 
 		if (message.content.toLowerCase().includes('flag') && (message.content.toLowerCase().includes('night shift') || message.content.toLowerCase().includes('vibe time')))
@@ -536,7 +538,7 @@ async function setVote(msg) //reacts to message with 👍 and 👎 for votes
 	msg.react('👎');
 }
 
-async function setVBH(msg) //reacts to message with emoji defined by babadata.emoji (in json file)
+async function setVBH(msg) //reacts to message with emoji defined by babadata.emoji (in json file) for our implimentation that is the ban hammer emoji
 {
 	var hiddenChan = msg.guild.channels.cache.get(babadata.logchn); //gets the special archive channel
 	var usr = msg.author; //gets the user that sent the message
@@ -1233,7 +1235,7 @@ async function DelayedDeletion(hiddenChan, img) //download function used when th
 	setTimeout(function(){ fs.unlinkSync(tempFilePath); }, 3000); //deletes file from local system (delayed by 3 sec to allow for download and upload)
 }
 
-//const download = (url, path, callback) => { //download function //depricated
+//const download = (url, path, callback) => { //download function //depricated with the request deprication
 //	request.head(url, (err, res, body) => {
 //	  request(url)
 //		.pipe(fs.createWriteStream(path))
@@ -1242,7 +1244,7 @@ async function DelayedDeletion(hiddenChan, img) //download function used when th
 //  }
 
 const download = (url, path, callback) => 
-{ //download function
+{ //download function to replace the old one.
     request(url)
         .then(res => {
             const dest = fs.createWriteStream(path);
