@@ -432,7 +432,7 @@ bot.on('messageCreate', message =>
 					{
 						chan.messages.fetch(message_id).then(message => {
 							fnd = true;
-							setGrole(message, role_name)
+							setGrole(message, role_name);
 						}).catch(console.error); //try to get the message, if it exists call setGrole, otherwise catch the error
 					}
 				});
@@ -459,7 +459,7 @@ async function setGrole(msg, rname) //creates role and sets users
 	try 
 	{
 		var role = null;
-		msg.guild.roles.fetch().then(roles => {
+		await msg.guild.roles.fetch().then(roles => {
 			roles.each(r => { //iterate through all the channels
 				if (r.name === rname) //make sure the channel is a text channel
 				{
@@ -467,9 +467,11 @@ async function setGrole(msg, rname) //creates role and sets users
 				}
 			});
 		});
+
 		if (role == null) //if null make new role
 		{
 			console.log("Creating Role: " + rname);
+			msg.channel.send("Role created: " + rname);
 
 			//create the role
 			await msg.guild.roles.create({
@@ -477,7 +479,7 @@ async function setGrole(msg, rname) //creates role and sets users
 				reason: 'bot do bot thing',
 			}).catch(console.error);
 
-			msg.guild.roles.fetch().then(roles => {
+			await msg.guild.roles.fetch().then(roles => {
 				roles.each(r => { //iterate through all the channels
 					if (r.name === rname) //make sure the channel is a text channel
 					{
@@ -501,8 +503,6 @@ async function setGrole(msg, rname) //creates role and sets users
 		//get user list from reacations
 		//give users role
 		
-		
-		msg.channel.send("Role created: " + rname);
 	} 
 	catch (error) 
 	{
@@ -1220,7 +1220,7 @@ async function DelayedDeletion(hiddenChan, img) //download function used when th
 
 	newAttch = new Discord.MessageAttachment().setFile(tempFilePath); //makes a new discord attachment
 
-	setTimeout(function(){ hiddenChan.send("", newAttch); }, 2000); //sends the attachment (delayed by 1 sec to allow for download)
+	setTimeout(function(){ hiddenChan.send({files: [newAttch] }); }, 2000); //sends the attachment (delayed by 1 sec to allow for download)
 
 	setTimeout(function(){ fs.unlinkSync(tempFilePath); }, 3000); //deletes file from local system (delayed by 3 sec to allow for download and upload)
 }
