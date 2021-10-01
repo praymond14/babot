@@ -205,6 +205,7 @@ bot.on('messageCreate', message =>
 		{
 			text += '\nuse !BABA password to get passwords for servers';
 		}
+		
 		if(message.content.toLowerCase().includes('password')) //reply with password file string if baba password
 		{
 			text += '\n' + babadata.pass;
@@ -212,7 +213,7 @@ bot.on('messageCreate', message =>
 		
 		if (message.content.includes("847324692288765993"))
 		{
-			text = "LET'S SAUSAGE\n" + text;
+			text = "LET'S SAUSAGE!\n" + text;
 		}
 
 		if (message.content.toLowerCase().includes('flag') && (message.content.toLowerCase().includes('night shift') || message.content.toLowerCase().includes('vibe time')))
@@ -247,13 +248,9 @@ bot.on('messageCreate', message =>
 		if (message.content.toLowerCase().includes("music"))
 		{
 			if (message.content.toLowerCase().includes("play"))
-			{
 				message.channel.send("!play " + babadata.vibe);
-			}
 			if (message.content.toLowerCase().includes("shuffle"))
-			{
 				message.channel.send("!shuffle");
-			}
 		}
 
 		if (message.content.toLowerCase().includes('haiku')) // add custom haiku search term?
@@ -328,21 +325,24 @@ bot.on('messageCreate', message =>
 						yr = holidayinfo.year;
 
 					let d2 = GetDate(d1, yr, holidayinfo);
-					if (message.content.toLowerCase().includes('days until')) //custom days until text output - for joseph
+
+					if (message.content.toLowerCase().includes('when is')) //outputs the next occurance of the event
 					{
-						var int = dateDiffInDays(d1, d2); //convert to days difference
-
 						var bonustext = holidayinfo.year != undefined ? " " + holidayinfo.year : "";
-
-						if (int != 0)
+						
+						if (IsDate != null)
+							text += "\n" + holidayinfo.safename;
+						else
 						{
-							if (int == 1)
-								text += "\n" + int + " Day until " + holidayinfo.safename; //future text
+							if (holidayinfo.year != undefined)
+							text += "\n" + holidayinfo.safename + bonustext + " is on " + d2.toLocaleDateString('en-US', options);
 							else
-								text += "\n" + int + " Days until " + holidayinfo.safename + bonustext; //future text
+							{
+								text += "\nThe next occurance of " + holidayinfo.safename + " is on " + d2.toLocaleDateString('en-US', options);
+							}
 						}
 						
-						if (!message.content.toLowerCase().includes('wednesday') && int != 0) //if no wednesday found, send output
+						if (!message.content.toLowerCase().includes('wednesday')) //if no wednesday found, send output
 						{
 							message.channel.send(text);
 							return;
@@ -352,32 +352,26 @@ bot.on('messageCreate', message =>
 					if (message.content.toLowerCase().includes('day of week')) //custom days until text output - for joseph
 					{
 						var bonustext = holidayinfo.year != undefined ? " " + holidayinfo.year : "";
-
 						text += "\n" + holidayinfo.safename + bonustext + " is on " + d2.toLocaleDateString('en-US', {weekday: 'long'}); //future text
 						
-						if (!message.content.toLowerCase().includes('wednesday') && int != 0) //if no wednesday found, send output
+						if (!message.content.toLowerCase().includes('wednesday')) //if no wednesday found, send output
 						{
 							message.channel.send(text);
 							return;
 						}
 					}
 
-					if (message.content.toLowerCase().includes('when is')) //outputs the next occurance of the event
+					if (message.content.toLowerCase().includes('days until')) //custom days until text output - for joseph
 					{
+						var int = dateDiffInDays(d1, d2); //convert to days difference
 						var bonustext = holidayinfo.year != undefined ? " " + holidayinfo.year : "";
-						
-						if (IsDate != null)
+
+						if (int != 0)
 						{
-							text += "\n" + holidayinfo.safename;
-						}
-						else
-						{
-							if (holidayinfo.year != undefined)
-							text += "\n" + holidayinfo.safename + bonustext + " is on " + d2.toLocaleDateString('en-US', options);
+							if (int == 1)
+								text += "\n" + int + " Day until " + holidayinfo.safename; //future text
 							else
-							{
-								text += "\nThe next occurance of " + holidayinfo.safename + " is on " + d2.toLocaleDateString('en-US', options);
-							}
+								text += "\n" + int + " Days until " + holidayinfo.safename + bonustext; //future text
 						}
 						
 						if (!message.content.toLowerCase().includes('wednesday') && int != 0) //if no wednesday found, send output
