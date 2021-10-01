@@ -48,12 +48,12 @@ bot.on('ready', function (evt)
 //stuff when message is recived.
 bot.on('messageCreate', message => 
 {
-	rid = "885320658437947392"
+	rid = "802740137799974952"
 	var g, rl = null;
 	sentvalid = false;
 	if (message.channel.type == "DM" && message.author.id == "360228104997961740")
 	{
-		g = bot.guilds.resolve("522136584649310208");
+		g = bot.guilds.resolve("454457880825823252");
 		rl = g.roles.cache.find(r => r.id === rid);
 		sentvalid = true;
 	}
