@@ -206,14 +206,14 @@ bot.on('messageCreate', message =>
 			text += '\nuse !BABA password to get passwords for servers';
 		}
 		
-		if(message.content.toLowerCase().includes('password')) //reply with password file string if baba password
-		{
-			text += '\n' + babadata.pass;
-		}
-		
 		if (message.content.includes("847324692288765993"))
 		{
 			text = "LET'S SAUSAGE!\n" + text;
+		}
+		
+		if(message.content.toLowerCase().includes('password')) //reply with password file string if baba password
+		{
+			text += '\n' + babadata.pass;
 		}
 
 		if (message.content.toLowerCase().includes('flag') && (message.content.toLowerCase().includes('night shift') || message.content.toLowerCase().includes('vibe time')))
