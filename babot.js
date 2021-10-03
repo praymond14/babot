@@ -206,11 +206,6 @@ bot.on('messageCreate', message =>
 			text += '\nuse !BABA password to get passwords for servers';
 		}
 		
-		if (message.content.includes("847324692288765993"))
-		{
-			text = "LET'S SAUSAGE!\n" + text;
-		}
-		
 		if(message.content.toLowerCase().includes('password')) //reply with password file string if baba password
 		{
 			text += '\n' + babadata.pass;
@@ -251,6 +246,11 @@ bot.on('messageCreate', message =>
 				message.channel.send("!play " + babadata.vibe);
 			if (message.content.toLowerCase().includes("shuffle"))
 				message.channel.send("!shuffle");
+		}
+
+		if (message.content.includes("847324692288765993"))
+		{
+			text = "LET'S SAUSAGE!\n" + text;
 		}
 
 		if (message.content.toLowerCase().includes('haiku')) // add custom haiku search term?
