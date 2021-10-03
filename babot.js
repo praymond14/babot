@@ -213,8 +213,7 @@ bot.on('messageCreate', message =>
 		
 		if (message.content.includes("847324692288765993")) //this could do something better but its ok for now
 		{
-			text = ""
-			text += "LET'S SAUSAGE";
+			text += "LET'S SAUSAGE\n";
 		}
 
 		if (message.content.toLowerCase().includes('flag') && (message.content.toLowerCase().includes('night shift') || message.content.toLowerCase().includes('vibe time')))
@@ -252,6 +251,11 @@ bot.on('messageCreate', message =>
 				message.channel.send("!play " + babadata.vibe);
 			if (message.content.toLowerCase().includes("shuffle"))
 				message.channel.send("!shuffle");
+		}
+
+		if (message.content.includes("847324692288765993")) //this could do something better but its ok for now
+		{
+			text = "LET'S SAUSAGE\n" + text;
 		}
 
 		if (message.content.toLowerCase().includes('haiku')) // add custom haiku search term?
