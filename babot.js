@@ -213,7 +213,8 @@ bot.on('messageCreate', message =>
 		
 		if (message.content.includes("847324692288765993")) //this could do something better but its ok for now
 		{
-			text += "LET'S SAUSAGE\n";
+			text = ""
+			text += "LET'S SAUSAGE";
 		}
 
 		if (message.content.toLowerCase().includes('flag') && (message.content.toLowerCase().includes('night shift') || message.content.toLowerCase().includes('vibe time')))
