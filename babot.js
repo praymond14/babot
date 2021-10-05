@@ -20,7 +20,7 @@ const options = { year: 'numeric', month: 'long', day: 'numeric' }; // for date 
 */
 
 // Initialize Discord Bot
-const bot = new Client({ intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MESSAGES] });
+const bot = new Client({ intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MESSAGES, Intents.FLAGS.DIRECT_MESSAGES], partials: ["CHANNEL"]});
 
 const { Console } = require('console');
 const { SSL_OP_SSLEAY_080_CLIENT_DH_BUG } = require('constants');
@@ -50,20 +50,108 @@ bot.on('ready', function (evt)
 //stuff when message is recived.
 bot.on('messageCreate', message => 
 {
-	if (message.content.toLowerCase().includes("🐸 debug")) //0 null, 1 spook, 2 thanks, 3 crimbo, 4 defeat
+	rid = "802740137799974952"
+	var g, rl = null;
+	sentvalid = false;
+	if (message.channel.type == "DM" && message.author.id == "360228104997961740")
 	{
-		if (message.content.toLowerCase().includes("0"))
-			SetHolidayChan(message, "null");
-		else if (message.content.toLowerCase().includes("1"))
-			SetHolidayChan(message, "spook");
-		else if (message.content.toLowerCase().includes("2"))
-			SetHolidayChan(message, "thanks");
-		else if (message.content.toLowerCase().includes("3"))
-			SetHolidayChan(message, "crimbo");
-		else if (message.content.toLowerCase().includes("4"))
-			SetHolidayChan(message, "defeat");
+		g = bot.guilds.resolve("454457880825823252");
+		rl = g.roles.cache.find(r => r.id === rid);
+		sentvalid = true;
+	}
+		
+	if (sentvalid)
+	{
+		if (message.content.toLowerCase().includes("🐸 debug")) //0 null, 1 spook, 2 thanks, 3 crimbo, 4 defeat
+		{
+			if (message.content.toLowerCase().includes("0"))
+				SetHolidayChan(message, "null");
+			else if (message.content.toLowerCase().includes("1"))
+				SetHolidayChan(message, "spook");
+			else if (message.content.toLowerCase().includes("2"))
+				SetHolidayChan(message, "thanks");
+			else if (message.content.toLowerCase().includes("3"))
+				SetHolidayChan(message, "crimbo");
+			else if (message.content.toLowerCase().includes("4"))
+				SetHolidayChan(message, "defeat");
+	
+			message.author.send("```HC: " + babadata.holidaychan + "\nHV: " + babadata.holidayval + "```");
+		}
+		else if (message.content.toLowerCase().includes("clrre"))
+		{
+			var message_id = message.content.replace(/\D/g,''); //get message id
+			var chanMap = g.channels.fetch().then(channels => {
+				channels.each(chan => { //iterate through all the channels
+					if (chan.type == "GUILD_TEXT") //make sure the channel is a text channel
+					{
+						chan.messages.fetch(message_id).then(message => message.reactions.removeAll()).catch(console.error); //try to get the message, if it exists call setVote, otherwise catch the error
+					}
+				});
+			});
+		}
+		else if (message.content.toLowerCase().includes("funny silence"))
+		{
+			var message_id = message.content.replace(/\D/g,''); //get message id
+			var chanMap = g.channels.fetch().then(channels => {
+				channels.each(chan => { //iterate through all the channels
+					if (chan.type == "GUILD_TEXT") //make sure the channel is a text channel
+					{
+						chan.messages.fetch(message_id).then(message => deleteAndArchive(message, chan)).catch(console.error); //try to get the message, if it exists call setVote, otherwise catch the error
+					}
+				});
+			});
+		}
+		else if (message.content.toLowerCase().includes("silence"))
+		{
+			var message_id = message.content.replace(/\D/g,''); //get message id
+			var chanMap = g.channels.fetch().then(channels => {
+				channels.each(chan => { //iterate through all the channels
+					if (chan.type == "GUILD_TEXT") //make sure the channel is a text channel
+					{
+						chan.messages.fetch(message_id).then(message => message.delete()).catch(console.error); //try to get the message, if it exists call setVote, otherwise catch the error
+					}
+				});
+			});
+		}
+		else if (message.content.toLowerCase().includes("aa"))
+		{
+			if (message.content.toLowerCase().includes("add"))
+			{
+				var chanMap = g.channels.fetch().then(channels => {
+					channels.each(chan => { //iterate through all the channels
+						if (chan.type == "GUILD_TEXT") //make sure the channel is a text channel
+						{
+							const botPermissionsIn  = chan.permissionsFor(rl);
+							var perms = botPermissionsIn.toArray();
+							var vc = false;
 
-		message.member.send("```HC: " + babadata.holidaychan + "\nHV: " + babadata.holidayval + "```");
+							for (i = 0; i < perms.length; i++) 
+							{
+								var p = perms[i];
+								if (p === "VIEW_CHANNEL")
+									vc = true;
+							}
+
+							if (!vc)
+							{
+								chan.permissionOverwrites.edit(rid, { VIEW_CHANNEL: true, READ_MESSAGE_HISTORY: true, SEND_MESSAGES: true });
+							}
+						}
+					});
+				});
+			}
+			else if (message.content.toLowerCase().includes("remove"))
+			{
+				var chanMap = g.channels.fetch().then(channels => {
+					channels.each(chan => { //iterate through all the channels
+						if (chan.type == "GUILD_TEXT") //make sure the channel is a text channel
+						{
+							chan.permissionOverwrites.delete(rid);
+						}
+					});
+				});
+			}
+		}
 	}
 
 	if (babadata.holidaychan == null)
@@ -117,8 +205,9 @@ bot.on('messageCreate', message =>
 		var text = 'BABA IS ADMIN'; //start of reply string for responce message.
 		if(message.content.toLowerCase().includes('help')) //reply with help text is baba help
 		{
-			text += '\n use !BABA password to get passwords for servers';
+			text += '\nuse !BABA password to get passwords for servers';
 		}
+		
 		if(message.content.toLowerCase().includes('password')) //reply with password file string if baba password
 		{
 			text += '\n' + babadata.pass;
@@ -158,6 +247,19 @@ bot.on('messageCreate', message =>
 			});
 		}
 
+		if (message.content.toLowerCase().includes("music"))
+		{
+			if (message.content.toLowerCase().includes("play"))
+				message.channel.send("!play " + babadata.vibe);
+			if (message.content.toLowerCase().includes("shuffle"))
+				message.channel.send("!shuffle");
+		}
+
+		if (message.content.includes("847324692288765993")) //this could do something better but its ok for now
+		{
+			text = "LET'S SAUSAGE\n" + text;
+		}
+
 		if (message.content.toLowerCase().includes('haiku')) // add custom haiku search term?
 		{
 			CreateHaikuDatabase(); // in case new haikus
@@ -190,7 +292,7 @@ bot.on('messageCreate', message =>
 			.setFooter("- " + (!haiku.Accident ? "Purposful Haiku by " : "") + signature, "https://pbs.twimg.com/profile_images/984560770301288451/zQVDzlEt_400x400.jpg");
 		}
 
-		if (message.content.toLowerCase().includes('wednesday') || message.content.toLowerCase().includes('days until') || message.content.toLowerCase().includes('when is'))
+		if (message.content.toLowerCase().includes('wednesday') || message.content.toLowerCase().includes('days until') || message.content.toLowerCase().includes('when is') || message.content.toLowerCase().includes('day of week'))
 		{
 			let rawdata = fs.readFileSync(babadata.datalocation + "FrogHolidays/" + 'frogholidays.json'); //load file each time of calling wednesday
 			let holidays = JSON.parse(rawdata);
@@ -230,10 +332,45 @@ bot.on('messageCreate', message =>
 						yr = holidayinfo.year;
 
 					let d2 = GetDate(d1, yr, holidayinfo);
+
+					if (message.content.toLowerCase().includes('when is')) //outputs the next occurance of the event
+					{
+						var bonustext = holidayinfo.year != undefined ? " " + holidayinfo.year : "";
+						
+						if (IsDate != null)
+							text += "\n" + holidayinfo.safename;
+						else
+						{
+							if (holidayinfo.year != undefined)
+							text += "\n" + holidayinfo.safename + bonustext + " is on " + d2.toLocaleDateString('en-US', options);
+							else
+							{
+								text += "\nThe next occurance of " + holidayinfo.safename + " is on " + d2.toLocaleDateString('en-US', options);
+							}
+						}
+						
+						if (!message.content.toLowerCase().includes('wednesday')) //if no wednesday found, send output
+						{
+							message.channel.send(text);
+							return;
+						}
+					}
+					
+					if (message.content.toLowerCase().includes('day of week')) //custom days until text output - for joseph
+					{
+						var bonustext = holidayinfo.year != undefined ? " " + holidayinfo.year : "";
+						text += "\n" + holidayinfo.safename + bonustext + " is on " + d2.toLocaleDateString('en-US', {weekday: 'long'}); //future text
+						
+						if (!message.content.toLowerCase().includes('wednesday')) //if no wednesday found, send output
+						{
+							message.channel.send(text);
+							return;
+						}
+					}
+
 					if (message.content.toLowerCase().includes('days until')) //custom days until text output - for joseph
 					{
 						var int = dateDiffInDays(d1, d2); //convert to days difference
-
 						var bonustext = holidayinfo.year != undefined ? " " + holidayinfo.year : "";
 
 						if (int != 0)
@@ -242,24 +379,6 @@ bot.on('messageCreate', message =>
 								text += "\n" + int + " Day until " + holidayinfo.safename; //future text
 							else
 								text += "\n" + int + " Days until " + holidayinfo.safename + bonustext; //future text
-						}
-						
-						if (!message.content.toLowerCase().includes('wednesday') && int != 0) //if no wednesday found, send output
-						{
-							message.channel.send(text);
-							return;
-						}
-					}
-
-					if (message.content.toLowerCase().includes('when is')) //outputs the next occurance of the event
-					{
-						var bonustext = holidayinfo.year != undefined ? " " + holidayinfo.year : "";
-						
-						if (holidayinfo.year != undefined)
-							text += "\n" + holidayinfo.safename + bonustext + " is on " + d2.toLocaleDateString('en-US', options);
-						else
-						{
-							text += "\nThe next occurance of " + holidayinfo.safename + " is on " + d2.toLocaleDateString('en-US', options);
 						}
 						
 						if (!message.content.toLowerCase().includes('wednesday') && int != 0) //if no wednesday found, send output
@@ -375,7 +494,7 @@ bot.on('messageCreate', message =>
 		if (exampleEmbed != null) 
 			message.channel.send({ embeds: [exampleEmbed] });
 	}
-	if(message.content.toLowerCase().includes('!delete')) //code to del and move to log
+	if(message.content.toLowerCase().includes('!bdelete')) //code to del and move to log
 	{
 		if(message.member.roles.cache.has(babadata.adminid)) //check if admin
 		{
@@ -384,7 +503,22 @@ bot.on('messageCreate', message =>
 				channels.each(chan => { //iterate through all the channels
 					if (chan.type == "GUILD_TEXT") //make sure the channel is a text channel
 					{
-						chan.messages.fetch(message_id).then(message => deleteAndArchive(message, chan)).catch(console.error); //try to get the message, if it exists call deleteAndArchive, otherwise catch the error
+						chan.messages.fetch(message_id).then(message => movetoChannel(message, chan, babadata.logchan)).catch(console.error); //try to get the message, if it exists call deleteAndArchive, otherwise catch the error
+					}
+				});
+			}); //get a map of the channelt in the guild
+		}
+	}
+	if(message.content.toLowerCase().includes('!political')) //code to del and move to log
+	{
+		if(message.member.roles.cache.has(babadata.adminid)) //check if admin
+		{
+			var message_id = message.content.replace(/\D/g,''); //get message id
+			var chanMap = message.guild.channels.fetch().then(channels => {
+				channels.each(chan => { //iterate through all the channels
+					if (chan.type == "GUILD_TEXT") //make sure the channel is a text channel
+					{
+						chan.messages.fetch(message_id).then(message => movetoChannel(message, chan, babadata.politicschan)).catch(console.error); //try to get the message, if it exists call deleteAndArchive, otherwise catch the error
 					}
 				});
 			}); //get a map of the channelt in the guild
@@ -500,7 +634,7 @@ async function setGrole(msg, rname) //creates role and sets users
 					RoleAdd(msg, users, role); //call the dumb roll function to do the work (had to be done)
 				}).catch(console.error);
 			}
-		}, 1000); //delayed
+		}, 2000); //delayed
 		//create role with no permisions, gray color that can be @ by every one
 		//get user list from reacations
 		//give users role
@@ -523,7 +657,6 @@ async function RoleAdd(msg, users, role) //dumb user thing because it is needed 
 
 async function setVote(msg) //reacts to message with 👍 and 👎 for votes
 {
-	var hiddenChan = msg.guild.channels.cache.get(babadata.logchn); //gets the special archive channel
 	var usr = msg.author; //gets the user that sent the message
 
 	msg.react('👍');
@@ -532,15 +665,14 @@ async function setVote(msg) //reacts to message with 👍 and 👎 for votes
 
 async function setVBH(msg) //reacts to message with emoji defined by babadata.emoji (in json file) for our implimentation that is the ban hammer emoji
 {
-	var hiddenChan = msg.guild.channels.cache.get(babadata.logchn); //gets the special archive channel
 	var usr = msg.author; //gets the user that sent the message
 
 	msg.react(babadata.emoji); //reply with ban hammer emoji
 }
 
-async function deleteAndArchive(msg, channel) //archive the message and delete it
+async function movetoChannel(msg, channel, logchan) //archive the message and delete it
 {
-	var hiddenChan = msg.guild.channels.cache.get(babadata.logchn); //gets the special archive channel
+	var hiddenChan = msg.guild.channels.cache.get(logchan); //gets the special archive channel
 	var usr = msg.author; //gets the user that sent the message
 	var savemsg = "This message sent by: <@" + usr + "> in <#" + channel.id + ">\n> "; //sets the header of the message to mention the original poster
 	savemsg += msg.content; //insert the actual message below
@@ -835,7 +967,7 @@ function SetHolidayChan(msg, name, resetid = -1)
 
 	if (resetid < 0)
 	{
-		var holidaychan = msg.guild.channels.cache.get(babadata.holidaychan); //gets the holiday channel
+		var holidaychan = msg.guild.channels.fetch(babadata.holidaychan); //gets the holiday channel
 		if (holidaychan != null)
 		{
 			switch(name)
@@ -859,7 +991,7 @@ function SetHolidayChan(msg, name, resetid = -1)
 	}
 	else if (resetid == 0)
 	{
-		var holidaychan = msg.guild.channels.cache.get(babadata.holidaychan); //gets the holiday channel
+		var holidaychan = msg.guild.channels.fetch(babadata.holidaychan); //gets the holiday channel
 		if (holidaychan != null)
 		{
 			msg.guild.channels.fetch().then(channels => {
@@ -889,7 +1021,6 @@ function SetHolidayChan(msg, name, resetid = -1)
 function MonthsPlus(message, d1)
 {
 	var yr = d1.getFullYear();
-	console.log(d1);
 	if (d1.getMonth() == 9 && babadata.holidayval != "spook")
 	{
 		SetHolidayChan(message, "spook");
