@@ -492,16 +492,31 @@ bot.on('messageCreate', message =>
 		if (exampleEmbed != null) 
 			message.channel.send({ embeds: [exampleEmbed] });
 	}
-	if(message.content.toLowerCase().includes('!delete')) //code to del and move to log
+	if(message.content.toLowerCase().includes('!bdelete')) //code to del and move to log
 	{
-		if(message.author.roles.cache.has(babadata.adminid)) //check if admin
+		if(message.member.roles.cache.has(babadata.adminid)) //check if admin
 		{
 			var message_id = message.content.replace(/\D/g,''); //get message id
 			var chanMap = message.guild.channels.fetch().then(channels => {
 				channels.each(chan => { //iterate through all the channels
 					if (chan.type == "GUILD_TEXT") //make sure the channel is a text channel
 					{
-						chan.messages.fetch(message_id).then(message => deleteAndArchive(message, chan)).catch(console.error); //try to get the message, if it exists call deleteAndArchive, otherwise catch the error
+						chan.messages.fetch(message_id).then(message => movetoChannel(message, chan, babadata.logchan)).catch(console.error); //try to get the message, if it exists call deleteAndArchive, otherwise catch the error
+					}
+				});
+			}); //get a map of the channelt in the guild
+		}
+	}
+	if(message.content.toLowerCase().includes('!political')) //code to del and move to log
+	{
+		if(message.member.roles.cache.has(babadata.adminid)) //check if admin
+		{
+			var message_id = message.content.replace(/\D/g,''); //get message id
+			var chanMap = message.guild.channels.fetch().then(channels => {
+				channels.each(chan => { //iterate through all the channels
+					if (chan.type == "GUILD_TEXT") //make sure the channel is a text channel
+					{
+						chan.messages.fetch(message_id).then(message => movetoChannel(message, chan, babadata.politicalchan)).catch(console.error); //try to get the message, if it exists call deleteAndArchive, otherwise catch the error
 					}
 				});
 			}); //get a map of the channelt in the guild
@@ -509,7 +524,7 @@ bot.on('messageCreate', message =>
 	}
 	if(message.content.toLowerCase().includes('!setvote')) //code to set vote
 	{
-		if(message.author.roles.cache.has(babadata.adminid)) //check if admin
+		if(message.member.roles.cache.has(babadata.adminid)) //check if admin
 		{
 			var message_id = message.content.replace(/\D/g,''); //get message id
 			var chanMap = message.guild.channels.fetch().then(channels => {
@@ -524,7 +539,7 @@ bot.on('messageCreate', message =>
 	}
 	if(message.content.toLowerCase().includes('!banhammer')) //code to set ban hammer
 	{
-		if(message.author.roles.cache.has(babadata.adminid)) //check if admin
+		if(message.member.roles.cache.has(babadata.adminid)) //check if admin
 		{
 			var message_id = message.content.replace(/\D/g,''); //get message id
 			var chanMap = message.guild.channels.fetch().then(channels => {
@@ -539,7 +554,7 @@ bot.on('messageCreate', message =>
 	}
 	if(message.content.toLowerCase().includes('!grole')) //code to set game role
 	{
-		if(message.author.roles.cache.has(babadata.adminid)) //check if admin
+		if(message.member.roles.cache.has(babadata.adminid)) //check if admin
 		{
 			role_name = message.content.split(' ').slice(0, 2).join(' ').substring(6).replace(' ',''); //get the name for the role
 			var message_id = message.content.replace(role_name,''); //remove role name from string
@@ -640,7 +655,6 @@ async function RoleAdd(msg, users, role) //dumb user thing because it is needed 
 
 async function setVote(msg) //reacts to message with 👍 and 👎 for votes
 {
-	var hiddenChan = msg.guild.channels.cache.get(babadata.logchn); //gets the special archive channel
 	var usr = msg.author; //gets the user that sent the message
 
 	msg.react('👍');
@@ -649,15 +663,14 @@ async function setVote(msg) //reacts to message with 👍 and 👎 for votes
 
 async function setVBH(msg) //reacts to message with emoji defined by babadata.emoji (in json file)
 {
-	var hiddenChan = msg.guild.channels.cache.get(babadata.logchn); //gets the special archive channel
 	var usr = msg.author; //gets the user that sent the message
 
 	msg.react(babadata.emoji); //reply with ban hammer emoji
 }
 
-async function deleteAndArchive(msg, channel) //archive the message and delete it
+async function movetoChannel(msg, channel, logchan) //archive the message and delete it
 {
-	var hiddenChan = msg.guild.channels.cache.get(babadata.logchn); //gets the special archive channel
+	var hiddenChan = msg.guild.channels.cache.get(logchan); //gets the special archive channel
 	var usr = msg.author; //gets the user that sent the message
 	var savemsg = "This message sent by: <@" + usr + "> in <#" + channel.id + ">\n> "; //sets the header of the message to mention the original poster
 	savemsg += msg.content; //insert the actual message below
@@ -952,7 +965,7 @@ function SetHolidayChan(msg, name, resetid = -1)
 
 	if (resetid < 0)
 	{
-		var holidaychan = msg.guild.channels.cache.get(babadata.holidaychan); //gets the holiday channel
+		var holidaychan = msg.guild.channels.fetch(babadata.holidaychan); //gets the holiday channel
 		if (holidaychan != null)
 		{
 			switch(name)
@@ -976,7 +989,7 @@ function SetHolidayChan(msg, name, resetid = -1)
 	}
 	else if (resetid == 0)
 	{
-		var holidaychan = msg.guild.channels.cache.get(babadata.holidaychan); //gets the holiday channel
+		var holidaychan = msg.guild.channels.fetch(babadata.holidaychan); //gets the holiday channel
 		if (holidaychan != null)
 		{
 			msg.guild.channels.fetch().then(channels => {
