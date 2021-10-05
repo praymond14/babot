@@ -516,7 +516,7 @@ bot.on('messageCreate', message =>
 				channels.each(chan => { //iterate through all the channels
 					if (chan.type == "GUILD_TEXT") //make sure the channel is a text channel
 					{
-						chan.messages.fetch(message_id).then(message => movetoChannel(message, chan, babadata.politicalchan)).catch(console.error); //try to get the message, if it exists call deleteAndArchive, otherwise catch the error
+						chan.messages.fetch(message_id).then(message => movetoChannel(message, chan, babadata.politicschan)).catch(console.error); //try to get the message, if it exists call deleteAndArchive, otherwise catch the error
 					}
 				});
 			}); //get a map of the channelt in the guild
