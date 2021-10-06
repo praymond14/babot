@@ -246,7 +246,7 @@ bot.on('messageCreate', message =>
 				message.channel.send({files: [newAttch] }); // send file
 			});
 		}
-
+/*
 		if (message.content.toLowerCase().includes("music"))
 		{
 			if (message.content.toLowerCase().includes("play"))
@@ -254,7 +254,7 @@ bot.on('messageCreate', message =>
 			if (message.content.toLowerCase().includes("shuffle"))
 				message.channel.send("!shuffle");
 		}
-
+*/
 		if (message.content.includes("847324692288765993")) //this could do something better but its ok for now
 		{
 			text = "LET'S SAUSAGE\n" + text;
