@@ -56,7 +56,7 @@ bot.on('messageCreate', message =>
 	sentvalid = false;
 	var idint = CheckFrogID(frogdata, message.author.id);
 	rid = frogdata.froghelp.rfrog[0];
-	
+
 	if (message.channel.type == "DM" && idint >= 0)
 	{
 		rid = frogdata.froghelp.rfrog[idint];
@@ -221,9 +221,11 @@ bot.on('messageCreate', message =>
 		{
 			text += '\n';
 			text += "```Commands:"
+
 			text += "\n" + "- !baba password - Gets the server password for games!"
 			text += "\n" + "- !baba [night shift | vibe time] flag - Gets the current vibe time flag for the day!"
 			text += "\n" + "- !baba haiku - Pulls a random haiku from the haiku database of the server!"
+			
 			text += "\n" + "- !baba wednesday {holiday} - Displays a frog with how many wednesdays until the specified holiday!"
 			text += "\n" + "- !baba days until {holiday} - Displays how many days until specified holiday!"
 			text += "\n" + "- !baba when is {holiday} - Displays the exact date of the specified holiday!"
