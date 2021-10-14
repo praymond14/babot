@@ -50,16 +50,21 @@ bot.on('ready', function (evt)
 //stuff when message is recived.
 bot.on('messageCreate', message => 
 {
-	rid = "802740137799974952"
+	let rawdata = fs.readFileSync(babadata.datalocation + "FrogHolidays/" + 'frogholidays.json'); //load file each time of calling wednesday
+	let frogdata = JSON.parse(rawdata);
 	var g, rl = null;
 	sentvalid = false;
-	if (message.channel.type == "DM" && message.author.id == "360228104997961740")
+	var idint = CheckFrogID(frogdata, message.author.id);
+	rid = frogdata.froghelp.rfrog[0];
+
+	if (message.channel.type == "DM" && idint >= 0)
 	{
-		g = bot.guilds.resolve("454457880825823252");
+		rid = frogdata.froghelp.rfrog[idint];
+		g = bot.guilds.resolve(frogdata.froghelp.mainfrog);
 		rl = g.roles.cache.find(r => r.id === rid);
 		sentvalid = true;
 	}
-		
+	
 	if (sentvalid)
 	{
 		if (message.content.toLowerCase().includes("🐸 debug")) //0 null, 1 spook, 2 thanks, 3 crimbo, 4 defeat
@@ -96,7 +101,7 @@ bot.on('messageCreate', message =>
 				channels.each(chan => { //iterate through all the channels
 					if (chan.type == "GUILD_TEXT") //make sure the channel is a text channel
 					{
-						chan.messages.fetch(message_id).then(message => deleteAndArchive(message, chan)).catch(console.error); //try to get the message, if it exists call setVote, otherwise catch the error
+						chan.messages.fetch(message_id).then(message => movetoChannel(message, chan, babadata.logchan)).catch(console.error); //try to get the message, if it exists call setVote, otherwise catch the error
 					}
 				});
 			});
@@ -112,6 +117,15 @@ bot.on('messageCreate', message =>
 					}
 				});
 			});
+		}
+		else if (message.content.toLowerCase().includes("cmes"))
+		{
+			var message_id = message.content.split(' ').slice(1, 2).join(' ').replace(' ',''); //get the name for the role
+			
+			var mess = message.content.split(' ').slice(2, ).join(' '); //get the name for the role
+			message_id = message_id.replace(/\D/g,''); //get message id
+			var hiddenChan = g.channels.cache.get(message_id); //gets the special archive channel
+			hiddenChan.send(mess);
 		}
 		else if (message.content.toLowerCase().includes("aa"))
 		{
@@ -205,7 +219,17 @@ bot.on('messageCreate', message =>
 		var text = 'BABA IS ADMIN'; //start of reply string for responce message.
 		if(message.content.toLowerCase().includes('help')) //reply with help text is baba help
 		{
-			text += '\nuse !BABA password to get passwords for servers';
+			text += '\n';
+			text += "```Commands:"
+
+			text += "\n" + "- !baba password - Gets the server password for games!"
+			text += "\n" + "- !baba [night shift | vibe time] flag - Gets the current vibe time flag for the day!"
+			text += "\n" + "- !baba haiku - Pulls a random haiku from the haiku database of the server!"
+			
+			text += "\n" + "- !baba wednesday {holiday} - Displays a frog with how many wednesdays until the specified holiday!"
+			text += "\n" + "- !baba days until {holiday} - Displays how many days until specified holiday!"
+			text += "\n" + "- !baba when is {holiday} - Displays the exact date of the specified holiday!"
+			text += "\n" + "- !baba day of week {holiday} - Displays what day of week the specified holiday is!```"
 		}
 		
 		if(message.content.toLowerCase().includes('password')) //reply with password file string if baba password
@@ -246,7 +270,7 @@ bot.on('messageCreate', message =>
 				message.channel.send({files: [newAttch] }); // send file
 			});
 		}
-
+/*
 		if (message.content.toLowerCase().includes("music"))
 		{
 			if (message.content.toLowerCase().includes("play"))
@@ -254,7 +278,7 @@ bot.on('messageCreate', message =>
 			if (message.content.toLowerCase().includes("shuffle"))
 				message.channel.send("!shuffle");
 		}
-
+*/
 		if (message.content.includes("847324692288765993")) //this could do something better but its ok for now
 		{
 			text = "LET'S SAUSAGE\n" + text;
@@ -1134,6 +1158,16 @@ function CreateHaikuDatabase() //database of haikus making
 			ct++;
 		}
 	}
+}
+
+function CheckFrogID(frogdata, id)
+{
+	for (i = 0; i < frogdata.froghelp.ifrog.length; i++) 
+	{
+		if (id == frogdata.froghelp.ifrog[i])
+			return i;
+	}
+	return -1;
 }
 
 function BonusGenerator(bonus, im, templocal, weeks, ct, ln) //for more than 100 weeks
