@@ -7,7 +7,7 @@ let fs = require('fs'); //file stream used for del fuction
 var images = require("images"); //image manipulation used for the wednesday frogs
 var Jimp = require("jimp"); //image ability to add text
 
-let databaseofhaiku = []; //haiku list
+let databaseofhaiku = {haikus: [], purity: {date: [], person: [], channel: []}}; //haiku list
 const options = { year: 'numeric', month: 'long', day: 'numeric' }; // for date parsing to string
 
 //To Do:
@@ -287,33 +287,125 @@ bot.on('messageCreate', message =>
 		if (message.content.toLowerCase().includes('haiku')) // add custom haiku search term?
 		{
 			CreateHaikuDatabase(); // in case new haikus
-			var num = Math.floor(Math.random() * databaseofhaiku.length);
-			var haiku = databaseofhaiku[num];
 
-			var showchan = Math.random();
-			var showname = Math.random();
-			var showdate = Math.random();
-
-			//get signiture and things
-			var outname = showname < .025 ? "Anonymous" : (showname < .325 ? haiku.Person : (showname < .5 ? haiku.DiscordName : GetSimilarName(haiku.Person))); // .85 > random discord name
-			var channame = showchan < .35 ? haiku.Channel : "";
-			var datetime = showdate < .5 ? new Date(haiku.Date) : "";
-
-			var signature = "";
-			
-			if (channame == "" && datetime == "") signature = outname; // randomness is great, dont judge
-			else 
+			if (message.content.toLowerCase().includes("purity"))
 			{
-				signature = outname;
+				var hpl = "No Haiku Purity Found!"
+				var bonust = ""
+				var bonupr = ""
+				if (message.content.toLowerCase().includes("list"))
+				{
+					if (message.content.toLowerCase().includes("channels"))
+					{
+						hpl = FormatPurityList(databaseofhaiku.purity.channel, true);
+						bonust = " List for Channels"
+					}
+					else
+					{
+						//people purity list
+						hpl = FormatPurityList(databaseofhaiku.purity.person, false);
+						bonust = " List"
+					}
+				}
+				else
+				{
+					if (message.content.toLowerCase().includes("my"))
+					{
+						bonupr = "Your ";
+						var ids = message.author.id;
 
-				if (channame != "") signature += " in " + channame;
-				if (datetime != "") signature += " on " + datetime.toLocaleDateString('en-US', options);
+						hpl = "No Haiku Purity Found for You :(";
+						for (x in databaseofhaiku.purity.person)
+						{
+							var lin = databaseofhaiku.purity.person[x];
+							if (lin.ID === ids.toString())
+							{
+								hpl = GenInfo(x, lin, 0);
+							}
+						}
+					}
+					else
+					{
+						var fnd = false;
+						if (!fnd)
+						{
+							for (x in databaseofhaiku.purity.person)
+							{
+								var lin = databaseofhaiku.purity.person[x];
+								if (message.content.toLowerCase().includes(x.toLowerCase()) || message.content.toLowerCase().includes(lin.ID))
+								{
+									fnd = true;
+									hpl = GenInfo(x, lin, 0);
+								}
+							}
+						}
+						if (!fnd)
+						{
+							for (x in databaseofhaiku.purity.channel)
+							{
+								var lin = databaseofhaiku.purity.channel[x];
+								if (message.content.toLowerCase().includes(x.toLowerCase()) || message.content.toLowerCase().includes(lin.ID))
+								{
+									fnd = true;
+									hpl = GenInfo(x, lin, 1);
+								}
+							}
+						}
+						if (!fnd)
+						{
+							var IsDate = FindDate(IsHoliday, message.content);
+							if (IsDate)
+							{
+								let d1 = new Date(IsDate.year, IsDate.month - 1, IsDate.day);
+								for (x in databaseofhaiku.purity.date)
+								{
+									if (Date.parse(x) == Date.parse(d1))
+									{
+										fnd = true;
+										hpl = GenInfo(d1.toLocaleDateString('en-US', options), lin, 2);
+									}
+								}
+							}
+						}
+					}
+				}
+
+				exampleEmbed = new Discord.MessageEmbed() // embed for the haiku
+				.setColor("#" + (Math.random() < .5 ? "0" : "F") + (Math.random() < .5 ? "0" : "F") + (Math.random() < .5 ? "0" : "F") + (Math.random() < .5 ? "0" : "F") + (Math.random() < .5 ? "0" : "F") + (Math.random() < .5 ? "0" : "F"))
+				.setTitle(bonupr + "Haiku Purity" + bonust)
+				.setDescription(hpl)
+				.setFooter("Haikus by Baba!", "https://pbs.twimg.com/profile_images/984560770301288451/zQVDzlEt_400x400.jpg");
 			}
-
-			exampleEmbed = new Discord.MessageEmbed() // embed for the haiku
-			.setColor("#" + (Math.random() < .5 ? "0" : "F") + (Math.random() < .5 ? "0" : "F") + (Math.random() < .5 ? "0" : "F") + (Math.random() < .5 ? "0" : "F") + (Math.random() < .5 ? "0" : "F") + (Math.random() < .5 ? "0" : "F"))
-			.setDescription(haiku.HaikuFormat)
-			.setFooter("- " + (!haiku.Accident ? "Purposful Haiku by " : "") + signature, "https://pbs.twimg.com/profile_images/984560770301288451/zQVDzlEt_400x400.jpg");
+			else
+			{
+				var num = Math.floor(Math.random() * databaseofhaiku.haikus.length);
+				var haiku = databaseofhaiku.haikus[num];
+	
+				var showchan = Math.random();
+				var showname = Math.random();
+				var showdate = Math.random();
+	
+				//get signiture and things
+				var outname = showname < .025 ? "Anonymous" : (showname < .325 ? haiku.Person : (showname < .5 ? haiku.DiscordName : GetSimilarName(haiku.Person))); // .85 > random discord name
+				var channame = showchan < .35 ? haiku.Channel : "";
+				var datetime = showdate < .5 ? new Date(haiku.Date) : "";
+	
+				var signature = "";
+				
+				if (channame == "" && datetime == "") signature = outname; // randomness is great, dont judge
+				else 
+				{
+					signature = outname;
+	
+					if (channame != "") signature += " in " + channame;
+					if (datetime != "") signature += " on " + datetime.toLocaleDateString('en-US', options);
+				}
+	
+				exampleEmbed = new Discord.MessageEmbed() // embed for the haiku
+				.setColor("#" + (Math.random() < .5 ? "0" : "F") + (Math.random() < .5 ? "0" : "F") + (Math.random() < .5 ? "0" : "F") + (Math.random() < .5 ? "0" : "F") + (Math.random() < .5 ? "0" : "F") + (Math.random() < .5 ? "0" : "F"))
+				.setDescription(haiku.HaikuFormat)
+				.setFooter("- " + (!haiku.Accident ? "Purposful Haiku by " : "") + signature, "https://pbs.twimg.com/profile_images/984560770301288451/zQVDzlEt_400x400.jpg");
+			}
 		}
 
 		if (message.content.toLowerCase().includes('wednesday') || message.content.toLowerCase().includes('days until') || message.content.toLowerCase().includes('when is') || message.content.toLowerCase().includes('day of week'))
@@ -512,7 +604,15 @@ bot.on('messageCreate', message =>
 		}
 		else
 		{
-			message.channel.send(text);
+			if(message.content.toLowerCase().includes('make yugo')) //reply with password file string if baba password
+			{
+				text += '\n' + "Here Yugo!";
+				var num = Math.floor(Math.random() * 11); //pick a random one
+				var yugo = babadata.datalocation + "Yugo/" + num.toString() + ".jpg";
+				message.channel.send({ content: text, files: [yugo] });
+			}
+			else
+				message.channel.send(text);
 		}
 
 		if (exampleEmbed != null) 
@@ -1109,9 +1209,9 @@ function CreateChannel(server, name, message, d1)
 function GetSimilarName(namesearch) //list of names based on person
 {
 	var bagohumans = []; // for the randomness
-	for (x in databaseofhaiku)
+	for (x in databaseofhaiku.haikus)
 	{
-		item = databaseofhaiku[x]; //get the item
+		item = databaseofhaiku.haikus[x]; //get the item
 		if (item.Person == namesearch)
 		{
 			var parthuman = item.DiscordName;
@@ -1133,10 +1233,13 @@ function CreateHaikuDatabase() //database of haikus making
 	let rawdata = fs.readFileSync(babadata.datalocation + "haikus.json"); //load file
 	let sheetjson = JSON.parse(rawdata);
 
-	if (sheetjson.Data.length - 1 == databaseofhaiku.length) //skip if size is same is fine
+	if (sheetjson.Data.length - 1 == databaseofhaiku.haikus.length) //skip if size is same is fine
 		return;
 
-	databaseofhaiku = [];
+	databaseofhaiku.haikus = [];
+	databaseofhaiku.purity.date = [];
+	databaseofhaiku.purity.person = [];
+	databaseofhaiku.purity.channel = [];
 
 	var ct = 0;
 
@@ -1154,10 +1257,71 @@ function CreateHaikuDatabase() //database of haikus making
 			item.Channel = x.F;
 			item.Date = x.H;
 
-			databaseofhaiku[ct] = item;
+			UpdatePurityScore(x.A, x.F, x.H, item.Accident);
+
+			databaseofhaiku.haikus[ct] = item;
 			ct++;
 		}
 	}
+
+	for (num in sheetjson.Accidental) // loop though data sheet
+	{
+		var x = sheetjson.Accidental[num];
+		if (num > 0)
+		{
+			if (x.A)
+				databaseofhaiku.purity.person[x.A].ID = x.B
+			if (x.G)
+				databaseofhaiku.purity.channel[x.G].ID = x.H
+		}
+	}
+}
+
+function UpdatePurityScore(person, channel, date, accidental)
+{
+	//person
+	if (databaseofhaiku.purity.person[person] == undefined)
+	{
+		databaseofhaiku.purity.person[person] = {Count: 0, Accidental: 0, ID: ""};
+	}
+	databaseofhaiku.purity.person[person].Count ++;
+	databaseofhaiku.purity.person[person].Accidental += accidental ? 1 : 0;
+
+	//channel
+	if (databaseofhaiku.purity.channel[channel] == undefined)
+	{
+		databaseofhaiku.purity.channel[channel] = {Count: 0, Accidental: 0, ID: ""};
+	}
+	databaseofhaiku.purity.channel[channel].Count ++;
+	databaseofhaiku.purity.channel[channel].Accidental += accidental ? 1 : 0;
+
+	//date
+	if (databaseofhaiku.purity.date[date] == undefined)
+	{
+		databaseofhaiku.purity.date[date] = {Count: 0, Accidental: 0};
+	}
+	databaseofhaiku.purity.date[date].Count ++;
+	databaseofhaiku.purity.date[date].Accidental += accidental ? 1 : 0;
+}
+
+function FormatPurityList(list, chan)
+{
+	var retme = ""
+	for (x in list)
+	{
+		var lin = list[x];
+		retme += GenInfo(x, lin, chan) + "\n\n";
+	}
+
+	return retme;
+}
+
+function GenInfo(x, line, chan)
+{
+	var val = line.Accidental/parseFloat(line.Count);
+	val = (val * 100)
+	val = +val.toFixed(2);
+	return x + (chan == 2 ? "" : " [<" + (chan == 0 ? "#" : "@") + line.ID + ">]") + "\n\t`" + line.Count + " Haikus` - `" + line.Accidental + " Accidental` - `" + val + "% Purity`";
 }
 
 function CheckFrogID(frogdata, id)
