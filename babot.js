@@ -1321,7 +1321,7 @@ function GenInfo(x, line, chan)
 	var val = line.Accidental/parseFloat(line.Count);
 	val = (val * 100)
 	val = +val.toFixed(2);
-	return x + (chan == 2 ? "" : " [<" + (chan == 0 ? "#" : "@") + line.ID + ">]") + "\n\t`" + line.Count + " Haikus` - `" + line.Accidental + " Accidental` - `" + val + "% Purity`";
+	return x + (chan == 2 ? "" : " [<" + (chan == 1 ? "#" : "@") + line.ID + ">]") + "\n\t`" + line.Count + " Haikus` - `" + line.Accidental + " Accidental` - `" + val + "% Purity`";
 }
 
 function CheckFrogID(frogdata, id)
