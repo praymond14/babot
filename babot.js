@@ -224,7 +224,11 @@ bot.on('messageCreate', message =>
 
 			text += "\n" + "- !baba password - Gets the server password for games!"
 			text += "\n" + "- !baba [night shift | vibe time] flag - Gets the current vibe time flag for the day!"
+			
 			text += "\n" + "- !baba haiku - Pulls a random haiku from the haiku database of the server!"
+			text += "\n" + "- !baba haiku purity list [channel] - Gets a list of all people or channels haiku purity's!"
+			text += "\n" + "- !baba my haiku purity - Gets the haiku purity of the sender!"
+			text += "\n" + "- !baba haiku purity [channel/person/date] - Gets the haiku purity of the the specified value!"
 			
 			text += "\n" + "- !baba wednesday {holiday} - Displays a frog with how many wednesdays until the specified holiday!"
 			text += "\n" + "- !baba days until {holiday} - Displays how many days until specified holiday!"
@@ -361,6 +365,7 @@ bot.on('messageCreate', message =>
 								{
 									if (Date.parse(x) == Date.parse(d1))
 									{
+										var lin = databaseofhaiku.purity.date[x];
 										fnd = true;
 										hpl = GenInfo(d1.toLocaleDateString('en-US', options), lin, 2);
 									}
@@ -661,6 +666,32 @@ bot.on('messageCreate', message =>
 					}
 				});
 			});
+		}
+	}
+	if(message.content.toLowerCase().includes('!bsetgame')) //code to set game
+	{
+		if(message.member.roles.cache.has(babadata.adminid)) //check if admin
+		{
+			var text = message.content.toLowerCase();
+			var tyepe = -1;
+			var lc = 2;
+			if (text.includes("watching"))
+				tyepe = 3;
+			else if (text.includes("playing"))
+				tyepe = 0;
+			else if (text.includes("listening"))
+				tyepe = 2;
+			else if (text.includes("competing"))
+				tyepe = 5;
+
+			if (tyepe == -1)
+			{
+				tyepe = 0;
+				lc = 1;
+			}
+			
+			var mess = message.content.split(' ').slice(lc, ).join(' '); //get the name for the role
+			bot.user.setActivity(mess, { type: tyepe });
 		}
 	}
 	if(message.content.toLowerCase().includes('!banhammer')) //code to set ban hammer

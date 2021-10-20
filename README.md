@@ -25,4 +25,5 @@ commands for admins:<br/>
 !political <msg ID> : sends message to the politics channel<br>
 !banhammer <msg ID> : baba adds an emoji from the babotdata.json file<br/>
 !grole <role name> <msg ID> : creates or adds people who react to message to role<br/>
+!bsetgame <optional activity type> <activity> : sets the game for baba <br/>
 to get user commands type !baba help (note only command  is !baba passwords at the moment)
