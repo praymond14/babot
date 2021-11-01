@@ -1122,22 +1122,41 @@ function SetHolidayChan(msg, name, resetid = -1)
 
 	if (resetid < 0)
 	{
-		var holidaychan = msg.guild.channels.fetch(babadata.holidaychan); //gets the holiday channel
-		if (holidaychan != null)
+		const chanyu = msg.guild.channels.resolve(babadata.holidaychan);
+		if (!chanyu)
+			return msg.channel.send("Error :(");
+		
+		if (chanyu != null)
 		{
 			switch(name)
 			{
 				case "spook": //Spooky
-					holidaychan.setName("💀👻 Spooky Time 🎃🕸️");
+					chanyu.setName("💀👻 Spooky Time 🎃🕸️")
+						.then((newChannel) =>
+						console.log(`The channel's new name is ${newChannel.name}`),
+					)
+					.catch(console.error);
 					break;
 				case "thanks": //Thanks
-					holidaychan.setName("Thanksgiving AKA Turkey Time 🦃");
+					chanyu.setName("Thanksgiving AKA Turkey Time 🦃")
+						.then((newChannel) =>
+						console.log(`The channel's new name is ${newChannel.name}`),
+					)
+					.catch(console.error);
 					break;
 				case "crimbo": //Crimbo
-					holidaychan.setName("🎁 Holidays aka Crimbo 🎄");
+					chanyu.setName("🎁 Holidays aka Crimbo 🎄")
+						.then((newChannel) =>
+						console.log(`The channel's new name is ${newChannel.name}`),
+					)
+					.catch(console.error);
 					break;
 				case "defeat": //New Year
-					holidaychan.setName("New Year, New Wednesday 🎉");
+					chanyu.setName("New Year, New Wednesday 🎉")
+						.then((newChannel) =>
+						console.log(`The channel's new name is ${newChannel.name}`),
+					)
+					.catch(console.error);
 					break;
 				default:
 					console.log(name);
@@ -1191,12 +1210,13 @@ function MonthsPlus(message, d1)
 		hi.month = 11;
 
 		var tgday = GetDate(d1, yr, hi);
+		var tday = new Date().getDate(); //get this day
 
 		if (tgday.getFullYear() == yr && babadata.holidayval != "thanks")
 		{
 			SetHolidayChan(message, "thanks");
 		}
-		else
+		else if (tgday.getDate() < tday)
 		{
 			if (babadata.holidayval != "crimbo")
 			{
