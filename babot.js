@@ -1120,7 +1120,7 @@ function SetHolidayChan(msg, name, resetid = -1)
 	if (resetid > 0)
 		baadata.holidaychan = resetid.toString();
 
-	if (resetid < 0)
+	if (msg.guild != null && resetid < 0)
 	{
 		const chanyu = msg.guild.channels.resolve(babadata.holidaychan);
 		if (!chanyu)
@@ -1163,7 +1163,7 @@ function SetHolidayChan(msg, name, resetid = -1)
 			}
 		}
 	}
-	else if (resetid == 0)
+	else if (msg.guild != null && resetid == 0)
 	{
 		var holidaychan = msg.guild.channels.fetch(babadata.holidaychan); //gets the holiday channel
 		if (holidaychan != null)
@@ -1228,6 +1228,11 @@ function MonthsPlus(message, d1)
 	if (d1.getMonth() == 11 && babadata.holidayval != "crimbo")
 	{
 		SetHolidayChan(message, "crimbo");
+	}
+
+	if (d1.getMonth() == 11 && d1.getDate() > 25)
+	{
+		SetHolidayChan(message, "defeat");
 	}
 }
 
