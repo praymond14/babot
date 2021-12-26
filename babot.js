@@ -1224,15 +1224,13 @@ function MonthsPlus(message, d1)
 			}
 		}
 	}
-	
-	if (d1.getMonth() == 11 && d1.getDate() > 25 && babadata.holidayval != "defeat")
-	{
-		SetHolidayChan(message, "defeat");
-	}
 
-	if (d1.getMonth() == 11 && (babadata.holidayval != "crimbo" || babadata.holidayval != "defeat"))
+	if (d1.getMonth() == 11)
 	{
-		SetHolidayChan(message, "crimbo");
+		if (d1.getDate() <= 25 && babadata.holidayval != "crimbo")
+			SetHolidayChan(message, "crimbo");
+		else if (babadata.holidayval != "defeat")
+			SetHolidayChan(message, "defeat");
 	}
 }
 
