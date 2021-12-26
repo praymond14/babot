@@ -196,14 +196,14 @@ bot.on('messageCreate', message =>
 		}
 	}
 
-	if (d1.getMonth() < 9)
+	if (d1.getMonth() < 9 && message.guild != null)
 	{
 		if (d1.getMonth() == 0 && d1.getDate() == 1 && babadata.holidayval != "null")
 		{
 			SetHolidayChan(message, "defeat");
 		}
 	}
-	else if (d1.getMonth() >= 9)
+	else if (d1.getMonth() >= 9 && message.guild != null)
 	{
 		if (babadata.holidaychan == 0)
 		{
@@ -1225,14 +1225,14 @@ function MonthsPlus(message, d1)
 		}
 	}
 	
-	if (d1.getMonth() == 11 && babadata.holidayval != "crimbo")
-	{
-		SetHolidayChan(message, "crimbo");
-	}
-
-	if (d1.getMonth() == 11 && d1.getDate() > 25)
+	if (d1.getMonth() == 11 && d1.getDate() > 25 && babadata.holidayval != "defeat")
 	{
 		SetHolidayChan(message, "defeat");
+	}
+
+	if (d1.getMonth() == 11 && (babadata.holidayval != "crimbo" || babadata.holidayval != "defeat"))
+	{
+		SetHolidayChan(message, "crimbo");
 	}
 }
 
