@@ -1115,6 +1115,7 @@ function FindDate(holidaysfound, message) //Not Thanks to Jeremy's Link
 
 function SetHolidayChan(msg, name, resetid = -1)
 {
+	let to = 0;
 	let rawdata = fs.readFileSync(__dirname + '/babotdata.json');
 	let baadata = JSON.parse(rawdata);
 	if (resetid > 0)
@@ -1123,36 +1124,34 @@ function SetHolidayChan(msg, name, resetid = -1)
 	if (msg.guild != null && resetid < 0)
 	{
 		const chanyu = msg.guild.channels.resolve(babadata.holidaychan);
-		if (!chanyu)
-			return msg.channel.send("Error :(");
 		
 		if (chanyu != null)
 		{
 			switch(name)
 			{
 				case "spook": //Spooky
-					chanyu.setName("💀👻 Spooky Time 🎃🕸️")
+					chanyu.setName("🎃💀 Real Spooktoper Days 🕸️👻")
 						.then((newChannel) =>
 						console.log(`The channel's new name is ${newChannel.name}`),
 					)
 					.catch(console.error);
 					break;
 				case "thanks": //Thanks
-					chanyu.setName("Thanksgiving AKA Turkey Time 🦃")
+					chanyu.setName("🦃 Turkey Hours AKA Thanksgiving")
 						.then((newChannel) =>
 						console.log(`The channel's new name is ${newChannel.name}`),
 					)
 					.catch(console.error);
 					break;
 				case "crimbo": //Crimbo
-					chanyu.setName("🎁 Holidays aka Crimbo 🎄")
+					chanyu.setName("🎄🎁 Crimbus 🎁🎄")
 						.then((newChannel) =>
 						console.log(`The channel's new name is ${newChannel.name}`),
 					)
 					.catch(console.error);
 					break;
 				case "defeat": //New Year
-					chanyu.setName("New Year, New Wednesday 🎉")
+					chanyu.setName("🎉 New Year, New Wednesday 🎉")
 						.then((newChannel) =>
 						console.log(`The channel's new name is ${newChannel.name}`),
 					)
@@ -1165,30 +1164,35 @@ function SetHolidayChan(msg, name, resetid = -1)
 	}
 	else if (msg.guild != null && resetid == 0)
 	{
-		var holidaychan = msg.guild.channels.fetch(babadata.holidaychan); //gets the holiday channel
-		if (holidaychan != null)
-		{
-			msg.guild.channels.fetch().then(channels => {
-				channels.each(chan => {
-					if (chan.type == "GUILD_CATEGORY")
-					{
-						if (chan.name.toLowerCase() === "archive")
+		to = 300
+		msg.guild.channels.fetch(babadata.holidaychan).then(channels => {
+			var holidaychan = channels;
+
+			if (holidaychan != null)
+			{
+				msg.guild.channels.fetch().then(channels => {
+					channels.each(chan => {
+						if (chan.type == "GUILD_CATEGORY")
 						{
-							holidaychan.setParent(chan);
-							holidaychan.permissionOverwrites.create(msg.guild.roles.everyone, { SEND_MESSAGES: false });
-							baadata.holidaychan = "0";
+							if (chan.name.toLowerCase() === "archive")
+							{
+								holidaychan.setParent(chan);
+								holidaychan.permissionOverwrites.edit(msg.guild.roles.everyone, { SEND_MESSAGES: false });
+								baadata.holidaychan = "0";
+							}
 						}
-					}
-				});
-			})
-		}
+					});
+				})
+			}
+		});
 	}
-	
+
 	baadata.holidayval = name;
-
-	let n = JSON.stringify(baadata)
-	fs.writeFileSync(__dirname + '/babotdata.json', n);
-
+	setTimeout(function()
+	{
+		let n = JSON.stringify(baadata)
+		fs.writeFileSync(__dirname + '/babotdata.json', n);
+	}, to)
 	babadata = baadata;
 }
 
@@ -1250,7 +1254,7 @@ function CreateChannel(server, name, message, d1)
 					}).then(result => {
 						console.log('Here is channel id', result.id)
 						SetHolidayChan(message, "null", result.id)
-						MonthsPlus(message, d1);
+						setTimeout(function(){MonthsPlus(message, d1)}, 100);
 					})
 				}
 			}
