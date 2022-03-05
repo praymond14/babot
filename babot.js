@@ -1388,7 +1388,7 @@ function GenInfo(x, line, chan)
 {
 	var pct = line.Accidental/parseFloat(line.Count); // purity percentage
 	pct = (pct * 100)
-	pct = pct.toFixed(3);
+	pct = +pct.toFixed(3);
 	return x + (chan == 2 ? "" : " [<" + (chan == 1 ? "#" : "@") + line.ID + ">]") + "\n\t`" + line.Count + " Haikus` - `" + line.Accidental + " Accidental` - `" + pct + "% Purity`";
 }
 
