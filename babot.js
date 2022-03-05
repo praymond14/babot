@@ -1376,10 +1376,10 @@ function FormatPurityList(list, chan)
 
 function GenInfo(x, line, chan)
 {
-	var val = line.Accidental/parseFloat(line.Count);
-	val = (val * 100)
-	val = +val.toFixed(2);
-	return x + (chan == 2 ? "" : " [<" + (chan == 1 ? "#" : "@") + line.ID + ">]") + "\n\t`" + line.Count + " Haikus` - `" + line.Accidental + " Accidental` - `" + val + "% Purity`";
+	var pct = line.Accidental/parseFloat(line.Count); // purity percentage
+	pct = (pct * 100)
+	pct = pct.toFixed(3);
+	return x + (chan == 2 ? "" : " [<" + (chan == 1 ? "#" : "@") + line.ID + ">]") + "\n\t`" + line.Count + " Haikus` - `" + line.Accidental + " Accidental` - `" + pct + "% Purity`";
 }
 
 function CheckFrogID(frogdata, id)
