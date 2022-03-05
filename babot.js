@@ -198,7 +198,7 @@ bot.on('messageCreate', message =>
 
 	if (d1.getMonth() < 9 && message.guild != null)
 	{
-		if (d1.getMonth() == 0 && d1.getDate() == 1 && babadata.holidayval != "null")
+		if (babadata.holidayval != "defeat" && d1.getMonth() == 0 && d1.getDate() == 1 && babadata.holidayval != "null")
 		{
 			SetHolidayChan(message, "defeat");
 		}
@@ -217,38 +217,60 @@ bot.on('messageCreate', message =>
 	{
 		var exampleEmbed = null;
 		var text = 'BABA IS ADMIN'; //start of reply string for responce message.
-		if(message.content.toLowerCase().includes('help')) //reply with help text is baba help
-		{
-			text += '\n';
-			text += "```Commands:"
-
-			text += "\n" + "- !baba password - Gets the server password for games!"
-			text += "\n" + "- !baba [night shift | vibe time] flag - Gets the current vibe time flag for the day!"
-			
-			text += "\n" + "- !baba haiku - Pulls a random haiku from the haiku database of the server!"
-			text += "\n" + "- !baba haiku purity list [channel] - Gets a list of all people or channels haiku purity's!"
-			text += "\n" + "- !baba my haiku purity - Gets the haiku purity of the sender!"
-			text += "\n" + "- !baba haiku purity [channel/person/date] - Gets the haiku purity of the the specified value!"
-			
-			text += "\n" + "- !baba wednesday {holiday} - Displays a frog with how many wednesdays until the specified holiday!"
-			text += "\n" + "- !baba days until {holiday} - Displays how many days until specified holiday!"
-			text += "\n" + "- !baba when is {holiday} - Displays the exact date of the specified holiday!"
-			text += "\n" + "- !baba day of week {holiday} - Displays what day of week the specified holiday is!```"
-		}
 		
 		if(message.content.toLowerCase().includes('password')) //reply with password file string if baba password
 		{
 			text += '\n' + babadata.pass;
 		}
-		
 		if (message.content.includes("847324692288765993")) //this could do something better but its ok for now
 		{
 			text += "LET'S SAUSAGE\n";
 		}
 
+		message.channel.send({ content: text });
+
+		if (message.content.includes("please")) //this could do something better but its ok for now
+		{
+			var num = Math.floor(Math.random() * 100); //pick a random one
+			if (num < 2)
+				message.channel.send({ content: "AAAAAAAAAAA" });
+			else if (num < 20)
+				message.channel.send({ content: "BABA IS HAPPY!" });
+			else if (num < 60)
+				message.channel.send({ content: "BABA IS THANKS!" });
+			else if (num == 69)
+				message.channel.send({ content: "Nice!" });
+		}
+
+		if (message.content.includes("order pizza"))
+		{
+			message.channel.send({ content: "Baba Pizza Ordering Service™ coming soon!" });
+		}
+
+		if(message.content.toLowerCase().includes('help')) //reply with help text is baba help
+		{
+			var helptext = "```Commands:"
+
+			helptext += "\n" + "- !baba password - Gets the server password for games!"
+			helptext += "\n" + "- !baba [night shift | vibe time] flag - Gets the current vibe time flag for the day!"
+			helptext += "\n" + "- !baba make yugo - Baba will give you a yugo!"
+			
+			helptext += "\n" + "- !baba haiku - Pulls a random haiku from the haiku database of the server!"
+			helptext += "\n" + "- !baba haiku purity list [channels] - Gets a list of all people or channels haiku purity's!"
+			helptext += "\n" + "- !baba my haiku purity - Gets the haiku purity of the sender!"
+			helptext += "\n" + "- !baba haiku purity [channel/person/date] - Gets the haiku purity of the the specified value!"
+			
+			helptext += "\n" + "- !baba wednesday {holiday} - Displays a frog with how many wednesdays until the specified holiday!"
+			helptext += "\n" + "- !baba days until {holiday} - Displays how many days until specified holiday!"
+			helptext += "\n" + "- !baba when is {holiday} - Displays the exact date of the specified holiday!"
+			helptext += "\n" + "- !baba day of week {holiday} - Displays what day of week the specified holiday is!```"
+
+			message.channel.send({ content: helptext });
+		}
+
 		if (message.content.toLowerCase().includes('flag') && (message.content.toLowerCase().includes('night shift') || message.content.toLowerCase().includes('vibe time')))
 		{
-			text += " AND VIBE TIME";; //V I B E  T I M E
+			var flagtext = "BABA IS AT VIBE TIME";; //V I B E  T I M E
 			let d1_useage = new Date(d1.getFullYear(), d1.getMonth(), 1); //today that has been wednesday shifted
 			d1_useage.setDate(d1.getDate() - d1.getDay()); //modify today for wed
 
@@ -269,9 +291,9 @@ bot.on('messageCreate', message =>
 			var sood = locals[seed % 7][(d1.getDay() + d1_useage.getDate()) % 7]; // "the mommy number and daddy numbers get drunk and invite cousins" - Caden 2021
 			
 			newAttch = new Discord.MessageAttachment().setFile(babadata.datalocation + "Flags/" + "Night_Shift_" + sood + ".png"); //makes a new discord attachment
-			message.channel.send({files: [newAttch] }).catch(error => {
+			message.channel.send({content: flagtext, files: [newAttch] }).catch(error => {
 				newAttch = new Discord.MessageAttachment().setFile(babadata.datalocation + "Flags/" + "error.png"); //makes a new discord attachment (default fail image)
-				message.channel.send({files: [newAttch] }); // send file
+				message.channel.send({content: flagtext, files: [newAttch] }); // send file
 			});
 		}
 /*
@@ -283,9 +305,12 @@ bot.on('messageCreate', message =>
 				message.channel.send("!shuffle");
 		}
 */
-		if (message.content.includes("847324692288765993")) //this could do something better but its ok for now
+		if(message.content.toLowerCase().includes('make yugo')) //reply with password file string if baba password
 		{
-			text = "LET'S SAUSAGE\n" + text;
+			var yugotext = "Here Yugo!";
+			var num = Math.floor(Math.random() * 11); //pick a random one
+			var yugo = babadata.datalocation + "Yugo/" + num.toString() + ".jpg";
+			message.channel.send({ content: yugotext, files: [yugo] });
 		}
 
 		if (message.content.toLowerCase().includes('haiku')) // add custom haiku search term?
@@ -379,7 +404,7 @@ bot.on('messageCreate', message =>
 				.setColor("#" + (Math.random() < .5 ? "0" : "F") + (Math.random() < .5 ? "0" : "F") + (Math.random() < .5 ? "0" : "F") + (Math.random() < .5 ? "0" : "F") + (Math.random() < .5 ? "0" : "F") + (Math.random() < .5 ? "0" : "F"))
 				.setTitle(bonupr + "Haiku Purity" + bonust)
 				.setDescription(hpl)
-				.setFooter("Haikus by Baba!", "https://pbs.twimg.com/profile_images/984560770301288451/zQVDzlEt_400x400.jpg");
+				.setFooter("Haikus by Baba!", "https://media.discordapp.net/attachments/574840583563116566/949515044746559568/JSO3bX0V.png");
 			}
 			else
 			{
@@ -409,9 +434,12 @@ bot.on('messageCreate', message =>
 				exampleEmbed = new Discord.MessageEmbed() // embed for the haiku
 				.setColor("#" + (Math.random() < .5 ? "0" : "F") + (Math.random() < .5 ? "0" : "F") + (Math.random() < .5 ? "0" : "F") + (Math.random() < .5 ? "0" : "F") + (Math.random() < .5 ? "0" : "F") + (Math.random() < .5 ? "0" : "F"))
 				.setDescription(haiku.HaikuFormat)
-				.setFooter("- " + (!haiku.Accident ? "Purposful Haiku by " : "") + signature, "https://pbs.twimg.com/profile_images/984560770301288451/zQVDzlEt_400x400.jpg");
+				.setFooter("- " + (!haiku.Accident ? "Purposful Haiku by " : "") + signature, "https://media.discordapp.net/attachments/574840583563116566/949515044746559568/JSO3bX0V.png");
 			}
 		}
+
+		if (exampleEmbed != null) 
+			message.channel.send({ content: "BABA MAKE HAIKU", embeds: [exampleEmbed] });
 
 		if (message.content.toLowerCase().includes('wednesday') || message.content.toLowerCase().includes('days until') || message.content.toLowerCase().includes('when is') || message.content.toLowerCase().includes('day of week'))
 		{
@@ -425,11 +453,14 @@ bot.on('messageCreate', message =>
 
 			if (message.content.toLowerCase().includes('days until next wednesday'))
 			{
+				var dtnw = ""
 				var ct = 7 - dow_d1;
 				if (ct == 1)
-					text += "\nIt is only " + ct + " day until the next Wednesday!"
+					dtnw = "\nIt is only " + ct + " day until the next Wednesday!"
 				else
-					text += "\nIt is only " + ct + " days until the next Wednesday!"
+					dtnw = "\nIt is only " + ct + " days until the next Wednesday!"
+				
+				message.channel.send({ content: dtnw });
 			}
 	
 			var IsHoliday = CheckHoliday(message.content, holidays); //get the holidays that are reqested
@@ -454,39 +485,34 @@ bot.on('messageCreate', message =>
 
 					let d2 = GetDate(d1, yr, holidayinfo);
 
+					var additionaltext = "";
+
 					if (message.content.toLowerCase().includes('when is')) //outputs the next occurance of the event
 					{
 						var bonustext = holidayinfo.year != undefined ? " " + holidayinfo.year : "";
 						
+						var whenistext = "";
 						if (IsDate != null)
-							text += "\n" + holidayinfo.safename;
+							whenistext += "\n" + holidayinfo.safename;
 						else
 						{
 							if (holidayinfo.year != undefined)
-							text += "\n" + holidayinfo.safename + bonustext + " is on " + d2.toLocaleDateString('en-US', options);
+							whenistext += "\n" + holidayinfo.safename + bonustext + " is on " + d2.toLocaleDateString('en-US', options);
 							else
 							{
-								text += "\nThe next occurance of " + holidayinfo.safename + " is on " + d2.toLocaleDateString('en-US', options);
+								whenistext += "\nThe next occurance of " + holidayinfo.safename + " is on " + d2.toLocaleDateString('en-US', options);
 							}
 						}
 						
-						if (!message.content.toLowerCase().includes('wednesday')) //if no wednesday found, send output
-						{
-							message.channel.send(text);
-							return;
-						}
+						additionaltext += whenistext + "\n";
 					}
 					
 					if (message.content.toLowerCase().includes('day of week')) //custom days until text output - for joseph
 					{
 						var bonustext = holidayinfo.year != undefined ? " " + holidayinfo.year : "";
-						text += "\n" + holidayinfo.safename + bonustext + " is on " + d2.toLocaleDateString('en-US', {weekday: 'long'}); //future text
+						var dowtext = holidayinfo.safename + bonustext + " is on " + d2.toLocaleDateString('en-US', {weekday: 'long'}); //future text
 						
-						if (!message.content.toLowerCase().includes('wednesday')) //if no wednesday found, send output
-						{
-							message.channel.send(text);
-							return;
-						}
+						additionaltext += dowtext + "\n";
 					}
 
 					if (message.content.toLowerCase().includes('days until')) //custom days until text output - for joseph
@@ -494,19 +520,21 @@ bot.on('messageCreate', message =>
 						var int = dateDiffInDays(d1, d2); //convert to days difference
 						var bonustext = holidayinfo.year != undefined ? " " + holidayinfo.year : "";
 
+						var dutext = "";
 						if (int != 0)
 						{
 							if (int == 1)
-								text += "\n" + int + " Day until " + holidayinfo.safename; //future text
+								dutext = int + " Day until " + holidayinfo.safename; //future text
 							else
-								text += "\n" + int + " Days until " + holidayinfo.safename + bonustext; //future text
+								dutext = int + " Days until " + holidayinfo.safename + bonustext; //future text
 						}
 						
-						if (!message.content.toLowerCase().includes('wednesday') && int != 0) //if no wednesday found, send output
-						{
-							message.channel.send(text);
-							return;
-						}
+						additionaltext += dutext + "\n";
+					}
+
+					if (additionaltext != "")
+					{
+						message.channel.send({ content: additionaltext });
 					}
 
 					var dow_d2 = (d2.getDay() + 4) % 7;//get day of week (making wed = 0)
@@ -574,19 +602,16 @@ bot.on('messageCreate', message =>
 					for (var j = 0; j < templocationslist.length; j++)
 					{
 						newAttch = new Discord.MessageAttachment().setFile(templocationslist[j]); //makes a new discord attachment
-						message.channel.send({ content: text, files: [newAttch] }).catch(error => {
+						message.channel.send({ content: "It is Wednesday, My BABAs", files: [newAttch] }).catch(error => {
 							newAttch = new Discord.MessageAttachment().setFile(templocal + "error.png"); //makes a new discord attachment (default fail image)
-							message.channel.send({ content: text, files: [newAttch] }); // send file
+							message.channel.send({ content: "It is Wednesday, My BABAs", files: [newAttch] }); // send file
 						});
 					}
 				}, 500);
 			}
 			else
 			{
-				if (text.includes('Wednesday'))
-					message.channel.send(text);
-				else
-					message.channel.send(text + "\nIt is Wednesday, My Dudes");
+				message.channel.send("It is Wednesday, My Dudes");
 			}
 
 			//if (message.content.toLowerCase().includes('super cursed'))
@@ -607,21 +632,6 @@ bot.on('messageCreate', message =>
 			//	}, 100);
 			//}
 		}
-		else
-		{
-			if(message.content.toLowerCase().includes('make yugo')) //reply with password file string if baba password
-			{
-				text += '\n' + "Here Yugo!";
-				var num = Math.floor(Math.random() * 11); //pick a random one
-				var yugo = babadata.datalocation + "Yugo/" + num.toString() + ".jpg";
-				message.channel.send({ content: text, files: [yugo] });
-			}
-			else
-				message.channel.send(text);
-		}
-
-		if (exampleEmbed != null) 
-			message.channel.send({ embeds: [exampleEmbed] });
 	}
 	if(message.content.toLowerCase().includes('!bdelete')) //code to del and move to log
 	{
