@@ -470,7 +470,13 @@ bot.on('messageCreate', message =>
 				IsHoliday.push(IsDate);
 			
 			if (message.content.toLowerCase().includes('next event'))
-				IsHoliday.push(FindNextHoliday(d1, yr, CheckHoliday("ALL", holidays)));
+			{
+				var hols = FindNextHoliday(d1, yr, CheckHoliday("ALL", holidays));
+				for (i = 0; i < hols.length; i++) //loop through the holidays that are requested
+				{
+					IsHoliday.push(hols[i]);
+				}
+			}
 			
 			if(IsHoliday.length > 0) //reply with password file string if baba password
 			{
@@ -486,6 +492,10 @@ bot.on('messageCreate', message =>
 					let d2 = GetDate(d1, yr, holidayinfo);
 
 					var additionaltext = "";
+					var showwed = false;
+
+					if (message.content.toLowerCase().includes('wednesday'))
+						showwed = true;
 
 					if (message.content.toLowerCase().includes('when is')) //outputs the next occurance of the event
 					{
@@ -527,14 +537,19 @@ bot.on('messageCreate', message =>
 								dutext = int + " Day until " + holidayinfo.safename; //future text
 							else
 								dutext = int + " Days until " + holidayinfo.safename + bonustext; //future text
+							
+							additionaltext += dutext + "\n";
 						}
-						
-						additionaltext += dutext + "\n";
+						else
+							showwed = true;
 					}
-
-					if (additionaltext != "")
+					
+					if (additionaltext !== "")
 					{
 						message.channel.send({ content: additionaltext });
+
+						if (!showwed)
+							continue;
 					}
 
 					var dow_d2 = (d2.getDay() + 4) % 7;//get day of week (making wed = 0)
@@ -1510,7 +1525,7 @@ function GetWhite(weekct) //For frogs more than 100 weeks; "Retarded Lookup Tabl
 function FindNextHoliday(d1, yr, simpleholidays)
 {
 	let diff = 100000;
-	var retme = null;
+	var retme = [];
 	for (var i = 0; i < simpleholidays.length; i++)
 	{
 		let d2 = GetDate(d1, yr, simpleholidays[i]);
@@ -1518,8 +1533,13 @@ function FindNextHoliday(d1, yr, simpleholidays)
 
 		if (dbigdiff < diff)
 		{
-			retme = simpleholidays[i];
+			retme = [];
+			retme.push(simpleholidays[i]);
 			diff = dbigdiff;
+		}
+		else if (dbigdiff === diff)
+		{
+			retme.push(simpleholidays[i]);
 		}
 	}
 	return retme;
