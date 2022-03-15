@@ -8,15 +8,25 @@ SHANE IS PROGRAMMER,
 SERVER IS SERVER,   
 JOKE IS OLD.  
 
+# Setup
+
+## start
+- extract Data.zip (in place, creating `baba/Data/`)
+- create babotdata.json (from template: `cp babotdata.template.json babotdata.json`)
+    - see next section for configuration
+
 ## configuration
 ~setting up babotdata.json:  
-{"token":bot token as string,  
-"pass":response for password command as string,  
-"adminid":admin id as string,  
-"logchn":log chanel id as string,  
-"temp":temp file location as string,  
-"datalocation":location of data unpacked from FrogHolidays.zip as string,  
-"emoji":server ban hammer emoji}  
+{"token": bot token as string,  
+"pass": response for password command as string,  
+"datalocation": location of data unpacked from FrogHolidays.zip as string,  
+"adminid": admin role ID as string,  
+"logchn": log channel ID as string,  
+"politicschan": politics channel ID as string,  
+"holidaychan": leave as "0" - will be auto-filled,  
+"holidayval": leave as "null" - will be auto-filled,
+"temp": temp file location as string,  
+"emoji":server ban hammer emoji ID as string}  
 
 ## dependencies
 node version 16.9.0  
@@ -26,6 +36,8 @@ dependencies included in package.json - just use
 ## running
 `forever start babot.js`
   
+# Use
+
 ## admin commands
 !setvote <msg ID> : creates a vote with reactions on the message  
 !bdelete <msg ID> : sends message to the deleted channel and removes the original  
