@@ -7,14 +7,6 @@ SAMI IS PROGRAMER,
 SHANE IS PROGRAMMER,     
 SERVER IS SERVER,   
 JOKE IS OLD.  
-  
-## dependencies
-node version 16.9.0  
-dependencies included in package.json - just use
-`npm install`
-
-## running
-`forever start babot.js`
 
 ## configuration
 ~setting up babotdata.json:  
@@ -25,6 +17,14 @@ dependencies included in package.json - just use
 "temp":temp file location as string,  
 "datalocation":location of data unpacked from FrogHolidays.zip as string,  
 "emoji":server ban hammer emoji}  
+
+## dependencies
+node version 16.9.0  
+dependencies included in package.json - just use
+`npm install`
+
+## running
+`forever start babot.js`
   
 ## admin commands
 !setvote <msg ID> : creates a vote with reactions on the message  
