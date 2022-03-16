@@ -1,0 +1,12 @@
+{
+    "token":"CHANGEME",
+    "pass":"server passwords listed here",
+    "datalocation":"./Data/",
+    "adminid":"",
+    "logchan":"",
+    "politicschan":"",
+    "holidaychan":"0",
+    "holidayval":"null",
+    "temp":"./",
+    "emoji":""
+}
