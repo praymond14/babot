@@ -33,6 +33,20 @@ node version 16.9.0
 dependencies included in package.json - just use
 `npm install`
 
+## installing from scratch
+A linux system is recommended. Production uses WSL1 on Win10.  
+This guide installs nvm (Node Version Manager), node, and forever.
+
+- `curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.1/install.sh | bash`
+- reload terminal or `source ~/.bashrc` (on bash)
+- `nvm install 16.9.0`
+- `npm install forever -g`
+- `git clone https://github.com/Aconka/babot.git`
+- `cd babot`
+- `npm install`
+- configure babotdata.json
+- `forever start babot.js`
+
 ## running
 `node babot.js`  
 or  
