@@ -224,12 +224,19 @@ bot.on('messageCreate', message =>
 		}
 		if (message.content.includes("847324692288765993")) //this could do something better but its ok for now
 		{
-			text += "LET'S SAUSAGE\n";
+			text += "\nLET'S SAUSAGE";
 		}
 
 		message.channel.send({ content: text });
 
-		if (message.content.includes("please")) //this could do something better but its ok for now
+		if (message.content.toLowerCase().includes("friday"))
+		{
+			var templocal = babadata.datalocation + "FrogHolidays/"; //creates the output frog image
+			newAttch = new Discord.MessageAttachment().setFile(templocal + "/Friday.jpg"); //makes a new discord attachment
+			message.channel.send({ content: "FRIDAY!", files: [newAttch] });
+		}
+
+		if (message.content.toLowerCase().includes("please")) //this could do something better but its ok for now
 		{
 			var num = Math.floor(Math.random() * 100); //pick a random one
 			if (num < 2)
@@ -242,7 +249,7 @@ bot.on('messageCreate', message =>
 				message.channel.send({ content: "Nice!" });
 		}
 
-		if (message.content.includes("order pizza"))
+		if (message.content.toLowerCase().includes("order pizza"))
 		{
 			message.channel.send({ content: "Baba Pizza Ordering Service™ coming soon!" });
 		}
@@ -410,6 +417,26 @@ bot.on('messageCreate', message =>
 			{
 				var num = Math.floor(Math.random() * databaseofhaiku.haikus.length);
 				var haiku = databaseofhaiku.haikus[num];
+
+				if (message.content.toLowerCase().includes("by"))
+				{
+					var hpl = "No Haiku Purity Found!";
+					var person = null;
+					for (x in databaseofhaiku.purity.person)
+					{
+						var lin = databaseofhaiku.purity.person[x];
+						if (message.content.toLowerCase().includes(x.toLowerCase()) || message.content.toLowerCase().includes(lin.ID))
+						{
+							fnd = true;
+							person = x;
+						}
+					}
+
+					if (person != null)
+					{
+						haiku = GetHaikuPerPerson(person);
+					}
+				}
 	
 				var showchan = Math.random();
 				var showname = Math.random();
@@ -435,6 +462,7 @@ bot.on('messageCreate', message =>
 				.setColor("#" + (Math.random() < .5 ? "0" : "F") + (Math.random() < .5 ? "0" : "F") + (Math.random() < .5 ? "0" : "F") + (Math.random() < .5 ? "0" : "F") + (Math.random() < .5 ? "0" : "F") + (Math.random() < .5 ? "0" : "F"))
 				.setDescription(haiku.HaikuFormat)
 				.setFooter("- " + (!haiku.Accident ? "Purposful Haiku by " : "") + signature, "https://media.discordapp.net/attachments/574840583563116566/949515044746559568/JSO3bX0V.png");
+				
 			}
 		}
 
@@ -693,6 +721,35 @@ bot.on('messageCreate', message =>
 			});
 		}
 	}
+	if(message.content.toLowerCase().includes('!bsetstatus')) //code to set game
+	{
+		if(message.channel.type != "DM" && message.member.roles.cache.has(babadata.adminid)) //check if admin
+		{
+			var text = message.content.toLowerCase();
+			var tyepe = -1;
+			if (text.includes("idle"))
+				tyepe = "idle";
+			if (text.includes("afk"))
+				tyepe = "idle";
+			else if (text.includes("online"))
+				tyepe = "online";
+			else if (text.includes("woke"))
+				tyepe = "online";
+			else if (text.includes("invisible"))
+				tyepe = "invisible";
+			else if (text.includes("offline"))
+				tyepe = "invisible";
+			else if (text.includes("dnd"))
+				tyepe = "dnd";
+			else if (text.includes("do not disturb"))
+				tyepe = "dnd";
+
+			if (tyepe == -1)
+				tyepe = "online";
+			
+			bot.user.setStatus(tyepe);
+		}
+	}
 	if(message.content.toLowerCase().includes('!bsetgame')) //code to set game
 	{
 		if(message.channel.type != "DM" && message.member.roles.cache.has(babadata.adminid)) //check if admin
@@ -708,6 +765,8 @@ bot.on('messageCreate', message =>
 				tyepe = 2;
 			else if (text.includes("competing"))
 				tyepe = 5;
+			else if (text.includes("streaming"))
+				tyepe = 1;
 
 			if (tyepe == -1)
 			{
@@ -716,7 +775,12 @@ bot.on('messageCreate', message =>
 			}
 			
 			var mess = message.content.split(' ').slice(lc, ).join(' '); //get the name for the role
-			bot.user.setActivity(mess, { type: tyepe });
+
+			var help = { type: tyepe };
+			if (tyepe == 1)
+				help.url = "https://www.twitch.tv/directory/game/Baba%20is%20You";
+			
+			bot.user.setActivity(mess, help);
 		}
 	}
 	if(message.content.toLowerCase().includes('!banhammer')) //code to set ban hammer
@@ -1093,7 +1157,7 @@ function FindDate(holidaysfound, message) //Not Thanks to Jeremy's Link
 		if (year == 0) //set year to first year found
 		{
 			var iv = parseInt(item);
-			if (iv >= new Date().getFullYear())
+			if (iv <= new Date().getFullYear() && iv >= 2018)
 			{
 				year = iv;
 			}
@@ -1387,16 +1451,54 @@ function UpdatePurityScore(person, channel, date, accidental)
 	databaseofhaiku.purity.date[date].Accidental += accidental ? 1 : 0;
 }
 
+function compare( a, b ) 
+{
+	if (a.Count < b.Count)
+	{
+	  return 1;
+	}
+	if (a.Count > b.Count)
+	{
+	  return -1;
+	}
+	return 0;
+  }
+
 function FormatPurityList(list, chan)
 {
-	var retme = ""
+	lists = [];
 	for (x in list)
 	{
 		var lin = list[x];
-		retme += GenInfo(x, lin, chan) + "\n\n";
+		lin.Name = x;
+		lists.push(lin);
+	}
+
+	lists.sort(compare);
+
+	var retme = ""
+	for (x in lists)
+	{
+		var lin = lists[x];
+		retme += GenInfo(lin.Name, lin, chan) + "\n\n";
 	}
 
 	return retme;
+}
+
+function GetHaikuPerPerson(person)
+{
+	var pickfrom = [];
+	for (h in databaseofhaiku.haikus)
+	{
+		if (databaseofhaiku.haikus[h].Person == person)
+			pickfrom.push(databaseofhaiku.haikus[h]);
+	}
+
+	var num = Math.floor(Math.random() * pickfrom.length);
+	var haiku = pickfrom[num];
+
+	return haiku;
 }
 
 function GenInfo(x, line, chan)
