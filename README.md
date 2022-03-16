@@ -34,7 +34,10 @@ dependencies included in package.json - just use
 `npm install`
 
 ## running
+`node babot.js`  
+or  
 `forever start babot.js`
+(requires forever: `npm install forever -g`)
   
 # Use
 
