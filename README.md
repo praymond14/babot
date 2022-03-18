@@ -24,7 +24,7 @@ JOKE IS OLD.
 "logchn": log channel ID as string,  
 "politicschan": politics channel ID as string,  
 "holidaychan": leave as "0" - will be auto-filled,  
-"holidayval": leave as "null" - will be auto-filled,
+"holidayval": leave as "null" - will be auto-filled,<br>
 "temp": temp file location as string,  
 "emoji":server ban hammer emoji ID as string}  
 
