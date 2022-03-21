@@ -127,45 +127,6 @@ bot.on('messageCreate', message =>
 			var hiddenChan = g.channels.cache.get(message_id); //gets the special archive channel
 			hiddenChan.send(mess);
 		}
-		//else if (message.content.toLowerCase().includes("aa"))
-		//{
-		//	if (message.content.toLowerCase().includes("add"))
-		//	{
-		//		var chanMap = g.channels.fetch().then(channels => {
-		//			channels.each(chan => { //iterate through all the channels
-		//				if (chan.type == "GUILD_TEXT") //make sure the channel is a text channel
-		//				{
-		//					const botPermissionsIn  = chan.permissionsFor(rl);
-		//					var perms = botPermissionsIn.toArray();
-		//					var vc = false;
-//
-		//					for (i = 0; i < perms.length; i++) 
-		//					{
-		//						var p = perms[i];
-		//						if (p === "VIEW_CHANNEL")
-		//							vc = true;
-		//					}
-//
-		//					if (!vc)
-		//					{
-		//						chan.permissionOverwrites.edit(rid, { VIEW_CHANNEL: true, READ_MESSAGE_HISTORY: true, SEND_MESSAGES: true });
-		//					}
-		//				}
-		//			});
-		//		});
-		//	}
-		//	else if (message.content.toLowerCase().includes("remove"))
-		//	{
-		//		var chanMap = g.channels.fetch().then(channels => {
-		//			channels.each(chan => { //iterate through all the channels
-		//				if (chan.type == "GUILD_TEXT") //make sure the channel is a text channel
-		//				{
-		//					chan.permissionOverwrites.delete(rid);
-		//				}
-		//			});
-		//		});
-		//	}
-		//}
 	}
 
 	if (babadata.holidaychan == null)
