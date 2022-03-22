@@ -212,7 +212,7 @@ bot.on('messageCreate', message =>
 		}
 		MonthsPlus(message, d1);
 	}
-	if(message.content.toLowerCase().includes('perchance')) //perchance update
+	if(message.content.toLowerCase().includes('perchance') && !message.author.bot) //perchance update
 		{
 			message.channel.send("You can't just say perchance");
 		}
