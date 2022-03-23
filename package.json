@@ -3,6 +3,7 @@
   "version": "0.0.0",
   "description": "admin bot for glorious trumpet land",
   "main": "babot.js",
+  "type": "module",
   "scripts": {
     "test": "echo \"Testing is for nerds\" && exit 1"
   },
