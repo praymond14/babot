@@ -2,6 +2,7 @@ import { createRequire } from "module";
 const require = createRequire(import.meta.url);
 var babadata = require('./babotdata.json'); //baba configuration file
 var request = require('node-fetch');
+const Discord = require('discord.js'); //discord module for interation with discord api
 import fs from "fs"; //file stream used for del fuction
 import images from "images"; //image manipulation used for the wednesday frogs
 import Jimp from "jimp";  //image ability to add text
@@ -757,7 +758,7 @@ async function DelayedDeletion(hiddenChan, img) //download function used when th
 		console.log('Done!')
 	})
 
-	newAttch = new Discord.MessageAttachment().setFile(tempFilePath); //makes a new discord attachment
+	var newAttch = new Discord.MessageAttachment().setFile(tempFilePath); //makes a new discord attachment
 
 	setTimeout(function(){ hiddenChan.send({files: [newAttch] }); }, 2000); //sends the attachment (delayed by 1 sec to allow for download)
 
