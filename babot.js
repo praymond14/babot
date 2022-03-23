@@ -192,7 +192,11 @@ bot.on('messageCreate', message =>
 		MonthsPlus(message, d1);
 	}
 
-	if(msgContent.includes('!baba') && !message.author.bot) //if message contains baba and is not from bot
+	if(message.content.toLowerCase().includes('perchance') && !message.author.bot) //perchance update
+		{
+			message.channel.send("You can't just say perchance");
+		}
+	if(message.content.toLowerCase().includes('!baba') && !message.author.bot) //if message contains baba and is not from bot
 	{
 		var exampleEmbed = null;
 		var text = 'BABA IS ADMIN'; //start of reply string for responce message.
