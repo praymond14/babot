@@ -2,9 +2,9 @@ import { createRequire } from "module";
 const require = createRequire(import.meta.url);
 var babadata = require('./babotdata.json'); //baba configuration file
 var request = require('node-fetch');
-let fs = require('fs'); //file stream used for del fuction
-var images = require("images"); //image manipulation used for the wednesday frogs
-var Jimp = require("jimp"); //image ability to add text
+import fs from "fs"; //file stream used for del fuction
+import images from "images"; //image manipulation used for the wednesday frogs
+import Jimp from "jimp";  //image ability to add text
 
 
 export async function setGrole(msg, rname) //creates role and sets users

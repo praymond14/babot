@@ -20,9 +20,9 @@ const { Client, Intents } = require('discord.js'); //discord module for interati
 const Discord = require('discord.js'); //discord module for interation with discord api
 var babadata = require('./babotdata.json'); //baba configuration file
 //let request = require('request'); // not sure what this is used for //depricated
-let fs = require('fs'); //file stream used for del fuction
-var images = require("images"); //image manipulation used for the wednesday frogs
-var Jimp = require("jimp"); //image ability to add text
+import fs from "fs"; //file stream used for del fuction
+import images from "images"; //image manipulation used for the wednesday frogs
+import Jimp  from "jimp";  //image ability to add text
 
 let databaseofhaiku = {haikus: [], purity: {date: [], person: [], channel: []}}; //haiku list
 const options = { year: 'numeric', month: 'long', day: 'numeric' }; // for date parsing to string
