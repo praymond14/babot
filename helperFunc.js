@@ -128,6 +128,20 @@ export async function movetoChannel(msg, channel, logchan) //archive the message
 	setTimeout(function(){ msg.delete(); }, waittime); //deletes the og message (delayed for the file transfer)
 }
 
+export function getD1()
+{
+	var yr = new Date().getFullYear(); //get this year
+	var dy = dateoveride[0] ? dateoveride[2] : new Date().getDate(); //get this day
+	var my = dateoveride[0] ? dateoveride[1] - 1 : new Date().getMonth(); //get this month
+	var d1 = new Date(yr, my, dy);
+	return d1;
+}
+
+export function getErrorFlag()
+{
+	return babadata.datalocation + "Flags/" + "error.png";
+}
+
 export function GetDate(d1, yr, holidayinfo) //Gets the specified date from the selected holiday at the year provided
 {
 	let d2 = new Date(); //new Date
@@ -274,7 +288,7 @@ function getEaster(year) //Thanks to Jeremy's Link
 	return [month, day];
 }
 
-export function FindDate(holidaysfound, message) //Not Thanks to Jeremy's Link
+export function FindDate(message) //Not Thanks to Jeremy's Link
 {
 	var outps = message.toLowerCase().replace("!baba", "") //there is no point to this, i did it because i wanted too
 		.replace("wednesday", "")
