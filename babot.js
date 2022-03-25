@@ -2,8 +2,8 @@ import { createRequire } from "module";
 const require = createRequire(import.meta.url);
 const { Client, Intents } = require('discord.js'); //discord module for interation with discord api
 const Discord = require('discord.js'); //discord module for interation with discord api
-// const { REST } = require('@discord.js/rest');
-// const { Routes } = require('discod-api-types/v9');
+const { REST } = require('@discordjs/rest');
+const { Routes } = require('discord-api-types/v9');
 var babadata = require('./babotdata.json'); //baba configuration file
 import {
 	CreateHaikuDatabase,
