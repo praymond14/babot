@@ -1,16 +1,20 @@
+import { createRequire } from "module";
+const require = createRequire(import.meta.url);
+const fs = require('node:fs');
 const { SlashCommandBuilder } = require('@discordjs/builders');
 const { REST } = require('@discordjs/rest');
 const { Routes } = require('discord-api-types/v9');
 const { clientId, guildId} = require('./config.json');
 const { token } = require('./token.json');
 
-// initialize commands here
 
+const commands = [];
+const commandFiles = fs.readdirSync('./commands').filter(file => file.endsWith('.js')); //get all .js files in the commands folder
 
-// place command references here
-const commands = [
-]
-	.map(command => command.toJSON());
+for(const file of commandFiles) { //adds all commands in the commands folder to the commands array
+    const command = require(`./commands/${file}`);
+    commands.push(command.data.toJSON());
+}
 
 const rest = new REST({ version: '9' }).setToken(token);
 
