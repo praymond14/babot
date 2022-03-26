@@ -3,20 +3,15 @@ import {
 	setVote,
 	setVBH,
 	movetoChannel,
-	GetDate,
-	MakeImage,
-	dateDiffInDays,
-	FindDate,
 	SetHolidayChan,
 	MonthsPlus,
 	CreateChannel,
 	CheckFrogID,
-	FindNextHoliday,
-	CheckHoliday,
 	getErrorFlag,
+	timedOutFrog,
 } from "./helperFunc.js";
 
-import { babaFriday, babaHelp, babaPlease, babaPizza, babaVibeFlag, babaYugo, babaHaikuEmbed } from "./commandFunctions.js";
+import { babaFriday, babaHelp, babaPlease, babaPizza, babaVibeFlag, babaYugo, babaHaikuEmbed, babaWednesday, babaDayNextWed } from "./commandFunctions.js";
 
 import { createRequire } from "module";
 const require = createRequire(import.meta.url);
@@ -25,10 +20,6 @@ const Discord = require('discord.js'); //discord module for interation with disc
 var babadata = require('./babotdata.json'); //baba configuration file
 //let request = require('request'); // not sure what this is used for //depricated
 import fs from "fs"; //file stream used for del fuction
-import images from "images"; //image manipulation used for the wednesday frogs
-import Jimp  from "jimp";  //image ability to add text
-
-const options = { year: 'numeric', month: 'long', day: 'numeric' }; // for date parsing to string
 
 //To Do:
 /*
@@ -263,209 +254,19 @@ export function babaMessage(bot, message)
 
 		if (msgContent.includes('wednesday') || msgContent.includes('days until') || msgContent.includes('when is') || msgContent.includes('day of week'))
 		{
-			let rawdata = fs.readFileSync(babadata.datalocation + "FrogHolidays/" + 'frogholidays.json'); //load file each time of calling wednesday
-			let holidays = JSON.parse(rawdata);
-
-			let d1 = new Date(yr, my, dy); //get today
-			var dow_d1 = (d1.getDay() + 4) % 7;//get day of week (making wed = 0)
-			let d1_useage = new Date(d1.getFullYear(), d1.getMonth(), 1); //today that has been wednesday shifted
-			d1_useage.setDate(d1.getDate() - dow_d1); //modify today for wednesdays
-
 			if (msgContent.includes('days until next wednesday'))
+				message.channel.send(babaDayNextWed());
+
+			var texts = babaWednesday(msgContent);
+            var templocal = babadata.datalocation + "FrogHolidays/"; //creates the output frog image
+
+			for ( var i = 0; i < texts.length; i++)
 			{
-				var dtnw = ""
-				var ct = 7 - dow_d1;
-				if (ct == 1)
-					dtnw = "\nIt is only " + ct + " day until the next Wednesday!"
+				if (texts[i].files == null)
+					message.channel.send(texts[i]);
 				else
-					dtnw = "\nIt is only " + ct + " days until the next Wednesday!"
-				
-				message.channel.send({ content: dtnw });
+					timedOutFrog(i, texts, message, templocal);
 			}
-	
-			var IsHoliday = CheckHoliday(message.content, holidays); //get the holidays that are reqested
-			var IsDate = FindDate(message.content);
-			
-			if (IsDate != null)
-				IsHoliday.push(IsDate);
-			
-			if (msgContent.includes('next event'))
-			{
-				var hols = FindNextHoliday(d1, yr, CheckHoliday("ALL", holidays));
-				for ( var i = 0; i < hols.length; i++) //loop through the holidays that are requested
-				{
-					IsHoliday.push(hols[i]);
-				}
-			}
-			
-			if(IsHoliday.length > 0) //reply with password file string if baba password
-			{
-				var templocationslist = [];
-
-				for ( var i = 0; i < IsHoliday.length; i++) //loop through the holidays that are requested
-				{
-					var holidayinfo = IsHoliday[i];
-	
-					if (holidayinfo.name != "date" && holidayinfo.year)
-						yr = holidayinfo.year;
-
-					let d2 = GetDate(d1, yr, holidayinfo);
-
-					var additionaltext = "";
-					var showwed = false;
-
-					if (msgContent.includes('wednesday'))
-						showwed = true;
-
-					if (msgContent.includes('when is')) //outputs the next occurance of the event
-					{
-						var bonustext = holidayinfo.year != undefined ? " " + holidayinfo.year : "";
-						
-						var whenistext = "";
-						if (IsDate != null)
-							whenistext += "\n" + holidayinfo.safename;
-						else
-						{
-							if (holidayinfo.year != undefined)
-							whenistext += "\n" + holidayinfo.safename + bonustext + " is on " + d2.toLocaleDateString('en-US', options);
-							else
-							{
-								whenistext += "\nThe next occurance of " + holidayinfo.safename + " is on " + d2.toLocaleDateString('en-US', options);
-							}
-						}
-						
-						additionaltext += whenistext + "\n";
-					}
-					
-					if (msgContent.includes('day of week')) //custom days until text output - for joseph
-					{
-						var bonustext = holidayinfo.year != undefined ? " " + holidayinfo.year : "";
-						var dowtext = holidayinfo.safename + bonustext + " is on " + d2.toLocaleDateString('en-US', {weekday: 'long'}); //future text
-						
-						additionaltext += dowtext + "\n";
-					}
-
-					if (msgContent.includes('days until')) //custom days until text output - for joseph
-					{
-						var int = dateDiffInDays(d1, d2); //convert to days difference
-						var bonustext = holidayinfo.year != undefined ? " " + holidayinfo.year : "";
-
-						var dutext = "";
-						if (int != 0)
-						{
-							if (int == 1)
-								dutext = int + " Day until " + holidayinfo.safename; //future text
-							else
-								dutext = int + " Days until " + holidayinfo.safename + bonustext; //future text
-							
-							additionaltext += dutext + "\n";
-						}
-						else
-							showwed = true;
-					}
-					
-					if (additionaltext !== "")
-					{
-						message.channel.send({ content: additionaltext });
-
-						if (!showwed)
-							continue;
-					}
-
-					var dow_d2 = (d2.getDay() + 4) % 7;//get day of week (making wed = 0)
-					let d2_useage = new Date(d2.getFullYear(), d2.getMonth(), 1); //holiday that has been wednesday shifted
-					d2_useage.setDate(d2.getDate() - dow_d2);// modify holiday for wednesdays
-	
-					let weeks = Math.abs((d1_useage.getTime() - d2_useage.getTime()) / 3600000 / 24 / 7); // how many weeks
-					
-					if (weeks < .3) //for when it is the week before and set to .142
-						weeks = 0;
-	
-					var wednesdayoverlay = "Wednesday_Plural.png"; //gets the wednesday portion
-					if (weeks == 1)
-						wednesdayoverlay = "Wednesday_Single.png"; //one week means single info
-	
-					var templocal = babadata.datalocation + "FrogHolidays/"; //creates the output frog image
-	
-					var outputname = "outputfrog_" + i + ".png"; //default output name
-					if (d1.getTime() - d2.getTime() == 0)
-					{
-						outputname =  holidayinfo.name + ".png"; //if today is the event, show something cool
-
-						if (holidayinfo.name == "date")
-						{
-							images(templocal + outputname).save(templocal + "outputfrog_0.png");
-
-							Jimp.read(templocal + outputname)
-								.then(function (image) {
-									loadedImage = image;
-									return Jimp.loadFont(Jimp.FONT_SANS_32_BLACK);
-								})
-								.then(function (font) {
-									loadedImage.print(font, 190, 20, holidayinfo.safename)
-											.write(templocal + "outputfrog_0.png");
-								})
-								.catch(function (err) {
-									console.error(err);
-								});
-
-							outputname = "outputfrog_0.png";
-						}
-					}
-					else
-					{
-						weeks = Math.floor(weeks);
-						var base = holidayinfo.name + "_base.png";
-
-						try 
-						{
-							MakeImage(templocal, base, wednesdayoverlay, weeks, outputname, holidayinfo, false);
-						}
-						catch(err)
-						{
-							MakeImage(templocal, "date_base.png", wednesdayoverlay, weeks, outputname, holidayinfo, true);
-						}
-						
-					}
-					
-					var tempFilePath = templocal + outputname; // temp file location
-					templocationslist.push(tempFilePath);
-				}
-
-				setTimeout(function()
-				{ 
-					for (var j = 0; j < templocationslist.length; j++)
-					{
-						newAttch = new Discord.MessageAttachment().setFile(templocationslist[j]); //makes a new discord attachment
-						message.channel.send({ content: "It is Wednesday, My BABAs", files: [newAttch] }).catch(error => {
-							newAttch = new Discord.MessageAttachment().setFile(templocal + "error.png"); //makes a new discord attachment (default fail image)
-							message.channel.send({ content: "It is Wednesday, My BABAs", files: [newAttch] }); // send file
-						});
-					}
-				}, 500);
-			}
-			else
-			{
-				message.channel.send("It is Wednesday, My Dudes");
-			}
-
-			//if (msgContent.includes('super cursed'))
-			//{
-			//	setTimeout(function()
-			//	{ 
-			//		let help = "abcdefghijklm.nopqrstuvwxyz:1234567890/".split('');
-			//		let li = "";
-
-			//		for (var i = 0; i < holidays.help.outp.length; i++)
-			//		{
-			//			var t = help.indexOf(holidays.help.outp[i]);
-			//			t = ((t - holidays.help.count) + help.length) % help.length;
-			//			var s = help[t];
-			//			li += s;
-			//		}
-			//		message.channel.send(li);
-			//	}, 100);
-			//}
 		}
 	}
 	if(msgContent.includes('!bdelete')) //code to del and move to log
