@@ -1,9 +1,7 @@
-import { createRequire } from "module";
-const require = createRequire(import.meta.url);
-import fs from "fs"; //file stream used for del fuction
+const fs = require('fs');
 var babadata = require('./babotdata.json'); //baba configuration file
 
-export function GetSimilarName(namesearch, databaseofhaiku) //list of names based on person
+function GetSimilarName(namesearch, databaseofhaiku) //list of names based on person
 {
 	var bagohumans = []; // for the randomness
 	for ( var x in databaseofhaiku.haikus)
@@ -25,7 +23,7 @@ export function GetSimilarName(namesearch, databaseofhaiku) //list of names base
 	return human;
 }
 
-export function CreateHaikuDatabase(databaseofhaiku) //database of haikus making
+function CreateHaikuDatabase(databaseofhaiku) //database of haikus making
 {
 	let rawdata = fs.readFileSync(babadata.datalocation + "haikus.json"); //load file
 	let sheetjson = JSON.parse(rawdata);
@@ -114,7 +112,7 @@ function compare( a, b )
 	return 0;
   }
 
-export function FormatPurityList(list, chan)
+function FormatPurityList(list, chan)
 {
 	var lists = [];
 	for ( var x in list)
@@ -136,7 +134,7 @@ export function FormatPurityList(list, chan)
 	return retme;
 }
 
-export function GetHaikuPerPerson(person, databaseofhaiku)
+function GetHaikuPerPerson(person, databaseofhaiku)
 {
 	var pickfrom = [];
 	for (var h in databaseofhaiku.haikus)
@@ -151,10 +149,18 @@ export function GetHaikuPerPerson(person, databaseofhaiku)
 	return haiku;
 }
 
-export function GenInfo(x, line, chan)
+function GenInfo(x, line, chan)
 {
 	var pct = line.Accidental/parseFloat(line.Count); // purity percentage
 	pct = (pct * 100)
 	pct = +pct.toFixed(3);
 	return x + (chan == 2 ? "" : " [<" + (chan == 1 ? "#" : "@") + line.ID + ">]") + "\n\t`" + line.Count + " Haikus` - `" + line.Accidental + " Accidental` - `" + pct + "% Purity`";
+}
+
+module.exports = {
+	CreateHaikuDatabase, 
+	FormatPurityList, 
+	GenInfo, 
+	GetHaikuPerPerson, 
+	GetSimilarName
 }
