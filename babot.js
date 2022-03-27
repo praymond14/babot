@@ -7,7 +7,6 @@ const { REST } = require('@discordjs/rest');
 const { Routes } = require('discord-api-types/v9');
 var babadata = require('./babotdata.json'); //baba configuration file
 import {
-	CreateHaikuDatabase,
 	babaMessage,
 } from './textCommands.js';
 
@@ -18,8 +17,6 @@ bot.login(babadata.token); //login
 bot.on('ready', function (evt) 
 {
 	console.log('Connected');
-
-	CreateHaikuDatabase(); // load it in
 });
 
 bot.commands = new Collection();
