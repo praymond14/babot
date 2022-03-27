@@ -1,14 +1,10 @@
-import { createRequire } from "module";
-const require = createRequire(import.meta.url);
 const fs = require('node:fs');
 const { Client, Intents, Collection } = require('discord.js'); //discord module for interation with discord api
 const Discord = require('discord.js'); //discord module for interation with discord api
 const { REST } = require('@discordjs/rest');
 const { Routes } = require('discord-api-types/v9');
 var babadata = require('./babotdata.json'); //baba configuration file
-import {
-	babaMessage,
-} from './textCommands.js';
+const txtCommands = require('./textCommands.js');
 
 // Initialize Discord Bot
 const bot = new Client({ intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MESSAGES, Intents.FLAGS.DIRECT_MESSAGES], partials: ["CHANNEL"]});
@@ -28,12 +24,12 @@ for(const file of commandFiles) { //adds all commands in the commands folder
 	bot.commands.set(command.data.name, command);
 }
 
-bot.on('messageCreate', async message => {babaMessage(bot, message)}); //baba message handler
+bot.on('messageCreate', async message => {txtCommands.babaMessage(bot, message)}); //baba message handler
 
 bot.on('interactionCreate', async interaction => {
 	if(!interaction.isCommand()) return;
 
-	const command = bot.commands.get(interaction.command);
+	const command = bot.commands.get(interaction.commandName);
 
 	if(!command) return;
 

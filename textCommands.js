@@ -1,25 +1,10 @@
-import {
-	setGrole,
-	setVote,
-	setVBH,
-	movetoChannel,
-	SetHolidayChan,
-	MonthsPlus,
-	CreateChannel,
-	CheckFrogID,
-	getErrorFlag,
-	timedOutFrog,
-} from "./helperFunc.js";
-
-import { babaFriday, babaHelp, babaPlease, babaPizza, babaVibeFlag, babaYugo, babaHaikuEmbed, babaWednesday, babaDayNextWed } from "./commandFunctions.js";
-
-import { createRequire } from "module";
-const require = createRequire(import.meta.url);
+const helperFunc = require("./helperFunc.js");
+const commandFunctions = require("./commandFunctions.js");
 const { Client, Intents } = require('discord.js'); //discord module for interation with discord api
 const Discord = require('discord.js'); //discord module for interation with discord api
 var babadata = require('./babotdata.json'); //baba configuration file
 //let request = require('request'); // not sure what this is used for //depricated
-import fs from "fs"; //file stream used for del fuction
+const fs = require('fs'); //file stream used for del fuction
 
 //To Do:
 /*
@@ -49,13 +34,13 @@ const { SSL_OP_SSLEAY_080_CLIENT_DH_BUG } = require('constants');
 
 
 //stuff when message is recived.
-export function babaMessage(bot, message)
+function babaMessage(bot, message)
 {
 	let rawdata = fs.readFileSync(babadata.datalocation + "FrogHolidays/" + 'frogholidays.json'); //load file each time of calling wednesday
 	let frogdata = JSON.parse(rawdata);
 	var g, rl = null;
 	var sentvalid = false;
-	var idint = CheckFrogID(frogdata, message.author.id);
+	var idint = helperFunc.CheckFrogID(frogdata, message.author.id);
 	var rid = frogdata.froghelp.rfrog[0];
 	var msgContent = message.content.toLowerCase();
 
@@ -72,15 +57,15 @@ export function babaMessage(bot, message)
 		if (msgContent.includes("🐸 debug")) //0 null, 1 spook, 2 thanks, 3 crimbo, 4 defeat
 		{
 			if (msgContent.includes("0"))
-				SetHolidayChan(message, "null");
+				helperFunc.SetHolidayChan(message, "null");
 			else if (msgContent.includes("1"))
-				SetHolidayChan(message, "spook");
+				helperFunc.SetHolidayChan(message, "spook");
 			else if (msgContent.includes("2"))
-				SetHolidayChan(message, "thanks");
+				helperFunc.SetHolidayChan(message, "thanks");
 			else if (msgContent.includes("3"))
-				SetHolidayChan(message, "crimbo");
+				helperFunc.SetHolidayChan(message, "crimbo");
 			else if (msgContent.includes("4"))
-				SetHolidayChan(message, "defeat");
+				helperFunc.SetHolidayChan(message, "defeat");
 	
 			message.author.send("```HC: " + babadata.holidaychan + "\nHV: " + babadata.holidayval + "```");
 		}
@@ -103,7 +88,7 @@ export function babaMessage(bot, message)
 				channels.each(chan => { //iterate through all the channels
 					if (chan.type == "GUILD_TEXT") //make sure the channel is a text channel
 					{
-						chan.messages.fetch(message_id).then(message => movetoChannel(message, chan, babadata.logchan)).catch(console.error); //try to get the message, if it exists call setVote, otherwise catch the error
+						chan.messages.fetch(message_id).then(message => helperFunc.movetoChannel(message, chan, babadata.logchan)).catch(console.error); //try to get the message, if it exists call setVote, otherwise catch the error
 					}
 				});
 			});
@@ -155,7 +140,7 @@ export function babaMessage(bot, message)
 		//560231259842805770  563063109422415872
 		if(msgContent.includes(yr - 1) && msgContent.includes("560231259842805770") && msgContent.includes("563063109422415872") && !message.author.bot) //if message contains baba and is not from bot
 		{
-			SetHolidayChan(message, "null", 0);
+			helperFunc.SetHolidayChan(message, "null", 0);
 		}
 	}
 
@@ -163,7 +148,7 @@ export function babaMessage(bot, message)
 	{
 		if (babadata.holidayval != "defeat" && d1.getMonth() == 0 && d1.getDate() == 1 && babadata.holidayval != "null")
 		{
-			SetHolidayChan(message, "defeat");
+			helperFunc.SetHolidayChan(message, "defeat");
 		}
 	}
 	else if (d1.getMonth() >= 9 && message.guild != null)
@@ -171,9 +156,9 @@ export function babaMessage(bot, message)
 		if (babadata.holidaychan == 0)
 		{
 			var server = message.guild;
-			CreateChannel(server, "text channels", message, d1);
+			helperFunc.CreateChannel(server, "text channels", message, d1);
 		}
-		MonthsPlus(message, d1);
+		helperFunc.MonthsPlus(message, d1);
 	}
 
 	if(message.content.toLowerCase().includes('perchance') && !message.author.bot) //perchance update
@@ -199,29 +184,29 @@ export function babaMessage(bot, message)
 
 		if (msgContent.includes("friday"))
 		{
-			message.channel.send(babaFriday());
+			message.channel.send(commandFunctions.babaFriday());
 		}
 
 		if (msgContent.includes("please")) //this could do something better but its ok for now
 		{
-			message.channel.send(babaPlease());
+			message.channel.send(commandFunctions.babaPlease());
 		}
 
 		if (msgContent.includes("order pizza"))
 		{
-			message.channel.send(babaPizza());
+			message.channel.send(commandFunctions.babaPizza());
 		}
 
 		if(msgContent.includes('help')) //reply with help text is baba help
 		{
-			message.channel.send(babaHelp());
+			message.channel.send(commandFunctions.babaHelp());
 		}
 
 		if (msgContent.includes('flag') && (msgContent.includes('night shift') || msgContent.includes('vibe time')))
 		{
-			var flagcontent = babaVibeFlag();
+			var flagcontent = commandFunctions.babaVibeFlag();
 			message.channel.send(flagcontent).catch(error => {
-				newAttch = new Discord.MessageAttachment().setFile(getErrorFlag());
+				newAttch = new Discord.MessageAttachment().setFile(helperFunc.getErrorFlag());
 				message.channel.send({content: flagcontent.content, files: [newAttch] }); // send file
 			});
 		}
@@ -236,7 +221,7 @@ export function babaMessage(bot, message)
 */
 		if(msgContent.includes('make yugo')) //reply with password file string if baba password
 		{
-			message.channel.send(babaYugo());
+			message.channel.send(commandFunctions.babaYugo());
 		}
 
 		if (msgContent.includes('haiku')) // add custom haiku search term?
@@ -246,7 +231,7 @@ export function babaMessage(bot, message)
 			var chans = msgContent.includes("channels");
 			var mye = msgContent.includes("my") ? message.author.id : 0;
 			var buy = msgContent.includes("by");
-			exampleEmbed = babaHaikuEmbed(purity, list, chans, mye, buy, msgContent);
+			exampleEmbed = commandFunctions.babaHaikuEmbed(purity, list, chans, mye, buy, msgContent);
 		}
 
 		if (exampleEmbed != null) 
@@ -255,9 +240,9 @@ export function babaMessage(bot, message)
 		if (msgContent.includes('wednesday') || msgContent.includes('days until') || msgContent.includes('when is') || msgContent.includes('day of week'))
 		{
 			if (msgContent.includes('days until next wednesday'))
-				message.channel.send(babaDayNextWed());
+				message.channel.send(commandFunctions.babaDayNextWed());
 
-			var texts = babaWednesday(msgContent);
+			var texts = commandFunctions.babaWednesday(msgContent);
             var templocal = babadata.datalocation + "FrogHolidays/"; //creates the output frog image
 
 			for ( var i = 0; i < texts.length; i++)
@@ -265,7 +250,7 @@ export function babaMessage(bot, message)
 				if (texts[i].files == null)
 					message.channel.send(texts[i]);
 				else
-					timedOutFrog(i, texts, message, templocal);
+					helperFunc.timedOutFrog(i, texts, message, templocal);
 			}
 		}
 	}
@@ -278,7 +263,7 @@ export function babaMessage(bot, message)
 				channels.each(chan => { //iterate through all the channels
 					if (chan.type == "GUILD_TEXT") //make sure the channel is a text channel
 					{
-						chan.messages.fetch(message_id).then(message => movetoChannel(message, chan, babadata.logchan)).catch(console.error); //try to get the message, if it exists call deleteAndArchive, otherwise catch the error
+						chan.messages.fetch(message_id).then(message => helperFunc.movetoChannel(message, chan, babadata.logchan)).catch(console.error); //try to get the message, if it exists call deleteAndArchive, otherwise catch the error
 					}
 				});
 			}); //get a map of the channelt in the guild
@@ -293,7 +278,7 @@ export function babaMessage(bot, message)
 				channels.each(chan => { //iterate through all the channels
 					if (chan.type == "GUILD_TEXT") //make sure the channel is a text channel
 					{
-						chan.messages.fetch(message_id).then(message => movetoChannel(message, chan, babadata.politicschan)).catch(console.error); //try to get the message, if it exists call deleteAndArchive, otherwise catch the error
+						chan.messages.fetch(message_id).then(message => helperFunc.movetoChannel(message, chan, babadata.politicschan)).catch(console.error); //try to get the message, if it exists call deleteAndArchive, otherwise catch the error
 					}
 				});
 			}); //get a map of the channelt in the guild
@@ -308,7 +293,7 @@ export function babaMessage(bot, message)
 				channels.each(chan => { //iterate through all the channels
 					if (chan.type == "GUILD_TEXT") //make sure the channel is a text channel
 					{
-						chan.messages.fetch(message_id).then(message => setVote(message)).catch(console.error); //try to get the message, if it exists call setVote, otherwise catch the error
+						chan.messages.fetch(message_id).then(message => helperFunc.setVote(message)).catch(console.error); //try to get the message, if it exists call setVote, otherwise catch the error
 					}
 				});
 			});
@@ -385,7 +370,7 @@ export function babaMessage(bot, message)
 				channels.each(chan => { //iterate through all the channels
 					if (chan.type == "GUILD_TEXT") //make sure the channel is a text channel
 					{
-						chan.messages.fetch(message_id).then(message => setVBH(message)).catch(console.error); //try to get the message, if it exists call setVBH, otherwise catch the error
+						chan.messages.fetch(message_id).then(message => helperFunc.setVBH(message)).catch(console.error); //try to get the message, if it exists call setVBH, otherwise catch the error
 					}
 				});
 			});
@@ -405,7 +390,7 @@ export function babaMessage(bot, message)
 					{
 						chan.messages.fetch(message_id).then(message => {
 							fnd = true;
-							setGrole(message, role_name);
+							helperFunc.setGrole(message, role_name);
 						}).catch(console.error); //try to get the message, if it exists call setGrole, otherwise catch the error
 					}
 				});
@@ -426,4 +411,6 @@ export function babaMessage(bot, message)
 //	msg.channel.send(t);
 //}
 
-
+module.exports = {
+	babaMessage
+}

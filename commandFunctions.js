@@ -1,24 +1,22 @@
-import { createRequire } from "module";
-import { CreateHaikuDatabase, FormatPurityList, GenInfo, GetHaikuPerPerson, GetSimilarName } from "./haikuDatabase.js";
-import { getD1, FindDate, CheckHoliday, FindNextHoliday, GetDate, dateDiffInDays, MakeImage } from "./helperFunc.js";
-const require = createRequire(import.meta.url);
+const { CreateHaikuDatabase, FormatPurityList, GenInfo, GetHaikuPerPerson, GetSimilarName } = require("./haikuDatabase.js");
+const { getD1, FindDate, CheckHoliday, FindNextHoliday, GetDate, dateDiffInDays, MakeImage } = require("./helperFunc.js");
 var babadata = require('./babotdata.json'); //baba configuration file
 const Discord = require('discord.js'); //discord module for interation with discord api
 let databaseofhaiku = {haikus: [], purity: {date: [], person: [], channel: []}}; //haiku list
-import fs from "fs"; //file stream used for del fuction
-import images from "images"; //image manipulation used for the wednesday frogs
-import Jimp  from "jimp";  //image ability to add text
+const fs = require('fs');
+const images = require('images');
+const Jimp = require('jimp');
 
 const options = { year: 'numeric', month: 'long', day: 'numeric' }; // for date parsing to string
 
-export function babaFriday()
+function babaFriday()
 {
     var templocal = babadata.datalocation + "FrogHolidays/"; //creates the output frog image
     var newAttch = new Discord.MessageAttachment().setFile(templocal + "/Friday.jpg"); //makes a new discord attachment
     return { content: "FRIDAY!", files: [newAttch] };
 }
 
-export function babaPlease()
+function babaPlease()
 {
     var num = Math.floor(Math.random() * 100); //pick a random one
     if (num < 2)
@@ -31,12 +29,12 @@ export function babaPlease()
         return { content: "Nice!" };
 }
 
-export function babaPizza()
+function babaPizza()
 {
     return { content: "Baba Pizza Ordering Service™ coming soon!" };
 }
 
-export function babaHelp()
+function babaHelp()
 {
     var helptext = "```Commands:"
 
@@ -57,7 +55,7 @@ export function babaHelp()
     return { content: helptext };
 }
 
-export function babaVibeFlag()
+function babaVibeFlag()
 {
     var d1 = getD1();
     var flagtext = "BABA IS AT VIBE TIME";; //V I B E  T I M E
@@ -85,7 +83,7 @@ export function babaVibeFlag()
     
 }
 
-export function babaYugo()
+function babaYugo()
 {
     var yugotext = "Here Yugo!";
     var num = Math.floor(Math.random() * 11); //pick a random one
@@ -93,7 +91,7 @@ export function babaYugo()
     return { content: yugotext, files: [yugo] };
 }
 
-export function babaHaikuEmbed(purity, list, chans, mye, buy, msgContent)
+function babaHaikuEmbed(purity, list, chans, mye, buy, msgContent)
 {
     var exampleEmbed;
     CreateHaikuDatabase(databaseofhaiku); // in case new haikus
@@ -241,7 +239,7 @@ export function babaHaikuEmbed(purity, list, chans, mye, buy, msgContent)
     return exampleEmbed;
 }
 
-export function babaDayNextWed()
+function babaDayNextWed()
 {
     let d1 = getD1(); //get today
     var yr = d1.getFullYear();
@@ -257,7 +255,7 @@ export function babaDayNextWed()
     return { content: dtnw };
 }
 
-export function babaWednesday(msgContent)
+function babaWednesday(msgContent)
 {
     var outs = [];
     let rawdata = fs.readFileSync(babadata.datalocation + "FrogHolidays/" + 'frogholidays.json'); //load file each time of calling wednesday
@@ -449,3 +447,15 @@ export function babaWednesday(msgContent)
     //	}, 100);
     //}
 }
+
+module.exports = {
+    babaFriday, 
+    babaHelp, 
+    babaPlease, 
+    babaPizza, 
+    babaVibeFlag, 
+    babaYugo, 
+    babaHaikuEmbed, 
+    babaWednesday, 
+    babaDayNextWed,
+};
