@@ -128,6 +128,33 @@ export async function movetoChannel(msg, channel, logchan) //archive the message
 	setTimeout(function(){ msg.delete(); }, waittime); //deletes the og message (delayed for the file transfer)
 }
 
+export function timedOutFrog(i, texts, message, templocal)
+{
+	setTimeout(function()
+	{ 
+		var ti = texts[i];
+		message.channel.send(ti).catch(error => {
+			var newAttch = new Discord.MessageAttachment().setFile(templocal + "error.png"); //makes a new discord attachment (default fail image)
+			message.channel.send({ content: "It is Wednesday, My BABAs", files: [newAttch] }); // send file
+		})
+	}, 500);
+}
+
+export function getD1()
+{
+	var dateoveride = [false, 1, 1]; //allows for overiding date manually (testing)
+	var yr = new Date().getFullYear(); //get this year
+	var dy = dateoveride[0] ? dateoveride[2] : new Date().getDate(); //get this day
+	var my = dateoveride[0] ? dateoveride[1] - 1 : new Date().getMonth(); //get this month
+	var d1 = new Date(yr, my, dy);
+	return d1;
+}
+
+export function getErrorFlag()
+{
+	return babadata.datalocation + "Flags/" + "error.png";
+}
+
 export function GetDate(d1, yr, holidayinfo) //Gets the specified date from the selected holiday at the year provided
 {
 	let d2 = new Date(); //new Date
@@ -274,7 +301,7 @@ function getEaster(year) //Thanks to Jeremy's Link
 	return [month, day];
 }
 
-export function FindDate(holidaysfound, message) //Not Thanks to Jeremy's Link
+export function FindDate(message) //Not Thanks to Jeremy's Link
 {
 	var outps = message.toLowerCase().replace("!baba", "") //there is no point to this, i did it because i wanted too
 		.replace("wednesday", "")
@@ -690,9 +717,9 @@ export function CheckHoliday(msg, holdaylist) //checks if any of the holiday lis
 				var outps = msg.toLowerCase().split(" ");
 
 				var year = 0;
-				for ( var i = 0; i < outps.length; i++)
+				for ( var j = 0; j < outps.length; j++)
 				{
-					var block = outps[i];
+					var block = outps[j];
 					if (year == 0) //set year to first year found
 					{
 						var iv = parseInt(block);
@@ -710,9 +737,9 @@ export function CheckHoliday(msg, holdaylist) //checks if any of the holiday lis
 				{
 					case -1: //Nested Holiday
 						var tempret = CheckHoliday(msg, hol.sub) //Check all the subs
-						for ( var i = 0; i < tempret.length; i++) 
+						for ( var j = 0; j < tempret.length; j++) 
 						{
-							retme[ct] = tempret[i]; //Add items in return list to current returnlist
+							retme[ct] = tempret[j]; //Add items in return list to current returnlist
 							retme[ct].name = item.name + retme[ct].name; //modify name for picture finding
 							retme[ct].safename = retme[ct].safename + " " + item.safename; //display text name modify
 							ct++; //counter add
