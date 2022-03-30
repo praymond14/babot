@@ -1,4 +1,4 @@
-const { setVBH } = require("../helperFunc.js");
+const { setVote } = require("../helperFunc.js");
 const { SlashCommandBuilder } = require('@discordjs/builders');
 
 module.exports = {
@@ -18,7 +18,7 @@ module.exports = {
                 {
                     chan.messages.fetch(msgID).then(message => {
                         fnd = true;
-                        setVBH(message);
+                        setVote(message);
                         interaction.editReply({ content: "Ban Hammer added to Message: `" + message.content + "`", ephemeral: true });
                     }).catch(console.error); //try to get the message, if it exists call setVote, otherwise catch the error
                 }

@@ -6,6 +6,7 @@ module.exports = {
 		.setName('vibe-time-flag')
 		.setDescription('Gives the Vibe Time Flag for the current vibe time'),
 	async execute(interaction, bot) {
-		await interaction.reply(babaVibeFlag());
+		await interaction.deferReply();
+        await interaction.editReply(babaVibeFlag());
 	},
 };

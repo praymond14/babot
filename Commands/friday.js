@@ -6,6 +6,7 @@ module.exports = {
 		.setName('friday')
 		.setDescription('Friday :)'),
 	async execute(interaction, bot) {
-		await interaction.reply(babaFriday());
+		await interaction.deferReply();
+        await interaction.editReply(babaFriday());
 	},
 };
