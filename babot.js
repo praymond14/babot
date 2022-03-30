@@ -14,8 +14,6 @@ bot.login(babadata.token); //login
 bot.on('ready', function (evt) 
 {
 	console.log('Connected');
-	var gld = bot.guilds.cache.get(babadata.guildId);
-	gld.commands.fetch().then(commands => setCommandRoles(commands));
 });
 
 bot.commands = new Collection();
