@@ -8,5 +8,7 @@
     "holidaychan":"0",
     "holidayval":"null",
     "temp":"./",
-    "emoji":""
+    "emoji":"",
+    "clientid":"",
+    "guildID":""
 }

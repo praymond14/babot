@@ -1,14 +1,12 @@
-import { createRequire } from "module";
-const require = createRequire(import.meta.url);
 var babadata = require('./babotdata.json'); //baba configuration file
 var request = require('node-fetch');
 const Discord = require('discord.js'); //discord module for interation with discord api
-import fs from "fs"; //file stream used for del fuction
-import images from "images"; //image manipulation used for the wednesday frogs
-import Jimp from "jimp";  //image ability to add text
+const fs = require('fs');
+const images = require('images');
+const Jimp = require('jimp');
 
 
-export async function setGrole(msg, rname) //creates role and sets users
+async function setGrole(msg, rname) //creates role and sets users
 {
 	console.log(msg);
 	try 
@@ -26,7 +24,6 @@ export async function setGrole(msg, rname) //creates role and sets users
 		if (role == null) //if null make new role
 		{
 			console.log("Creating Role: " + rname);
-			msg.channel.send("Role created: " + rname);
 
 			//create the role
 			await msg.guild.roles.create({
@@ -74,7 +71,7 @@ async function RoleAdd(msg, users, role) //dumb user thing because it is needed 
 	}
 }
 
-export async function setVote(msg) //reacts to message with 👍 and 👎 for votes
+async function setVote(msg) //reacts to message with 👍 and 👎 for votes
 {
 	var usr = msg.author; //gets the user that sent the message
 
@@ -82,14 +79,14 @@ export async function setVote(msg) //reacts to message with 👍 and 👎 for vo
 	msg.react('👎');
 }
 
-export async function setVBH(msg) //reacts to message with emoji defined by babadata.emoji (in json file) for our implimentation that is the ban hammer emoji
+async function setVBH(msg) //reacts to message with emoji defined by babadata.emoji (in json file) for our implimentation that is the ban hammer emoji
 {
 	var usr = msg.author; //gets the user that sent the message
 
 	msg.react(babadata.emoji); //reply with ban hammer emoji
 }
 
-export async function movetoChannel(msg, channel, logchan) //archive the message and delete it
+async function movetoChannel(msg, channel, logchan) //archive the message and delete it
 {
 	var hiddenChan = msg.guild.channels.cache.get(logchan); //gets the special archive channel
 	var usr = msg.author; //gets the user that sent the message
@@ -128,7 +125,34 @@ export async function movetoChannel(msg, channel, logchan) //archive the message
 	setTimeout(function(){ msg.delete(); }, waittime); //deletes the og message (delayed for the file transfer)
 }
 
-export function GetDate(d1, yr, holidayinfo) //Gets the specified date from the selected holiday at the year provided
+function timedOutFrog(i, texts, message, templocal)
+{
+	setTimeout(function()
+	{ 
+		var ti = texts[i];
+		message.channel.send(ti).catch(error => {
+			var newAttch = new Discord.MessageAttachment().setFile(templocal + "error.png"); //makes a new discord attachment (default fail image)
+			message.channel.send({ content: "It is Wednesday, My BABAs", files: [newAttch] }); // send file
+		})
+	}, 500);
+}
+
+function getD1()
+{
+	var dateoveride = [false, 1, 1]; //allows for overiding date manually (testing)
+	var yr = new Date().getFullYear(); //get this year
+	var dy = dateoveride[0] ? dateoveride[2] : new Date().getDate(); //get this day
+	var my = dateoveride[0] ? dateoveride[1] - 1 : new Date().getMonth(); //get this month
+	var d1 = new Date(yr, my, dy);
+	return d1;
+}
+
+function getErrorFlag()
+{
+	return babadata.datalocation + "Flags/" + "error.png";
+}
+
+function GetDate(d1, yr, holidayinfo) //Gets the specified date from the selected holiday at the year provided
 {
 	let d2 = new Date(); //new Date
 	switch(holidayinfo.mode)
@@ -203,7 +227,7 @@ export function GetDate(d1, yr, holidayinfo) //Gets the specified date from the 
 	return d2;
 }
 
-export function MakeImage(templocal, base, wednesdayoverlay, weeks, outputname, holidayinfo, textoverlay) //Image Creation is now function
+function MakeImage(templocal, base, wednesdayoverlay, weeks, outputname, holidayinfo, textoverlay) //Image Creation is now function
 {
 	var bonus = 0;
 	var yeartop = holidayinfo.year && holidayinfo.name != "date" ? true : false;
@@ -251,7 +275,7 @@ export function MakeImage(templocal, base, wednesdayoverlay, weeks, outputname, 
 	}
 }
 
-export function dateDiffInDays(a, b) //helper function that does DST helping conversions
+function dateDiffInDays(a, b) //helper function that does DST helping conversions
 {
   const utc1 = Date.UTC(a.getFullYear(), a.getMonth(), a.getDate());
   const utc2 = Date.UTC(b.getFullYear(), b.getMonth(), b.getDate());
@@ -274,7 +298,7 @@ function getEaster(year) //Thanks to Jeremy's Link
 	return [month, day];
 }
 
-export function FindDate(holidaysfound, message) //Not Thanks to Jeremy's Link
+function FindDate(message) //Not Thanks to Jeremy's Link
 {
 	var outps = message.toLowerCase().replace("!baba", "") //there is no point to this, i did it because i wanted too
 		.replace("wednesday", "")
@@ -373,11 +397,11 @@ export function FindDate(holidaysfound, message) //Not Thanks to Jeremy's Link
 	item.day = day;
 	item.month = month;
 	item.year = year;
-
+	
 	return item;
 }
 
-export function SetHolidayChan(msg, name, resetid = -1)
+function SetHolidayChan(msg, name, resetid = -1)
 {
 	let to = 0;
 	let rawdata = fs.readFileSync(__dirname + '/babotdata.json');
@@ -460,7 +484,7 @@ export function SetHolidayChan(msg, name, resetid = -1)
 	babadata = baadata;
 }
 
-export function MonthsPlus(message, d1)
+function MonthsPlus(message, d1)
 {
 	var yr = d1.getFullYear();
 	if (d1.getMonth() == 9 && babadata.holidayval != "spook")
@@ -502,7 +526,7 @@ export function MonthsPlus(message, d1)
 	}
 }
 
-export function CreateChannel(server, name, message, d1)
+function CreateChannel(server, name, message, d1)
 {
 	server.channels.fetch().then(channels => {
 		channels.each(chan => {
@@ -528,7 +552,7 @@ export function CreateChannel(server, name, message, d1)
 	return null;
 }
 
-export function CheckFrogID(frogdata, id)
+function CheckFrogID(frogdata, id)
 {
 	for ( var i = 0; i < frogdata.froghelp.ifrog.length; i++) 
 	{
@@ -643,7 +667,7 @@ function GetWhite(weekct) //For frogs more than 100 weeks; "Retarded Lookup Tabl
 	return "8";
 }
 
-export function FindNextHoliday(d1, yr, simpleholidays)
+function FindNextHoliday(d1, yr, simpleholidays)
 {
 	let diff = 100000;
 	var retme = [];
@@ -666,7 +690,7 @@ export function FindNextHoliday(d1, yr, simpleholidays)
 	return retme;
 }
 
-export function CheckHoliday(msg, holdaylist) //checks if any of the holiday list is said in the message
+function CheckHoliday(msg, holdaylist) //checks if any of the holiday list is said in the message
 {
 	var retme = [];
 	var ct = 0;
@@ -690,9 +714,9 @@ export function CheckHoliday(msg, holdaylist) //checks if any of the holiday lis
 				var outps = msg.toLowerCase().split(" ");
 
 				var year = 0;
-				for ( var i = 0; i < outps.length; i++)
+				for ( var j = 0; j < outps.length; j++)
 				{
-					var block = outps[i];
+					var block = outps[j];
 					if (year == 0) //set year to first year found
 					{
 						var iv = parseInt(block);
@@ -702,7 +726,7 @@ export function CheckHoliday(msg, holdaylist) //checks if any of the holiday lis
 						}
 					}
 				}
-
+				
 				if (year != 0)
 					item.year = year;
 
@@ -710,9 +734,9 @@ export function CheckHoliday(msg, holdaylist) //checks if any of the holiday lis
 				{
 					case -1: //Nested Holiday
 						var tempret = CheckHoliday(msg, hol.sub) //Check all the subs
-						for ( var i = 0; i < tempret.length; i++) 
+						for ( var j = 0; j < tempret.length; j++) 
 						{
-							retme[ct] = tempret[i]; //Add items in return list to current returnlist
+							retme[ct] = tempret[j]; //Add items in return list to current returnlist
 							retme[ct].name = item.name + retme[ct].name; //modify name for picture finding
 							retme[ct].safename = retme[ct].safename + " " + item.safename; //display text name modify
 							ct++; //counter add
@@ -765,6 +789,24 @@ async function DelayedDeletion(hiddenChan, img) //download function used when th
 	setTimeout(function(){ fs.unlinkSync(tempFilePath); }, 3000); //deletes file from local system (delayed by 3 sec to allow for download and upload)
 }
 
+function setCommandRoles(cmds)
+{
+	const permissions = [
+		{
+			id: babadata.adminid,
+			type: 'ROLE',
+			permission: false,
+		},
+	];
+
+	cmds.each(cmd => {
+		if (!cmd.defaultPermission)
+		{
+			cmd.permissions.add({permissions}).then(console.log("Added permissions to " + cmd.name));
+		}
+	});
+}
+
 //const download = (url, path, callback) => { //download function //depricated with the request deprication
 //	request.head(url, (err, res, body) => {
 //	  request(url)
@@ -782,3 +824,23 @@ const download = (url, path, callback) =>
     });
 }
 
+module.exports = {
+	setGrole,
+	setVote,
+	setVBH,
+	movetoChannel,
+	SetHolidayChan,
+	MonthsPlus,
+	CreateChannel,
+	CheckFrogID,
+	getErrorFlag,
+	timedOutFrog, 
+	getD1, 
+	FindDate, 
+	CheckHoliday, 
+	FindNextHoliday, 
+	GetDate, 
+	dateDiffInDays, 
+	MakeImage,
+	setCommandRoles
+};
