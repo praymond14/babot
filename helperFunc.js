@@ -795,7 +795,7 @@ function setCommandRoles(cmds)
 		{
 			id: babadata.adminid,
 			type: 'ROLE',
-			permission: false,
+			permission: true,
 		},
 	];
 
