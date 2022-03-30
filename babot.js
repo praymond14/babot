@@ -20,10 +20,10 @@ bot.on('ready', function (evt)
 
 bot.commands = new Collection();
 
-const commandFiles = fs.readdirSync('./commands').filter(file => file.endsWith('.js')); //get all .js files in the commands folder
+const commandFiles = fs.readdirSync('./Commands').filter(file => file.endsWith('.js')); //get all .js files in the commands folder
 
 for(const file of commandFiles) { //adds all commands in the commands folder
-	const command = require(`./commands/${file}`);
+	const command = require(`./Commands/${file}`);
 	bot.commands.set(command.data.name, command);
 }
 
