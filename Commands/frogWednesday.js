@@ -9,7 +9,7 @@ module.exports = {
         opt.setName("event")
         .setDescription("The event that will get used.")
         .setRequired(true)),
-	async execute(interaction) {
+	async execute(interaction, bot) {
 		await interaction.deferReply();
         var event = interaction.options.getString("event");
         var texts = babaWednesday(`${event} wednesday`);

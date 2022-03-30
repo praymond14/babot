@@ -5,7 +5,7 @@ module.exports = {
 	data: new SlashCommandBuilder()
 		.setName('friday')
 		.setDescription('Friday :)'),
-	async execute(interaction) {
+	async execute(interaction, bot) {
 		await interaction.reply(babaFriday());
 	},
 };

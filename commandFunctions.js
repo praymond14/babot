@@ -38,11 +38,14 @@ function babaHelp()
 {
     var helptext = "```Commands:"
 
+    helptext += "\nAll commands can be run as slash commands!";
+
     helptext += "\n" + "- !baba password - Gets the server password for games!"
     helptext += "\n" + "- !baba [night shift | vibe time] flag - Gets the current vibe time flag for the day!"
     helptext += "\n" + "- !baba make yugo - Baba will give you a yugo!"
 
     helptext += "\n" + "- !baba haiku - Pulls a random haiku from the haiku database of the server!"
+    helptext += "\n" + "- !baba haiku by [person] - Gets a random haiku make by the specified person!"
     helptext += "\n" + "- !baba haiku purity list [channels] - Gets a list of all people or channels haiku purity's!"
     helptext += "\n" + "- !baba my haiku purity - Gets the haiku purity of the sender!"
     helptext += "\n" + "- !baba haiku purity [channel/person/date] - Gets the haiku purity of the the specified value!"
@@ -50,7 +53,12 @@ function babaHelp()
     helptext += "\n" + "- !baba wednesday {holiday} - Displays a frog with how many wednesdays until the specified holiday!"
     helptext += "\n" + "- !baba days until {holiday} - Displays how many days until specified holiday!"
     helptext += "\n" + "- !baba when is {holiday} - Displays the exact date of the specified holiday!"
-    helptext += "\n" + "- !baba day of week {holiday} - Displays what day of week the specified holiday is!```"
+    helptext += "\n" + "- !baba day of week {holiday} - Displays what day of week the specified holiday is!";
+    
+    helptext += "\n" + "- !baba friday - Displays the friday image!";
+    helptext += "\n" + "- !baba order pizza - Baba will order you a pizza (coming soon)!";
+    helptext += "\n" + "- !baba please - >:(";
+    helptext += "```"
 
     return { content: helptext };
 }
@@ -167,7 +175,8 @@ function babaHaikuEmbed(purity, list, chans, mye, buy, msgContent)
                         let d1 = new Date(IsDate.year, IsDate.month - 1, IsDate.day);
                         for ( var x in databaseofhaiku.purity.date)
                         {
-                            if (Date.parse(x) == Date.parse(d1))
+                            let xd = new Date(Date.parse(x));
+                            if (xd.getMonth() == d1.getMonth() && xd.getDate() == d1.getDate() && xd.getFullYear() == d1.getFullYear())
                             {
                                 var lin = databaseofhaiku.purity.date[x];
                                 fnd = true;
@@ -242,7 +251,6 @@ function babaHaikuEmbed(purity, list, chans, mye, buy, msgContent)
 function babaDayNextWed()
 {
     let d1 = getD1(); //get today
-    var yr = d1.getFullYear();
     var dow_d1 = (d1.getDay() + 4) % 7;//get day of week (making wed = 0)
 
     var dtnw = ""
@@ -419,6 +427,15 @@ function babaWednesday(msgContent)
         for (var j = 0; j < templocationslist.length; j++)
         {
             var newAttch = new Discord.MessageAttachment().setFile(templocationslist[j]); //makes a new discord attachment
+            try
+            {
+                fs.accessSync(templocationslist[j], fs.constants.R_OK | fs.constants.W_OK);
+            } 
+            catch (err)
+            {
+                newAttch = new Discord.MessageAttachment().setFile(templocal + "error.png"); //makes a new discord attachment (default fail image)
+            }
+            
             var op = { content: "It is Wednesday, My BABAs", files: [newAttch] }
             outs.push(op);
         }

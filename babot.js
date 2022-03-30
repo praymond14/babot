@@ -5,6 +5,7 @@ const { REST } = require('@discordjs/rest');
 const { Routes } = require('discord-api-types/v9');
 var babadata = require('./babotdata.json'); //baba configuration file
 const txtCommands = require('./textCommands.js');
+const { setCommandRoles } = require('./helperFunc');
 
 // Initialize Discord Bot
 const bot = new Client({ intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MESSAGES, Intents.FLAGS.DIRECT_MESSAGES], partials: ["CHANNEL"]});
@@ -13,6 +14,8 @@ bot.login(babadata.token); //login
 bot.on('ready', function (evt) 
 {
 	console.log('Connected');
+	var gld = bot.guilds.cache.get(babadata.guildId);
+	gld.commands.fetch().then(commands => setCommandRoles(commands));
 });
 
 bot.commands = new Collection();
@@ -34,7 +37,7 @@ bot.on('interactionCreate', async interaction => {
 	if(!command) return;
 
 	try {
-		await command.execute(interaction);
+		await command.execute(interaction, bot);
 	} catch(error) {
 		console.error(error);
 		await interaction.reply({ content: 'An error occured while executing that command.', ephemeral: true });

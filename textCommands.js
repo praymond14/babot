@@ -1,10 +1,11 @@
-const helperFunc = require("./helperFunc.js");
-const commandFunctions = require("./commandFunctions.js");
+const { setGrole, setVote, setVBH, movetoChannel, SetHolidayChan, MonthsPlus, CreateChannel, CheckFrogID, getErrorFlag, timedOutFrog } = require("./helperFunc.js");
+const { babaFriday,  babaHelp, babaPlease, babaPizza, babaVibeFlag, babaYugo, babaHaikuEmbed, babaWednesday, babaDayNextWed } = require("./commandFunctions.js");
 const { Client, Intents } = require('discord.js'); //discord module for interation with discord api
 const Discord = require('discord.js'); //discord module for interation with discord api
 var babadata = require('./babotdata.json'); //baba configuration file
 //let request = require('request'); // not sure what this is used for //depricated
 const fs = require('fs'); //file stream used for del fuction
+
 
 //To Do:
 /*
@@ -40,7 +41,7 @@ function babaMessage(bot, message)
 	let frogdata = JSON.parse(rawdata);
 	var g, rl = null;
 	var sentvalid = false;
-	var idint = helperFunc.CheckFrogID(frogdata, message.author.id);
+	var idint = CheckFrogID(frogdata, message.author.id);
 	var rid = frogdata.froghelp.rfrog[0];
 	var msgContent = message.content.toLowerCase();
 
@@ -57,15 +58,15 @@ function babaMessage(bot, message)
 		if (msgContent.includes("🐸 debug")) //0 null, 1 spook, 2 thanks, 3 crimbo, 4 defeat
 		{
 			if (msgContent.includes("0"))
-				helperFunc.SetHolidayChan(message, "null");
+				SetHolidayChan(message, "null");
 			else if (msgContent.includes("1"))
-				helperFunc.SetHolidayChan(message, "spook");
+				SetHolidayChan(message, "spook");
 			else if (msgContent.includes("2"))
-				helperFunc.SetHolidayChan(message, "thanks");
+				SetHolidayChan(message, "thanks");
 			else if (msgContent.includes("3"))
-				helperFunc.SetHolidayChan(message, "crimbo");
+				SetHolidayChan(message, "crimbo");
 			else if (msgContent.includes("4"))
-				helperFunc.SetHolidayChan(message, "defeat");
+				SetHolidayChan(message, "defeat");
 	
 			message.author.send("```HC: " + babadata.holidaychan + "\nHV: " + babadata.holidayval + "```");
 		}
@@ -88,7 +89,7 @@ function babaMessage(bot, message)
 				channels.each(chan => { //iterate through all the channels
 					if (chan.type == "GUILD_TEXT") //make sure the channel is a text channel
 					{
-						chan.messages.fetch(message_id).then(message => helperFunc.movetoChannel(message, chan, babadata.logchan)).catch(console.error); //try to get the message, if it exists call setVote, otherwise catch the error
+						chan.messages.fetch(message_id).then(message => movetoChannel(message, chan, babadata.logchan)).catch(console.error); //try to get the message, if it exists call setVote, otherwise catch the error
 					}
 				});
 			});
@@ -140,7 +141,7 @@ function babaMessage(bot, message)
 		//560231259842805770  563063109422415872
 		if(msgContent.includes(yr - 1) && msgContent.includes("560231259842805770") && msgContent.includes("563063109422415872") && !message.author.bot) //if message contains baba and is not from bot
 		{
-			helperFunc.SetHolidayChan(message, "null", 0);
+			SetHolidayChan(message, "null", 0);
 		}
 	}
 
@@ -148,7 +149,7 @@ function babaMessage(bot, message)
 	{
 		if (babadata.holidayval != "defeat" && d1.getMonth() == 0 && d1.getDate() == 1 && babadata.holidayval != "null")
 		{
-			helperFunc.SetHolidayChan(message, "defeat");
+			SetHolidayChan(message, "defeat");
 		}
 	}
 	else if (d1.getMonth() >= 9 && message.guild != null)
@@ -156,9 +157,9 @@ function babaMessage(bot, message)
 		if (babadata.holidaychan == 0)
 		{
 			var server = message.guild;
-			helperFunc.CreateChannel(server, "text channels", message, d1);
+			CreateChannel(server, "text channels", message, d1);
 		}
-		helperFunc.MonthsPlus(message, d1);
+		MonthsPlus(message, d1);
 	}
 
 	if(message.content.toLowerCase().includes('perchance') && !message.author.bot) //perchance update
@@ -184,29 +185,29 @@ function babaMessage(bot, message)
 
 		if (msgContent.includes("friday"))
 		{
-			message.channel.send(commandFunctions.babaFriday());
+			message.channel.send(babaFriday());
 		}
 
 		if (msgContent.includes("please")) //this could do something better but its ok for now
 		{
-			message.channel.send(commandFunctions.babaPlease());
+			message.channel.send(babaPlease());
 		}
 
 		if (msgContent.includes("order pizza"))
 		{
-			message.channel.send(commandFunctions.babaPizza());
+			message.channel.send(babaPizza());
 		}
 
 		if(msgContent.includes('help')) //reply with help text is baba help
 		{
-			message.channel.send(commandFunctions.babaHelp());
+			message.channel.send(babaHelp());
 		}
 
 		if (msgContent.includes('flag') && (msgContent.includes('night shift') || msgContent.includes('vibe time')))
 		{
-			var flagcontent = commandFunctions.babaVibeFlag();
+			var flagcontent = babaVibeFlag();
 			message.channel.send(flagcontent).catch(error => {
-				newAttch = new Discord.MessageAttachment().setFile(helperFunc.getErrorFlag());
+				newAttch = new Discord.MessageAttachment().setFile(getErrorFlag());
 				message.channel.send({content: flagcontent.content, files: [newAttch] }); // send file
 			});
 		}
@@ -221,7 +222,7 @@ function babaMessage(bot, message)
 */
 		if(msgContent.includes('make yugo')) //reply with password file string if baba password
 		{
-			message.channel.send(commandFunctions.babaYugo());
+			message.channel.send(babaYugo());
 		}
 
 		if (msgContent.includes('haiku')) // add custom haiku search term?
@@ -231,7 +232,7 @@ function babaMessage(bot, message)
 			var chans = msgContent.includes("channels");
 			var mye = msgContent.includes("my") ? message.author.id : 0;
 			var buy = msgContent.includes("by");
-			exampleEmbed = commandFunctions.babaHaikuEmbed(purity, list, chans, mye, buy, msgContent);
+			exampleEmbed = babaHaikuEmbed(purity, list, chans, mye, buy, msgContent);
 		}
 
 		if (exampleEmbed != null) 
@@ -240,9 +241,9 @@ function babaMessage(bot, message)
 		if (msgContent.includes('wednesday') || msgContent.includes('days until') || msgContent.includes('when is') || msgContent.includes('day of week'))
 		{
 			if (msgContent.includes('days until next wednesday'))
-				message.channel.send(commandFunctions.babaDayNextWed());
+				message.channel.send(babaDayNextWed());
 
-			var texts = commandFunctions.babaWednesday(msgContent);
+			var texts = babaWednesday(msgContent);
             var templocal = babadata.datalocation + "FrogHolidays/"; //creates the output frog image
 
 			for ( var i = 0; i < texts.length; i++)
@@ -250,7 +251,7 @@ function babaMessage(bot, message)
 				if (texts[i].files == null)
 					message.channel.send(texts[i]);
 				else
-					helperFunc.timedOutFrog(i, texts, message, templocal);
+					timedOutFrog(i, texts, message, templocal);
 			}
 		}
 	}
@@ -259,11 +260,16 @@ function babaMessage(bot, message)
 		if(message.channel.type != "DM" && message.member.roles.cache.has(babadata.adminid)) //check if admin
 		{
 			var message_id = message.content.replace(/\D/g,''); //get message id
+			var fnd = false;
 			var chanMap = message.guild.channels.fetch().then(channels => {
 				channels.each(chan => { //iterate through all the channels
-					if (chan.type == "GUILD_TEXT") //make sure the channel is a text channel
+					if (!fnd && chan.type == "GUILD_TEXT") //make sure the channel is a text channel
 					{
-						chan.messages.fetch(message_id).then(message => helperFunc.movetoChannel(message, chan, babadata.logchan)).catch(console.error); //try to get the message, if it exists call deleteAndArchive, otherwise catch the error
+						chan.messages.fetch(message_id).then(message => 
+						{
+							fnd = true;
+							movetoChannel(message, chan, babadata.logchan)
+						}).catch(console.error); //try to get the message, if it exists call deleteAndArchive, otherwise catch the error
 					}
 				});
 			}); //get a map of the channelt in the guild
@@ -274,11 +280,16 @@ function babaMessage(bot, message)
 		if(message.channel.type != "DM" && message.member.roles.cache.has(babadata.adminid)) //check if admin
 		{
 			var message_id = message.content.replace(/\D/g,''); //get message id
+			var fnd = false;
 			var chanMap = message.guild.channels.fetch().then(channels => {
 				channels.each(chan => { //iterate through all the channels
-					if (chan.type == "GUILD_TEXT") //make sure the channel is a text channel
+					if (!fnd && chan.type == "GUILD_TEXT") //make sure the channel is a text channel
 					{
-						chan.messages.fetch(message_id).then(message => helperFunc.movetoChannel(message, chan, babadata.politicschan)).catch(console.error); //try to get the message, if it exists call deleteAndArchive, otherwise catch the error
+						chan.messages.fetch(message_id).then(message =>
+						{
+							fnd = true;
+							movetoChannel(message, chan, babadata.politicschan)
+						}).catch(console.error); //try to get the message, if it exists call deleteAndArchive, otherwise catch the error
 					}
 				});
 			}); //get a map of the channelt in the guild
@@ -289,11 +300,16 @@ function babaMessage(bot, message)
 		if(message.channel.type != "DM" && message.member.roles.cache.has(babadata.adminid)) //check if admin
 		{
 			var message_id = message.content.replace(/\D/g,''); //get message id
+			var fnd = false;
 			var chanMap = message.guild.channels.fetch().then(channels => {
 				channels.each(chan => { //iterate through all the channels
-					if (chan.type == "GUILD_TEXT") //make sure the channel is a text channel
+					if (!fnd && chan.type == "GUILD_TEXT") //make sure the channel is a text channel
 					{
-						chan.messages.fetch(message_id).then(message => helperFunc.setVote(message)).catch(console.error); //try to get the message, if it exists call setVote, otherwise catch the error
+						chan.messages.fetch(message_id).then(message => 
+						{
+							fnd = true;
+							setVote(message)
+						}).catch(console.error); //try to get the message, if it exists call setVote, otherwise catch the error
 					}
 				});
 			});
@@ -366,11 +382,16 @@ function babaMessage(bot, message)
 		if(message.channel.type != "DM" && message.member.roles.cache.has(babadata.adminid)) //check if admin
 		{
 			var message_id = message.content.replace(/\D/g,''); //get message id
+			var fnd = false;
 			var chanMap = message.guild.channels.fetch().then(channels => {
 				channels.each(chan => { //iterate through all the channels
-					if (chan.type == "GUILD_TEXT") //make sure the channel is a text channel
+					if (!fnd && chan.type == "GUILD_TEXT") //make sure the channel is a text channel
 					{
-						chan.messages.fetch(message_id).then(message => helperFunc.setVBH(message)).catch(console.error); //try to get the message, if it exists call setVBH, otherwise catch the error
+						chan.messages.fetch(message_id).then(message => 
+						{
+							fnd = true;
+							setVBH(message)
+						}).catch(console.error); //try to get the message, if it exists call setVBH, otherwise catch the error
 					}
 				});
 			});
@@ -390,7 +411,7 @@ function babaMessage(bot, message)
 					{
 						chan.messages.fetch(message_id).then(message => {
 							fnd = true;
-							helperFunc.setGrole(message, role_name);
+							setGrole(message, role_name);
 						}).catch(console.error); //try to get the message, if it exists call setGrole, otherwise catch the error
 					}
 				});

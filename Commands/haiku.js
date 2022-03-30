@@ -41,7 +41,7 @@ module.exports = {
             .setName('purity_score_date')
             .setDescription('Haiku purity score based on date')
             .addStringOption(option => option.setName('date').setDescription('the date').setRequired(true))),
-	async execute(interaction) {
+	async execute(interaction, bot) {
 		await interaction.deferReply();
 
         var purity = false;
@@ -50,44 +50,57 @@ module.exports = {
         var mye = 0;
         var buy = false;
         var embed;
+        var msgstr = "";
 
         var subCommand = interaction.options.getSubcommand();
 
-        if (subCommand === 'random'){
-            embed = babaHaikuEmbed(purity, list, chans, mye, buy, "");
-        } else if (subCommand === 'by'){
+        if (subCommand === 'random')
+        {
+            msgstr = "";
+        }
+        else if (subCommand === 'by')
+        {
             var person = interaction.options.getString('person_name');
             var user = interaction.options.getUser('discord_user');
             buy = true;
 
-            embed = babaHaikuEmbed(purity, list, chans, mye, buy, `${person} ${user}`);
-        } else if (subCommand === 'purity_score_list'){
+            if (user == null && person == null)
+                msgstr = interaction.user.id;
+            else
+                msgstr = `${person} ${user}`;
+        } 
+        else if (subCommand === 'purity_score_list')
+        {
             var listType = interaction.options.getString('list_type');
             list = true;
             purity = true;
-            if (listType === 'chan'){
+            if (listType === 'chan')
+            {
                 chans = true;
             }
-
-            embed = babaHaikuEmbed(purity, list, chans, mye, buy, "");
-        } else if (subCommand === 'purity_score_user'){
+            msgstr = "";
+        } 
+        else if (subCommand === 'purity_score_user')
+        {
             var person = interaction.options.getString('person_name');
             var user = interaction.options.getUser('discord_user');
             purity = true;
             mye = interaction.user.id;
-
-            embed = babaHaikuEmbed(purity, list, chans, mye, buy, `${person} ${user}`);
-        } else if (subCommand === 'purity_score_channel'){
+            msgstr = `${person} ${user}`;
+        } 
+        else if (subCommand === 'purity_score_channel')
+        {
             var channel = interaction.options.getChannel('channel');
             purity = true;
-
-            embed = babaHaikuEmbed(purity, list, chans, mye, buy, `${channel}`);
-        } else if (subCommand === 'purity_score_date'){ 
+            msgstr = `${channel}`;
+        } 
+        else if (subCommand === 'purity_score_date')
+        { 
             var date = interaction.options.getString('date');
             purity = true;
-
-            embed = babaHaikuEmbed(purity, list, chans, mye, buy, `${date}`);
+            msgstr = `${date}`;
         }
+        embed = babaHaikuEmbed(purity, list, chans, mye, buy, msgstr);
 
         await interaction.editReply({ content: "BABA MAKE HAIKU", embeds: [embed] })
 	},
