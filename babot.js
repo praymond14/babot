@@ -1,4 +1,4 @@
-const fs = require('node:fs');
+const fs = require('fs');
 const { Client, Intents, Collection } = require('discord.js'); //discord module for interation with discord api
 const Discord = require('discord.js'); //discord module for interation with discord api
 const { REST } = require('@discordjs/rest');
