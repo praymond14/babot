@@ -24,7 +24,6 @@ async function setGrole(msg, rname) //creates role and sets users
 		if (role == null) //if null make new role
 		{
 			console.log("Creating Role: " + rname);
-			msg.channel.send("Role created: " + rname);
 
 			//create the role
 			await msg.guild.roles.create({
@@ -398,7 +397,7 @@ function FindDate(message) //Not Thanks to Jeremy's Link
 	item.day = day;
 	item.month = month;
 	item.year = year;
-
+	
 	return item;
 }
 
@@ -727,7 +726,7 @@ function CheckHoliday(msg, holdaylist) //checks if any of the holiday list is sa
 						}
 					}
 				}
-
+				
 				if (year != 0)
 					item.year = year;
 
@@ -790,6 +789,24 @@ async function DelayedDeletion(hiddenChan, img) //download function used when th
 	setTimeout(function(){ fs.unlinkSync(tempFilePath); }, 3000); //deletes file from local system (delayed by 3 sec to allow for download and upload)
 }
 
+function setCommandRoles(cmds)
+{
+	const permissions = [
+		{
+			id: babadata.adminid,
+			type: 'ROLE',
+			permission: false,
+		},
+	];
+
+	cmds.each(cmd => {
+		if (!cmd.defaultPermission)
+		{
+			cmd.permissions.add({permissions}).then(console.log("Added permissions to " + cmd.name));
+		}
+	});
+}
+
 //const download = (url, path, callback) => { //download function //depricated with the request deprication
 //	request.head(url, (err, res, body) => {
 //	  request(url)
@@ -824,5 +841,6 @@ module.exports = {
 	FindNextHoliday, 
 	GetDate, 
 	dateDiffInDays, 
-	MakeImage
+	MakeImage,
+	setCommandRoles
 };

@@ -13,13 +13,16 @@ module.exports = {
                 opt.setName("event")
                 .setDescription("The event that will get used.")
                 .setRequired(true))),
-	async execute(interaction) {
+	async execute(interaction, bot) {
 		await interaction.deferReply();
         var event = interaction.options.getString("event");
 
-        if (`${event}`.toLowerCase() === "next wednesday") {
+        if (`${event}`.toLowerCase() === "next wednesday") 
+        {
             await interaction.editReply(babaDayNextWed());
-        } else {
+        } 
+        else 
+        {
             var texts = babaWednesday(`${event} days until`);
             await interaction.editReply(texts[0]);
         }
