@@ -14,6 +14,9 @@ module.exports = {
         var event = interaction.options.getString("event");
         var texts = babaWednesday(`${event} wednesday`);
 
-        await interaction.editReply(texts[0]);
+        setTimeout(function()
+    	{
+            interaction.editReply(texts[0]);
+        }, 1000);
 	},
 };

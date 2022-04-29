@@ -176,7 +176,7 @@ function babaHaikuEmbed(purity, list, chans, mye, buy, msgContent)
                         for ( var x in databaseofhaiku.purity.date)
                         {
                             let xd = new Date(Date.parse(x));
-                            if (xd.getMonth() == d1.getMonth() && xd.getDate() == d1.getDate() && xd.getFullYear() == d1.getFullYear())
+                            if (xd.getMonth() == d1.getMonth() && xd.getUTCDate() == d1.getUTCDate() && xd.getFullYear() == d1.getFullYear())
                             {
                                 var lin = databaseofhaiku.purity.date[x];
                                 fnd = true;
@@ -400,7 +400,6 @@ function babaWednesday(msgContent)
                         .catch(function (err) {
                             console.error(err);
                         });
-
                     outputname = "outputfrog_0.png";
                 }
             }
@@ -444,7 +443,7 @@ function babaWednesday(msgContent)
     {
         outs.push({ content: "It is Wednesday, My Dudes" });
     }
-
+    
     return outs;
     //if (msgContent.includes('super cursed'))
     //{
