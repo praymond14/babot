@@ -7,7 +7,7 @@ module.exports = {
 		.setDescription('Adds a 👍 and 👎 reaction to a message')
         .setDefaultPermission(false)
         .addStringOption(option => option.setName('messageid').setDescription('the message id to append the vote to').setRequired(true)),
-	async execute(interaction, bot) 
+	async execute(interaction, bot)
     {
 		await interaction.deferReply({ ephemeral: true });
         var msgID = interaction.options.getString('messageid');
@@ -19,7 +19,7 @@ module.exports = {
                     chan.messages.fetch(msgID).then(message => {
                         fnd = true;
                         setVote(message);
-                        interaction.editReply({ content: "Ban Hammer added to Message: `" + message.content + "`", ephemeral: true });
+                        interaction.editReply({ content: "Vote Added to Message: `" + message.content + "`", ephemeral: true });
                     }).catch(console.error); //try to get the message, if it exists call setVote, otherwise catch the error
                 }
             });
