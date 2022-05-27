@@ -232,27 +232,29 @@ function babaMessage(bot, message)
 			var chans = msgContent.includes("channels");
 			var mye = msgContent.includes("my") ? message.author.id : 0;
 			var buy = msgContent.includes("by");
-			exampleEmbed = babaHaikuEmbed(purity, list, chans, mye, buy, msgContent);
+			babaHaikuEmbed(purity, list, chans, mye, buy, msgContent, function(embed) 
+			{
+				message.channel.send({ content: "BABA MAKE HAIKU", embeds: [embed] });
+			});
 		}
-
-		if (exampleEmbed != null) 
-			message.channel.send({ content: "BABA MAKE HAIKU", embeds: [exampleEmbed] });
 
 		if (msgContent.includes('wednesday') || msgContent.includes('days until') || msgContent.includes('when is') || msgContent.includes('day of week'))
 		{
 			if (msgContent.includes('days until next wednesday'))
 				message.channel.send(babaDayNextWed());
 
-			var texts = babaWednesday(msgContent);
-            var templocal = babadata.datalocation + "FrogHolidays/"; //creates the output frog image
-
-			for ( var i = 0; i < texts.length; i++)
+			babaWednesday(msgContent, function(texts)
 			{
-				if (texts[i].files == null)
-					message.channel.send(texts[i]);
-				else
-					timedOutFrog(i, texts, message, templocal);
-			}
+				var templocal = babadata.datalocation + "FrogHolidays/"; //creates the output frog image
+
+				for ( var i = 0; i < texts.length; i++)
+				{
+					if (texts[i].files == null)
+						message.channel.send(texts[i]);
+					else
+						timedOutFrog(i, texts, message, templocal);
+				}
+			});
 		}
 	}
 	if(msgContent.includes('!bdelete')) //code to del and move to log

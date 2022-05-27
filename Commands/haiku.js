@@ -17,6 +17,16 @@ module.exports = {
             .addUserOption(option => option.setName('discord_user').setDescription('the user')))
     .addSubcommand(subcommand =>
         subcommand
+            .setName('from')
+            .setDescription('Haiku made in a specific channel!')
+            .addChannelOption(option => option.setName('channel').setDescription('the channel name').setRequired(true)))
+    .addSubcommand(subcommand =>
+        subcommand
+            .setName('on')
+            .setDescription('Haiku from the specified date!')
+            .addStringOption(option => option.setName('date').setDescription('the date').setRequired(true)))
+    .addSubcommand(subcommand =>
+        subcommand
             .setName('purity_score_list')
             .setDescription('List of haiku purity scores')
             .addStringOption(option =>
@@ -48,7 +58,7 @@ module.exports = {
         var list = false;
         var chans = false;
         var mye = 0;
-        var buy = false;
+        var buy = 0;
         var embed;
         var msgstr = "";
 
@@ -62,12 +72,26 @@ module.exports = {
         {
             var person = interaction.options.getString('person_name');
             var user = interaction.options.getUser('discord_user');
-            buy = true;
+            buy = 1;
 
             if (user == null && person == null)
                 msgstr = interaction.user.id;
             else
                 msgstr = `${person} ${user}`;
+        } 
+        else if (subCommand === 'on')
+        {
+            var date = interaction.options.getString('date');
+            buy = 3;
+
+            msgstr = `${date}`;
+        } 
+        else if (subCommand === 'from')
+        {
+            var chan = interaction.options.getChannel('channel');
+            buy = 2;
+
+            msgstr = `${chan}`;
         } 
         else if (subCommand === 'purity_score_list')
         {
@@ -85,7 +109,9 @@ module.exports = {
             var person = interaction.options.getString('person_name');
             var user = interaction.options.getUser('discord_user');
             purity = true;
-            mye = interaction.user.id;
+
+            if (user == null && person == null) mye = interaction.user.id;
+
             msgstr = `${person} ${user}`;
         } 
         else if (subCommand === 'purity_score_channel')
@@ -100,8 +126,10 @@ module.exports = {
             purity = true;
             msgstr = `${date}`;
         }
-        embed = babaHaikuEmbed(purity, list, chans, mye, buy, msgstr);
-
-        await interaction.editReply({ content: "BABA MAKE HAIKU", embeds: [embed] })
+        
+        babaHaikuEmbed(purity, list, chans, mye, buy, msgstr, function(embed) 
+        {
+            interaction.editReply({ content: "BABA MAKE HAIKU", embeds: [embed] })
+        });
 	},
 };

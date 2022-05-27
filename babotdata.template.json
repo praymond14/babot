@@ -10,5 +10,11 @@
     "temp":"./",
     "emoji":"",
     "clientid":"",
-    "guildID":""
+    "guildID":"",
+    "database": {
+        "host": "",
+        "user": "",
+        "password": "",
+        "database": ""
+    }
 }

@@ -12,11 +12,13 @@ module.exports = {
 	async execute(interaction, bot) {
 		await interaction.deferReply();
         var event = interaction.options.getString("event");
-        var texts = babaWednesday(`${event} wednesday`);
-
-        setTimeout(function()
-    	{
-            interaction.editReply(texts[0]);
-        }, 1000);
+        
+        babaWednesday(`${event} wednesday`, function(texts) 
+        {
+            setTimeout(function()
+            {
+                interaction.editReply(texts[0]);
+            }, 1000);
+        });
 	},
 };

@@ -16,8 +16,10 @@ module.exports = {
 	async execute(interaction, bot) {
 		await interaction.deferReply();
         var event = interaction.options.getString("event");
-        var texts = babaWednesday(`${event} when is`);
-
-        await interaction.editReply(texts[0]);
+        
+        babaWednesday(`${event} when is`, function(texts) 
+        {
+            interaction.editReply(texts[0]);
+        });
 	},
 };

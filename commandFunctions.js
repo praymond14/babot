@@ -1,8 +1,8 @@
-const { CreateHaikuDatabase, FormatPurityList, GenInfo, GetHaikuPerPerson, GetSimilarName } = require("./haikuDatabase.js");
+const { FormatPurityList, HPLGenChannel, HPLGenUsers, HPLSelectChannel, HPLSelectUser, HPLSelectDate, HaikuSelection, GetSimilarName, ObtainDBHolidays } = require("./database.js");
 const { getD1, FindDate, CheckHoliday, FindNextHoliday, GetDate, dateDiffInDays, MakeImage } = require("./helperFunc.js");
 var babadata = require('./babotdata.json'); //baba configuration file
+var data = require(babadata.datalocation + 'data.json'); //extra data
 const Discord = require('discord.js'); //discord module for interation with discord api
-let databaseofhaiku = {haikus: [], purity: {date: [], person: [], channel: []}}; //haiku list
 const fs = require('fs');
 const images = require('images');
 const Jimp = require('jimp');
@@ -14,6 +14,11 @@ function babaFriday()
     var templocal = babadata.datalocation + "FrogHolidays/"; //creates the output frog image
     var newAttch = new Discord.MessageAttachment().setFile(templocal + "/Friday.jpg"); //makes a new discord attachment
     return { content: "FRIDAY!", files: [newAttch] };
+}
+function babaRNG(min, max, spoiler)
+{
+    var num = Math.floor(Math.random() * (max - min + 1)) + min;
+    return { content: "Your Random Number is: " + (spoiler ? "||" : "")  + num + (spoiler ? "||" : "") };
 }
 
 function babaPlease()
@@ -32,6 +37,48 @@ function babaPlease()
 function babaPizza()
 {
     return { content: "Baba Pizza Ordering Service™ coming soon!" };
+}
+
+function babaProgress()
+{    
+    var date2 = new Date();
+    var date1 = new Date(date2.getFullYear() + "-01-01");
+
+    var Difference_In_Time = date2.getTime() - date1.getTime();
+    
+    var Difference_In_Days = Difference_In_Time / (1000 * 3600 * 24);
+
+    var leap = date2.getFullYear() % 100 === 0 ? date2.getFullYear() % 400 === 0 : date2.getFullYear() % 4 === 0;
+
+    var endoyear = 365 + leap;
+
+    var percent = +((Difference_In_Days / endoyear) * 100).toFixed(2);
+
+    var pb = "";
+
+    var vdiff = 0;
+    var valcount = 0;
+
+    for (var i = 1; i <= 19; i++)
+    {
+        valcount = endoyear * (i / 20);
+        v1plus = endoyear * ((i+1) / 20);
+
+        var vdiff = (v1plus - valcount) / 3;
+
+        if (Difference_In_Days < valcount)
+            pb += (valcount - (2 * vdiff) > Difference_In_Days) ? "░" : ((valcount - vdiff > Difference_In_Days) ? "▒" : "▓");
+        else
+            pb += "█";
+    }
+
+    vdiff = (1/20 * endoyear) / 3;
+    valcount = endoyear * (19 / 20);
+
+    if (Difference_In_Days > endoyear - (1/12)) pb += "█";
+    else pb += (valcount + vdiff > Difference_In_Days) ? "░" : ((valcount + (2 * vdiff) > Difference_In_Days) ? "▒" : "▓");
+
+    return { content: pb + " " + percent + "%" };
 }
 
 function babaHelp()
@@ -99,28 +146,43 @@ function babaYugo()
     return { content: yugotext, files: [yugo] };
 }
 
-function babaHaikuEmbed(purity, list, chans, mye, buy, msgContent)
+function babaRepost()
 {
-    var exampleEmbed;
-    CreateHaikuDatabase(databaseofhaiku); // in case new haikus
+    var num = Math.floor(Math.random() * 5); //pick a random one
+    var yugo = babadata.datalocation + "Repost/" + num.toString() + ".png";
+    return { files: [yugo] };
+}
 
+
+function babaHaikuEmbed(purity, list, chans, mye, buy, msgContent, callback)
+{
     if (purity)
     {
         var hpl = "No Haiku Purity Found!"
         var bonust = ""
         var bonupr = ""
+        var haifou = false;
         if (list)
         {
             if (chans)
             {
-                hpl = FormatPurityList(databaseofhaiku.purity.channel, true);
                 bonust = " List for Channels"
+                HPLGenChannel(function(result)
+                {
+                    hpl = FormatPurityList(result, true);
+                    haifou = true;
+                    return callback(EmbedPurityGen(hpl, bonust, bonupr));
+                });
             }
             else
             {
-                //people purity list
-                hpl = FormatPurityList(databaseofhaiku.purity.person, false);
                 bonust = " List"
+                HPLGenUsers(function(result)
+                {
+                    hpl = FormatPurityList(result, false);
+                    haifou = true;
+                    return callback(EmbedPurityGen(hpl, bonust, bonupr));
+                });
             }
         }
         else
@@ -130,123 +192,129 @@ function babaHaikuEmbed(purity, list, chans, mye, buy, msgContent)
                 bonupr = "Your ";
                 var ids = mye;
 
-                hpl = "No Haiku Purity Found for You :(";
-                for ( var x in databaseofhaiku.purity.person)
+                HPLSelectUser(function(result)
                 {
-                    var lin = databaseofhaiku.purity.person[x];
-                    if (lin.ID === ids.toString())
+                    hpl = FormatPurityList(result, false);
+
+                    if (hpl.trim().length != 0)
                     {
-                        hpl = GenInfo(x, lin, 0);
+                        haifou = true;
+                        return callback(EmbedPurityGen(hpl, bonust, bonupr));
                     }
-                }
+                    else hpl = "No Haiku Purity Found for You :(";
+                }, ids);
             }
             else
             {
-                var fnd = false;
-                if (!fnd)
+                var d1 = null;
+                var IsDate = FindDate(msgContent);
+                if (IsDate != null)
                 {
-                    for ( var x in databaseofhaiku.purity.person)
+                    d1 = new Date(IsDate.year, IsDate.month - 1, IsDate.day);
+                    var mpre = d1.getMonth() + 1 < 10 ? 0 : "";
+                    var dpre = d1.getUTCDate() < 10 ? 0 : "";
+                    HPLSelectDate(function(result)
                     {
-                        var lin = databaseofhaiku.purity.person[x];
-                        if (msgContent.includes(x.toLowerCase()) || msgContent.includes(lin.ID))
+                        hpl = FormatPurityList(result, 2);
+
+                        if (hpl.trim().length != 0)
                         {
-                            fnd = true;
-                            hpl = GenInfo(x, lin, 0);
+                            haifou = true;
+                            return callback(EmbedPurityGen(hpl, bonust, bonupr));
                         }
-                    }
+                        else hpl = "No Haiku Purity Found!";
+                    }, `${d1.getFullYear()}-${mpre}${d1.getMonth() + 1}-${dpre}${d1.getUTCDate()}`);
                 }
-                if (!fnd)
+
+                HPLSelectChannel(function(result)
                 {
-                    for ( var x in databaseofhaiku.purity.channel)
+                    hpl = FormatPurityList(result, true);
+
+                    if (hpl.trim().length != 0)
                     {
-                        var lin = databaseofhaiku.purity.channel[x];
-                        if (msgContent.includes(x.toLowerCase()) || msgContent.includes(lin.ID))
-                        {
-                            fnd = true;
-                            hpl = GenInfo(x, lin, 1);
-                        }
+                        haifou = true;
+                        return callback(EmbedPurityGen(hpl, bonust, bonupr));
                     }
-                }
-                if (!fnd)
+                    else hpl = "No Haiku Purity Found!";
+                }, msgContent);
+
+                HPLSelectUser(function(result)
                 {
-                    var IsDate = FindDate(msgContent);
-                    if (IsDate)
+                    hpl = FormatPurityList(result, false);
+
+                    if (hpl.trim().length != 0)
                     {
-                        let d1 = new Date(IsDate.year, IsDate.month - 1, IsDate.day);
-                        for ( var x in databaseofhaiku.purity.date)
-                        {
-                            let xd = new Date(Date.parse(x));
-                            if (xd.getMonth() == d1.getMonth() && xd.getUTCDate() == d1.getUTCDate() && xd.getFullYear() == d1.getFullYear())
-                            {
-                                var lin = databaseofhaiku.purity.date[x];
-                                fnd = true;
-                                hpl = GenInfo(d1.toLocaleDateString('en-US', options), lin, 2);
-                            }
-                        }
+                        haifou = true;
+                        return callback(EmbedPurityGen(hpl, bonust, bonupr));
                     }
-                }
+                    else hpl = "No Haiku Purity Found!";
+                }, msgContent);
+
             }
         }
 
-        exampleEmbed = new Discord.MessageEmbed() // embed for the haiku
-        .setColor("#" + (Math.random() < .5 ? "0" : "F") + (Math.random() < .5 ? "0" : "F") + (Math.random() < .5 ? "0" : "F") + (Math.random() < .5 ? "0" : "F") + (Math.random() < .5 ? "0" : "F") + (Math.random() < .5 ? "0" : "F"))
-        .setTitle(bonupr + "Haiku Purity" + bonust)
-        .setDescription(hpl)
-        .setFooter("Haikus by Baba!", "https://media.discordapp.net/attachments/574840583563116566/949515044746559568/JSO3bX0V.png");
+        setTimeout(function()
+	    { 
+            if (!haifou)
+                return callback(EmbedPurityGen(hpl, bonust, bonupr));
+        }, 1000);
     }
     else
-    {
-        var num = Math.floor(Math.random() * databaseofhaiku.haikus.length);
-        var haiku = databaseofhaiku.haikus[num];
-
-        if (buy)
+    { 
+        
+    
+        HaikuSelection(function(haiku, simnames)
         {
-            var hpl = "No Haiku Purity Found!";
-            var person = null;
-            for ( var x in databaseofhaiku.purity.person)
+            if (haiku == null) 
             {
-                var lin = databaseofhaiku.purity.person[x];
-                if (msgContent.includes(x.toLowerCase()) || msgContent.includes(lin.ID))
-                {
-                    fnd = true;
-                    person = x;
-                }
+                var bad = new Discord.MessageEmbed() // embed for the haiku
+                .setColor("#" + (Math.random() < .5 ? "0" : "F") + (Math.random() < .5 ? "0" : "F") + (Math.random() < .5 ? "0" : "F") + (Math.random() < .5 ? "0" : "F") + (Math.random() < .5 ? "0" : "F") + (Math.random() < .5 ? "0" : "F"))
+                .setDescription("No Haikus Found!")
+                .setFooter("Haikus by Baba", "https://media.discordapp.net/attachments/574840583563116566/949515044746559568/JSO3bX0V.png");
+                return callback(bad);
             }
 
-            if (person != null)
+            var showchan = Math.random();
+            var showname = Math.random();
+            var showdate = Math.random();
+
+            //get signiture and things
+            var outname = showname < .025 ? "Anonymous" : (showname < .325 ? haiku.PersonName : (showname < .5 ? haiku.DiscordName : GetSimilarName(simnames))); // .85 > random discord name
+            var channame = showchan < .35 ? haiku.ChannelName : "";
+            var datetime = showdate < .5 ? new Date(haiku.Date) : "";
+
+            var signature = "";
+            
+            if (channame == "" && datetime == "") signature = outname; // randomness is great, dont judge
+            else 
             {
-                haiku = GetHaikuPerPerson(person, databaseofhaiku);
+                signature = outname;
+
+                if (channame != "") signature += " in " + channame;
+                if (datetime != "") signature += " on " + datetime.toLocaleDateString('en-US', options);
             }
-        }
 
-        var showchan = Math.random();
-        var showname = Math.random();
-        var showdate = Math.random();
-
-        //get signiture and things
-        var outname = showname < .025 ? "Anonymous" : (showname < .325 ? haiku.Person : (showname < .5 ? haiku.DiscordName : GetSimilarName(haiku.Person, databaseofhaiku))); // .85 > random discord name
-        var channame = showchan < .35 ? haiku.Channel : "";
-        var datetime = showdate < .5 ? new Date(haiku.Date) : "";
-
-        var signature = "";
-        
-        if (channame == "" && datetime == "") signature = outname; // randomness is great, dont judge
-        else 
-        {
-            signature = outname;
-
-            if (channame != "") signature += " in " + channame;
-            if (datetime != "") signature += " on " + datetime.toLocaleDateString('en-US', options);
-        }
-
-        exampleEmbed = new Discord.MessageEmbed() // embed for the haiku
-        .setColor("#" + (Math.random() < .5 ? "0" : "F") + (Math.random() < .5 ? "0" : "F") + (Math.random() < .5 ? "0" : "F") + (Math.random() < .5 ? "0" : "F") + (Math.random() < .5 ? "0" : "F") + (Math.random() < .5 ? "0" : "F"))
-        .setDescription(haiku.HaikuFormat)
-        .setFooter("- " + (!haiku.Accident ? "Purposful Haiku by " : "") + signature, "https://media.discordapp.net/attachments/574840583563116566/949515044746559568/JSO3bX0V.png");
-        
+            exampleEmbed = new Discord.MessageEmbed() // embed for the haiku
+            .setColor("#" + (Math.random() < .5 ? "0" : "F") + (Math.random() < .5 ? "0" : "F") + (Math.random() < .5 ? "0" : "F") + (Math.random() < .5 ? "0" : "F") + (Math.random() < .5 ? "0" : "F") + (Math.random() < .5 ? "0" : "F"))
+            .setDescription(haiku.HaikuFormatted)
+            .setFooter("- " + (!haiku.Accidental ? "Purposful Haiku by " : "") + signature, "https://media.discordapp.net/attachments/574840583563116566/949515044746559568/JSO3bX0V.png");
+            
+            return callback(exampleEmbed);
+        }, buy, msgContent);
     }
+}
+
+function EmbedPurityGen(hpl, bonust, bonupr)
+{
+    var exampleEmbed = new Discord.MessageEmbed() // embed for the haiku
+    .setColor("#" + (Math.random() < .5 ? "0" : "F") + (Math.random() < .5 ? "0" : "F") + (Math.random() < .5 ? "0" : "F") + (Math.random() < .5 ? "0" : "F") + (Math.random() < .5 ? "0" : "F") + (Math.random() < .5 ? "0" : "F"))
+    .setTitle(bonupr + "Haiku Purity" + bonust)
+    .setDescription(hpl)
+    .setFooter("Haikus by Baba!", "https://media.discordapp.net/attachments/574840583563116566/949515044746559568/JSO3bX0V.png");
+
     return exampleEmbed;
 }
+
 
 function babaDayNextWed()
 {
@@ -263,188 +331,199 @@ function babaDayNextWed()
     return { content: dtnw };
 }
 
-function babaWednesday(msgContent)
+function babaJeremy()
+{
+    var adjective = data.adjectives[Math.floor(Math.random() * data.adjectives.length)];
+    var animal = data.animals[Math.floor(Math.random() * data.animals.length)].replace(" ", "");
+
+    return { content: "```" + adjective + animal + "```" };
+}
+
+function babaWednesday(msgContent, callback)
 {
     var outs = [];
-    let rawdata = fs.readFileSync(babadata.datalocation + "FrogHolidays/" + 'frogholidays.json'); //load file each time of calling wednesday
-    let holidays = JSON.parse(rawdata);
-
-    let d1 = getD1(); //get today
-    var yr = d1.getFullYear();
-    var dow_d1 = (d1.getDay() + 4) % 7;//get day of week (making wed = 0)
-    let d1_useage = new Date(d1.getFullYear(), d1.getMonth(), 1); //today that has been wednesday shifted
-    d1_useage.setDate(d1.getDate() - dow_d1); //modify today for wednesdays
-
-    var IsHoliday = CheckHoliday(msgContent, holidays); //get the holidays that are reqested
-    var IsDate = FindDate(msgContent);
-
-    if (IsDate != null)
-        IsHoliday.push(IsDate);
-
-    if (msgContent.includes('next event'))
+    //let rawdata = fs.readFileSync(babadata.datalocation + "FrogHolidays/" + 'frogholidays.json'); //load file each time of calling wednesday
+    //let holidays = JSON.parse(rawdata);
+    ObtainDBHolidays(function(holidays)
     {
-        var hols = FindNextHoliday(d1, yr, CheckHoliday("ALL", holidays));
-        for ( var i = 0; i < hols.length; i++) //loop through the holidays that are requested
+        let d1 = getD1(); //get today
+        var yr = d1.getFullYear();
+        var dow_d1 = (d1.getDay() + 4) % 7;//get day of week (making wed = 0)
+        let d1_useage = new Date(d1.getFullYear(), d1.getMonth(), 1); //today that has been wednesday shifted
+        d1_useage.setDate(d1.getDate() - dow_d1); //modify today for wednesdays
+    
+        var IsHoliday = CheckHoliday(msgContent, holidays); //get the holidays that are reqested
+        var IsDate = FindDate(msgContent);
+    
+        if (IsDate != null)
+            IsHoliday.push(IsDate);
+    
+        if (msgContent.includes('next event'))
         {
-            IsHoliday.push(hols[i]);
-        }
-    }
-
-    if(IsHoliday.length > 0) //reply with password file string if baba password
-    {
-        var templocationslist = [];
-
-        for ( var i = 0; i < IsHoliday.length; i++) //loop through the holidays that are requested
-        {
-            var holidayinfo = IsHoliday[i];
-
-            if (holidayinfo.name != "date" && holidayinfo.year)
-                yr = holidayinfo.year;
-
-            let d2 = GetDate(d1, yr, holidayinfo);
-
-            var additionaltext = "";
-            var showwed = false;
-
-            if (msgContent.includes('wednesday'))
-                showwed = true;
-
-            if (msgContent.includes('when is')) //outputs the next occurance of the event
+            var hols = FindNextHoliday(d1, yr, CheckHoliday("ALL", holidays));
+            for ( var i = 0; i < hols.length; i++) //loop through the holidays that are requested
             {
-                var bonustext = holidayinfo.year != undefined ? " " + holidayinfo.year : "";
-                
-                var whenistext = "";
-                if (IsDate != null)
-                    whenistext += "\n" + holidayinfo.safename;
-                else
+                IsHoliday.push(hols[i]);
+            }
+        }
+    
+        if(IsHoliday.length > 0) //reply with password file string if baba password
+        {
+            var templocationslist = [];
+    
+            for ( var i = 0; i < IsHoliday.length; i++) //loop through the holidays that are requested
+            {
+                var holidayinfo = IsHoliday[i];
+                if (holidayinfo.name != "date" && holidayinfo.year)
+                    yr = holidayinfo.year;
+    
+                let d2 = GetDate(d1, yr, holidayinfo);
+    
+                var additionaltext = "";
+                var showwed = false;
+    
+                if (msgContent.includes('wednesday'))
+                    showwed = true;
+    
+                if (msgContent.includes('when is')) //outputs the next occurance of the event
                 {
-                    if (holidayinfo.year != undefined)
-                    whenistext += "\n" + holidayinfo.safename + bonustext + " is on " + d2.toLocaleDateString('en-US', options);
+                    var bonustext = holidayinfo.year != undefined ? " " + holidayinfo.year : "";
+                    
+                    var whenistext = "";
+                    if (IsDate != null)
+                        whenistext += "\n" + holidayinfo.safename;
                     else
                     {
-                        whenistext += "\nThe next occurance of " + holidayinfo.safename + " is on " + d2.toLocaleDateString('en-US', options);
+                        if (holidayinfo.year != undefined)
+                        whenistext += "\n" + holidayinfo.safename + bonustext + " is on " + d2.toLocaleDateString('en-US', options);
+                        else
+                        {
+                            whenistext += "\nThe next occurance of " + holidayinfo.safename + " is on " + d2.toLocaleDateString('en-US', options);
+                        }
+                    }
+                    
+                    additionaltext += whenistext + "\n";
+                }
+                
+                if (msgContent.includes('day of week')) //custom days until text output - for joseph
+                {
+                    var bonustext = holidayinfo.year != undefined ? " " + holidayinfo.year : "";
+                    var dowtext = holidayinfo.safename + bonustext + " is on " + d2.toLocaleDateString('en-US', {weekday: 'long'}); //future text
+                    
+                    additionaltext += dowtext + "\n";
+                }
+    
+                if (msgContent.includes('days until')) //custom days until text output - for joseph
+                {
+                    var int = dateDiffInDays(d1, d2); //convert to days difference
+                    var bonustext = holidayinfo.year != undefined ? " " + holidayinfo.year : "";
+    
+                    var dutext = "";
+                    if (int != 0)
+                    {
+                        if (int == 1)
+                            dutext = int + " Day until " + holidayinfo.safename; //future text
+                        else
+                            dutext = int + " Days until " + holidayinfo.safename + bonustext; //future text
+                        
+                        additionaltext += dutext + "\n";
+                    }
+                    else
+                        showwed = true;
+                }
+                
+                if (additionaltext !== "")
+                {
+                    outs.push({ content: additionaltext });
+    
+                    if (!showwed)
+                        continue;
+                }
+    
+                var dow_d2 = (d2.getDay() + 4) % 7;//get day of week (making wed = 0)
+                let d2_useage = new Date(d2.getFullYear(), d2.getMonth(), 1); //holiday that has been wednesday shifted
+                d2_useage.setDate(d2.getDate() - dow_d2);// modify holiday for wednesdays
+    
+                let weeks = Math.abs((d1_useage.getTime() - d2_useage.getTime()) / 3600000 / 24 / 7); // how many weeks
+                
+                if (weeks < .3) //for when it is the week before and set to .142
+                    weeks = 0;
+    
+                var wednesdayoverlay = "Wednesday_Plural.png"; //gets the wednesday portion
+                if (weeks == 1)
+                    wednesdayoverlay = "Wednesday_Single.png"; //one week means single info
+    
+                var templocal = babadata.datalocation + "FrogHolidays/"; //creates the output frog image
+    
+                var outputname = "outputfrog_" + i + ".png"; //default output name
+                if (d1.getTime() - d2.getTime() == 0)
+                {
+                    outputname =  holidayinfo.name + ".png"; //if today is the event, show something cool
+    
+                    if (holidayinfo.name == "date")
+                    {
+                        images(templocal + outputname).save(templocal + "outputfrog_0.png");
+    
+                        Jimp.read(templocal + outputname)
+                            .then(function (image) {
+                                loadedImage = image;
+                                return Jimp.loadFont(Jimp.FONT_SANS_32_BLACK);
+                            })
+                            .then(function (font) {
+                                loadedImage.print(font, 190, 20, holidayinfo.safename)
+                                        .write(templocal + "outputfrog_0.png");
+                            })
+                            .catch(function (err) {
+                                console.error(err);
+                            });
+                        outputname = "outputfrog_0.png";
                     }
                 }
-                
-                additionaltext += whenistext + "\n";
-            }
-            
-            if (msgContent.includes('day of week')) //custom days until text output - for joseph
-            {
-                var bonustext = holidayinfo.year != undefined ? " " + holidayinfo.year : "";
-                var dowtext = holidayinfo.safename + bonustext + " is on " + d2.toLocaleDateString('en-US', {weekday: 'long'}); //future text
-                
-                additionaltext += dowtext + "\n";
-            }
-
-            if (msgContent.includes('days until')) //custom days until text output - for joseph
-            {
-                var int = dateDiffInDays(d1, d2); //convert to days difference
-                var bonustext = holidayinfo.year != undefined ? " " + holidayinfo.year : "";
-
-                var dutext = "";
-                if (int != 0)
-                {
-                    if (int == 1)
-                        dutext = int + " Day until " + holidayinfo.safename; //future text
-                    else
-                        dutext = int + " Days until " + holidayinfo.safename + bonustext; //future text
-                    
-                    additionaltext += dutext + "\n";
-                }
                 else
-                    showwed = true;
-            }
-            
-            if (additionaltext !== "")
-            {
-                outs.push({ content: additionaltext });
-
-                if (!showwed)
-                    continue;
-            }
-
-            var dow_d2 = (d2.getDay() + 4) % 7;//get day of week (making wed = 0)
-            let d2_useage = new Date(d2.getFullYear(), d2.getMonth(), 1); //holiday that has been wednesday shifted
-            d2_useage.setDate(d2.getDate() - dow_d2);// modify holiday for wednesdays
-
-            let weeks = Math.abs((d1_useage.getTime() - d2_useage.getTime()) / 3600000 / 24 / 7); // how many weeks
-            
-            if (weeks < .3) //for when it is the week before and set to .142
-                weeks = 0;
-
-            var wednesdayoverlay = "Wednesday_Plural.png"; //gets the wednesday portion
-            if (weeks == 1)
-                wednesdayoverlay = "Wednesday_Single.png"; //one week means single info
-
-            var templocal = babadata.datalocation + "FrogHolidays/"; //creates the output frog image
-
-            var outputname = "outputfrog_" + i + ".png"; //default output name
-            if (d1.getTime() - d2.getTime() == 0)
-            {
-                outputname =  holidayinfo.name + ".png"; //if today is the event, show something cool
-
-                if (holidayinfo.name == "date")
                 {
-                    images(templocal + outputname).save(templocal + "outputfrog_0.png");
-
-                    Jimp.read(templocal + outputname)
-                        .then(function (image) {
-                            loadedImage = image;
-                            return Jimp.loadFont(Jimp.FONT_SANS_32_BLACK);
-                        })
-                        .then(function (font) {
-                            loadedImage.print(font, 190, 20, holidayinfo.safename)
-                                    .write(templocal + "outputfrog_0.png");
-                        })
-                        .catch(function (err) {
-                            console.error(err);
-                        });
-                    outputname = "outputfrog_0.png";
-                }
-            }
-            else
-            {
-                weeks = Math.floor(weeks);
-                var base = holidayinfo.name + "_base.png";
-
-                try 
-                {
-                    MakeImage(templocal, base, wednesdayoverlay, weeks, outputname, holidayinfo, false);
-                }
-                catch(err)
-                {
-                    MakeImage(templocal, "date_base.png", wednesdayoverlay, weeks, outputname, holidayinfo, true);
+                    weeks = Math.floor(weeks);
+                    var base = holidayinfo.name + "_base.png";
+    
+                    try 
+                    {
+                        MakeImage(templocal, base, wednesdayoverlay, weeks, outputname, holidayinfo, false);
+                    }
+                    catch(err)
+                    {
+                        MakeImage(templocal, "date_base.png", wednesdayoverlay, weeks, outputname, holidayinfo, true);
+                    }
+                    
                 }
                 
+                var tempFilePath = templocal + outputname; // temp file location
+                templocationslist.push(tempFilePath);
             }
-            
-            var tempFilePath = templocal + outputname; // temp file location
-            templocationslist.push(tempFilePath);
-        }
-
-        for (var j = 0; j < templocationslist.length; j++)
-        {
-            var newAttch = new Discord.MessageAttachment().setFile(templocationslist[j]); //makes a new discord attachment
-            try
-            {
-                fs.accessSync(templocationslist[j], fs.constants.R_OK | fs.constants.W_OK);
-            } 
-            catch (err)
-            {
-                newAttch = new Discord.MessageAttachment().setFile(templocal + "error.png"); //makes a new discord attachment (default fail image)
-            }
-            
-            var op = { content: "It is Wednesday, My BABAs", files: [newAttch] }
-            outs.push(op);
-        }
-    }
-    else
-    {
-        outs.push({ content: "It is Wednesday, My Dudes" });
-    }
     
-    return outs;
+            for (var j = 0; j < templocationslist.length; j++)
+            {
+                var newAttch = new Discord.MessageAttachment().setFile(templocationslist[j]); //makes a new discord attachment
+                try
+                {
+                    fs.accessSync(templocationslist[j], fs.constants.R_OK | fs.constants.W_OK);
+                } 
+                catch (err)
+                {
+                    newAttch = new Discord.MessageAttachment().setFile(templocal + "error.png"); //makes a new discord attachment (default fail image)
+                }
+                
+                var op = { content: "It is Wednesday, My BABAs", files: [newAttch] }
+                outs.push(op);
+            }
+        }
+        else
+        {
+            outs.push({ content: "It is Wednesday, My Dudes" });
+        }
+        
+        return callback(outs);
+    });
+
+    
     //if (msgContent.includes('super cursed'))
     //{
     //	setTimeout(function()
@@ -474,4 +553,8 @@ module.exports = {
     babaHaikuEmbed, 
     babaWednesday, 
     babaDayNextWed,
+    babaRepost,
+    babaProgress,
+    babaJeremy,
+    babaRNG
 };

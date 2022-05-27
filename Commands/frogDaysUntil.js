@@ -23,8 +23,10 @@ module.exports = {
         } 
         else 
         {
-            var texts = babaWednesday(`${event} days until`);
-            await interaction.editReply(texts[0]);
+            babaWednesday(`${event} days until`, function(texts) 
+            {
+                interaction.editReply(texts[0]);
+            });
         }
 
 	},
