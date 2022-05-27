@@ -19,7 +19,7 @@ module.exports = {
                     chan.messages.fetch(msgID).then(message => {
                         fnd = true;
                         setVBH(message);
-                        interaction.editReply({ content: "Vote Added to Message: `" + message.content + "`", ephemeral: true });
+                        interaction.editReply({ content: "Ban Hammer added to Message: `" + message.content + "`", ephemeral: true });
                     }).catch(console.error); //try to get the message, if it exists call setVote, otherwise catch the error
                 }
             });

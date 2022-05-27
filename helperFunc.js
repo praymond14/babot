@@ -5,6 +5,7 @@ const fs = require('fs');
 const images = require('images');
 const Jimp = require('jimp');
 
+const options = { year: 'numeric', month: 'long', day: 'numeric' }; // for date parsing to string
 
 async function setGrole(msg, rname) //creates role and sets users
 {
@@ -134,7 +135,7 @@ function timedOutFrog(i, texts, message, templocal)
 			var newAttch = new Discord.MessageAttachment().setFile(templocal + "error.png"); //makes a new discord attachment (default fail image)
 			message.channel.send({ content: "It is Wednesday, My BABAs", files: [newAttch] }); // send file
 		})
-	}, 500);
+	}, 1000);
 }
 
 function getD1()
@@ -209,7 +210,7 @@ function GetDate(d1, yr, holidayinfo) //Gets the specified date from the selecte
 	{
 		d2 = GetDate(new Date(yr + 1, 0, 1), yr + 1, holidayinfo); //re-call function w/year of next
 	}
-
+	
 	if (d2.getTime() < d1.getTime()) //check if day is post holiday and make next holiday year + 1
 	{
 		if (holidayinfo.mode == 3)
@@ -248,31 +249,34 @@ function MakeImage(templocal, base, wednesdayoverlay, weeks, outputname, holiday
 			   .draw(images(templocal + wednesdayoverlay), 0, 0);
 	}
 
-	var res = BonusGenerator(bonus, im, templocal, weeks, 1, (weeks == 0 ? 0 : 1));
+	var res = BonusGenerator(bonus, im, templocal, weeks, 1, 1);
 	im = res[0];
 	var textlocal = res[1];
 
 	im.save(templocal + outputname); //save the image
 
-	if (holidayinfo.name == "date" || textoverlay || yeartop) //overide the image with text if a date
+	setTimeout(function()
 	{
-		Jimp.read(templocal + outputname)
-			.then(function (image) {
-				loadedImage = image;
-				return Jimp.loadFont(Jimp.FONT_SANS_32_BLACK);
-			})
-			.then(function (font) {
-				loadedImage.print(font, 
-								  yeartop ? 10 : (textoverlay ? 50 : 90),
-								  textlocal + (yeartop ? 35 : 0),
-								  yeartop ? holidayinfo.year : holidayinfo.safename,
-								  textoverlay ? 367 : 467)
-								  .write(templocal + outputname);
-			})
-			.catch(function (err) {
-				console.error(err);
-			});
-	}
+		if (holidayinfo.name == "date" || textoverlay || yeartop) //overide the image with text if a date
+		{
+			Jimp.read(templocal + outputname)
+				.then(function (image) {
+					loadedImage = image;
+					return Jimp.loadFont(Jimp.FONT_SANS_32_BLACK);
+				})
+				.then(function (font) {
+					loadedImage.print(font, 
+									yeartop ? 10 : (textoverlay ? 50 : 90),
+									textlocal + (yeartop ? 35 : 0),
+									yeartop ? holidayinfo.year : holidayinfo.safename,
+									textoverlay ? 367 : 467)
+									.write(templocal + outputname);
+				})
+				.catch(function (err) {
+					console.error(err);
+				});
+		}
+	}, 500);
 }
 
 function dateDiffInDays(a, b) //helper function that does DST helping conversions
@@ -356,7 +360,7 @@ function FindDate(message) //Not Thanks to Jeremy's Link
 		if (year == 0) //set year to first year found
 		{
 			var iv = parseInt(item);
-			if (iv <= new Date().getFullYear() && iv >= 2018)
+			if (iv >= 2018)
 			{
 				year = iv;
 			}

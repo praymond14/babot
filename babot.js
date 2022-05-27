@@ -45,8 +45,8 @@ bot.on('interactionCreate', async interaction => {
 //not shure what this does also but it was in jeremy's code so
 var cleanupFn = function cleanup() 
 {
-	  console.log("Logging off");
-	  bot.destroy();
+	console.log("Logging off");
+	bot.destroy();
 }
 
 process.on('SIGINT', cleanupFn);
