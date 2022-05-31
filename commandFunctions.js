@@ -1,4 +1,4 @@
-const { FormatPurityList, HPLGenChannel, HPLGenUsers, HPLSelectChannel, HPLSelectUser, HPLSelectDate, HaikuSelection, GetSimilarName, ObtainDBHolidays } = require("./database.js");
+const { FormatPurityList, HPLGenChannel, HPLGenUsers, HPLSelectChannel, HPLSelectUser, HPLSelectDate, HaikuSelection, GetSimilarName, ObtainDBHolidays, NameFromUserID } = require("./database.js");
 const { getD1, FindDate, CheckHoliday, FindNextHoliday, GetDate, dateDiffInDays, MakeImage } = require("./helperFunc.js");
 var babadata = require('./babotdata.json'); //baba configuration file
 var data = require(babadata.datalocation + 'data.json'); //extra data
@@ -543,6 +543,25 @@ function babaWednesday(msgContent, callback)
     //}
 }
 
+function babaWhomst(user, callback)
+{
+    NameFromUserID(
+        function(result)
+        {
+            // do formatting on result
+            if (result.length == 0)
+            {
+                console.log(`Whomst lookup for id ${user.id} (${user.username}) returned no results`)
+                callback(`User ${user.username} not found!`);
+            }
+            else
+            {
+                callback(`User ${user.username} is ${result[0].PersonName}`);
+            }            
+        },
+        user);
+}
+
 module.exports = {
     babaFriday, 
     babaHelp, 
@@ -556,5 +575,6 @@ module.exports = {
     babaRepost,
     babaProgress,
     babaJeremy,
-    babaRNG
+    babaRNG,
+    babaWhomst
 };

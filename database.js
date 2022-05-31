@@ -73,6 +73,8 @@ function GenInfo(line, type)
 	return line.Name + (type == 2 ? "" : " [<" + (type == 1 ? "#" : "@") + line.ID + ">]") + "\n\t`" + line.Count + " Haikus` - `" + line.Accidental + " Accidental` - `" + line.Purity + "% Purity`";
 }
 
+// HPL = Haiku Purity List
+
 function HPLGenChannel(callback)
 {
 	con.query("SELECT ChannelName as Name, haiku.ChannelID as ID, Count(*) as Count, SUM(IF(Accidental = '1', 1, 0)) as Accidental, SUM(IF(Accidental = '1', 1, 0))/COUNT(Accidental) * 100 As Purity FROM haiku Left Join channelval on haiku.ChannelID = channelval.ChannelID Group by haiku.ChannelID", function (err, result) 
@@ -220,6 +222,19 @@ function ObtainDBHolidays(callback)
 	});
 }
 
+function NameFromUserID(callback, user)
+{
+	con.query(
+		`SELECT PersonName FROM userval
+		 WHERE DiscordID = "${user.id}"`,
+		function (err, result)
+		{
+			if (err) throw err;
+			return callback(result);
+		}
+	);
+}
+
 function GetParent(retme, id)
 {
 	for (var x in retme)
@@ -247,5 +262,6 @@ module.exports = {
 	HPLSelectUser,
 	HaikuSelection,
 	GetSimilarName,
-	ObtainDBHolidays
+	ObtainDBHolidays,
+	NameFromUserID
 }

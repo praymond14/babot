@@ -259,7 +259,7 @@ function babaMessage(bot, message)
 	}
 	if(msgContent.includes('!bdelete')) //code to del and move to log
 	{
-		if(message.channel.type != "DM" && message.member.roles.cache.has(babadata.adminid)) //check if admin
+		if(message.channel.type != "DM" && message.member.roles.cache.has(babadata.adminId)) //check if admin
 		{
 			var message_id = message.content.replace(/\D/g,''); //get message id
 			var fnd = false;
@@ -279,7 +279,7 @@ function babaMessage(bot, message)
 	}
 	if(msgContent.includes('!political')) //code to del and move to log
 	{
-		if(message.channel.type != "DM" && message.member.roles.cache.has(babadata.adminid)) //check if admin
+		if(message.channel.type != "DM" && message.member.roles.cache.has(babadata.adminId)) //check if admin
 		{
 			var message_id = message.content.replace(/\D/g,''); //get message id
 			var fnd = false;
@@ -299,7 +299,7 @@ function babaMessage(bot, message)
 	}
 	if(msgContent.includes('!setvote')) //code to set vote
 	{
-		if(message.channel.type != "DM" && message.member.roles.cache.has(babadata.adminid)) //check if admin
+		if(message.channel.type != "DM" && message.member.roles.cache.has(babadata.adminId)) //check if admin
 		{
 			var message_id = message.content.replace(/\D/g,''); //get message id
 			var fnd = false;
@@ -319,7 +319,7 @@ function babaMessage(bot, message)
 	}
 	if(msgContent.includes('!bsetstatus')) //code to set game
 	{
-		if(message.channel.type != "DM" && message.member.roles.cache.has(babadata.adminid)) //check if admin
+		if(message.channel.type != "DM" && message.member.roles.cache.has(babadata.adminId)) //check if admin
 		{
 			var text = msgContent;
 			var tyepe = -1;
@@ -348,7 +348,7 @@ function babaMessage(bot, message)
 	}
 	if(msgContent.includes('!bsetgame')) //code to set game
 	{
-		if(message.channel.type != "DM" && message.member.roles.cache.has(babadata.adminid)) //check if admin
+		if(message.channel.type != "DM" && message.member.roles.cache.has(babadata.adminId)) //check if admin
 		{
 			var text = msgContent;
 			var tyepe = -1;
@@ -381,7 +381,7 @@ function babaMessage(bot, message)
 	}
 	if(msgContent.includes('!banhammer')) //code to set ban hammer
 	{
-		if(message.channel.type != "DM" && message.member.roles.cache.has(babadata.adminid)) //check if admin
+		if(message.channel.type != "DM" && message.member.roles.cache.has(babadata.adminId)) //check if admin
 		{
 			var message_id = message.content.replace(/\D/g,''); //get message id
 			var fnd = false;
@@ -401,7 +401,7 @@ function babaMessage(bot, message)
 	}
 	if(msgContent.includes('!grole')) //code to set game role
 	{
-		if(message.channel.type != "DM" && message.member.roles.cache.has(babadata.adminid)) //check if admin
+		if(message.channel.type != "DM" && message.member.roles.cache.has(babadata.adminId)) //check if admin
 		{
 			role_name = message.content.split(' ').slice(0, 2).join(' ').substring(6).replace(' ',''); //get the name for the role
 			var message_id = message.content.replace(role_name,''); //remove role name from string
