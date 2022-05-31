@@ -175,11 +175,21 @@ function GetDate(d1, yr, holidayinfo) //Gets the specified date from the selecte
 			d2 = new Date(yr, holidayinfo.month - 1, holidayinfo.day); //get holiday
 			break;
 		case 1:
-			d2 = new Date(yr, holidayinfo.month - 1, 1); //get first of specified month
-			var dtcalc = 1 + (holidayinfo.dayofweek - d2.getDay() - 7) % 7;
-			dtcalc = dtcalc + (7 * holidayinfo.week); //calculate the day of the month
+			var wk = holidayinfo.week;
+			var mnth = holidayinfo.month;
 
-			d2 = new Date(yr, holidayinfo.month - 1, dtcalc); //get holiday
+			if (holidayinfo.week < 0)
+			{
+				wk++;
+				mnth++;
+			}
+
+			d2 = new Date(yr, mnth - 1, 1); //get first of specified month
+			var dtcalc = 1 + (holidayinfo.dayofweek - d2.getDay() - 7) % 7;
+			dtcalc = dtcalc + (7 * wk); //calculate the day of the month
+
+			d2 = new Date(yr, mnth - 1, dtcalc); //get holiday
+			console.log(d2);
 			break;
 		case 2:
 			var sm = d1.getMonth() + 1; //get the month to start on
