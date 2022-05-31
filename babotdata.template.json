@@ -9,8 +9,8 @@
     "holidayval":"null",
     "temp":"./",
     "emoji":"",
-    "clientid":"",
-    "guildID":"",
+    "clientId":"",
+    "guildId":"",
     "database": {
         "host": "",
         "user": "",

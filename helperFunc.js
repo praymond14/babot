@@ -189,7 +189,6 @@ function GetDate(d1, yr, holidayinfo) //Gets the specified date from the selecte
 			dtcalc = dtcalc + (7 * wk); //calculate the day of the month
 
 			d2 = new Date(yr, mnth - 1, dtcalc); //get holiday
-			console.log(d2);
 			break;
 		case 2:
 			var sm = d1.getMonth() + 1; //get the month to start on
