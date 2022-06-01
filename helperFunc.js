@@ -806,7 +806,7 @@ function setCommandRoles(cmds)
 {
 	const permissions = [
 		{
-			id: babadata.adminid,
+			id: babadata.adminId,
 			type: 'ROLE',
 			permission: true,
 		},
