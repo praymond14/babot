@@ -261,8 +261,6 @@ function babaHaikuEmbed(purity, list, chans, mye, buy, msgContent, callback)
     }
     else
     { 
-        
-    
         HaikuSelection(function(haiku, simnames)
         {
             if (haiku == null) 

@@ -29,9 +29,16 @@ JOKE IS OLD.
     "holidayval": leave as "null" - will be auto-filled,  
     "temp": temp file location as string,  
     "emoji": server ban hammer emoji ID as string,
-    "clientId": bot application id as string,
+    "clientId": bot apllication id as string,
     "guildId": server guild id as string,
-    "database": database connection information
+    "database": 
+    {
+        "host": database host,
+        "user": database user,
+        "password": database password,
+        "database": database that is used,
+        "port": port of the database
+    }
 }  
 ```
 
