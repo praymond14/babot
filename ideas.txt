@@ -1,0 +1,10 @@
+Ideas:
+
+    /hurricanetracker
+    - short summary if no hurricanes
+    - just image
+    /radar
+    /downscale
+
+voice activity tracker
+archive command shows as user who was archived

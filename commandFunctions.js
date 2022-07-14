@@ -1,4 +1,4 @@
-const { FormatPurityList, HPLGenChannel, HPLGenUsers, HPLSelectChannel, HPLSelectUser, HPLSelectDate, HaikuSelection, GetSimilarName, ObtainDBHolidays, NameFromUserID } = require("./database.js");
+const { FormatPurityList, HPLGenChannel, HPLGenUsers, HPLSelectChannel, HPLSelectUser, HPLSelectDate, HaikuSelection, GetSimilarName, ObtainDBHolidays, NameFromUserID, HPLGenD8 } = require("./database.js");
 const { getD1, FindDate, CheckHoliday, FindNextHoliday, GetDate, dateDiffInDays, MakeImage } = require("./helperFunc.js");
 var babadata = require('./babotdata.json'); //baba configuration file
 var data = require(babadata.datalocation + 'data.json'); //extra data
@@ -154,24 +154,34 @@ function babaRepost()
 }
 
 
-function babaHaikuEmbed(purity, list, chans, mye, buy, msgContent, callback)
+function babaHaikuEmbed(purity, list, chans, mye, buy, msgContent, pagestuff, callback)
 {
     if (purity)
     {
-        var hpl = "No Haiku Purity Found!"
+        var hpl = {"retstring": ["No Haiku Purity Found!"], "total": 1};
         var bonust = ""
         var bonupr = ""
         var haifou = false;
         if (list)
         {
-            if (chans)
+            if (chans == 1)
             {
                 bonust = " List for Channels"
                 HPLGenChannel(function(result)
                 {
-                    hpl = FormatPurityList(result, true);
+                    hpl = FormatPurityList(result, true, pagestuff);
                     haifou = true;
-                    return callback(EmbedPurityGen(hpl, bonust, bonupr));
+                    return callback(EmbedPurityGen(hpl, bonust, bonupr, pagestuff));
+                });
+            }
+            else if (chans == 2)
+            {
+                bonust = " List for Dates"
+                HPLGenD8(function(result)
+                {
+                    hpl = FormatPurityList(result, 2, pagestuff);
+                    haifou = true;
+                    return callback(EmbedPurityGen(hpl, bonust, bonupr, pagestuff));
                 });
             }
             else
@@ -179,9 +189,9 @@ function babaHaikuEmbed(purity, list, chans, mye, buy, msgContent, callback)
                 bonust = " List"
                 HPLGenUsers(function(result)
                 {
-                    hpl = FormatPurityList(result, false);
+                    hpl = FormatPurityList(result, false, pagestuff);
                     haifou = true;
-                    return callback(EmbedPurityGen(hpl, bonust, bonupr));
+                    return callback(EmbedPurityGen(hpl, bonust, bonupr, pagestuff));
                 });
             }
         }
@@ -194,14 +204,14 @@ function babaHaikuEmbed(purity, list, chans, mye, buy, msgContent, callback)
 
                 HPLSelectUser(function(result)
                 {
-                    hpl = FormatPurityList(result, false);
+                    hpl = FormatPurityList(result, false, pagestuff);
 
-                    if (hpl.trim().length != 0)
+                    if (hpl.retstring.length != 0)
                     {
                         haifou = true;
-                        return callback(EmbedPurityGen(hpl, bonust, bonupr));
+                        return callback(EmbedPurityGen(hpl, bonust, bonupr, pagestuff));
                     }
-                    else hpl = "No Haiku Purity Found for You :(";
+                    else hpl = {"retstring": ["No Haiku Purity Found for You :("], "total": 1};
                 }, ids);
             }
             else
@@ -215,39 +225,37 @@ function babaHaikuEmbed(purity, list, chans, mye, buy, msgContent, callback)
                     var dpre = d1.getUTCDate() < 10 ? 0 : "";
                     HPLSelectDate(function(result)
                     {
-                        hpl = FormatPurityList(result, 2);
-
-                        if (hpl.trim().length != 0)
+                        hpl = FormatPurityList(result, 2, pagestuff);
+                        if (hpl.retstring.length != 0)
                         {
                             haifou = true;
-                            return callback(EmbedPurityGen(hpl, bonust, bonupr));
+                            return callback(EmbedPurityGen(hpl, bonust, bonupr, pagestuff));
                         }
-                        else hpl = "No Haiku Purity Found!";
+                        else hpl = {"retstring": ["No Haiku Purity Found!"], "total": 1};
                     }, `${d1.getFullYear()}-${mpre}${d1.getMonth() + 1}-${dpre}${d1.getUTCDate()}`);
                 }
 
                 HPLSelectChannel(function(result)
                 {
-                    hpl = FormatPurityList(result, true);
-
-                    if (hpl.trim().length != 0)
+                    hpl = FormatPurityList(result, true, pagestuff);
+                    if (hpl.retstring.length != 0)
                     {
                         haifou = true;
-                        return callback(EmbedPurityGen(hpl, bonust, bonupr));
+                        return callback(EmbedPurityGen(hpl, bonust, bonupr, pagestuff));
                     }
-                    else hpl = "No Haiku Purity Found!";
+                    else hpl = {"retstring": ["No Haiku Purity Found!"], "total": 1};
                 }, msgContent);
 
                 HPLSelectUser(function(result)
                 {
-                    hpl = FormatPurityList(result, false);
+                    hpl = FormatPurityList(result, false, pagestuff);
 
-                    if (hpl.trim().length != 0)
+                    if (hpl.retstring.length != 0)
                     {
                         haifou = true;
-                        return callback(EmbedPurityGen(hpl, bonust, bonupr));
+                        return callback(EmbedPurityGen(hpl, bonust, bonupr, pagestuff));
                     }
-                    else hpl = "No Haiku Purity Found!";
+                    else hpl = {"retstring": ["No Haiku Purity Found!"], "total": 1};
                 }, msgContent);
 
             }
@@ -256,7 +264,7 @@ function babaHaikuEmbed(purity, list, chans, mye, buy, msgContent, callback)
         setTimeout(function()
 	    { 
             if (!haifou)
-                return callback(EmbedPurityGen(hpl, bonust, bonupr));
+                return callback(EmbedPurityGen(hpl, bonust, bonupr, pagestuff));
         }, 1000);
     }
     else
@@ -302,15 +310,45 @@ function babaHaikuEmbed(purity, list, chans, mye, buy, msgContent, callback)
     }
 }
 
-function EmbedPurityGen(hpl, bonust, bonupr)
+function EmbedPurityGen(hpl, bonust, bonupr, pagestuff)
 {
-    var exampleEmbed = new Discord.MessageEmbed() // embed for the haiku
-    .setColor("#" + (Math.random() < .5 ? "0" : "F") + (Math.random() < .5 ? "0" : "F") + (Math.random() < .5 ? "0" : "F") + (Math.random() < .5 ? "0" : "F") + (Math.random() < .5 ? "0" : "F") + (Math.random() < .5 ? "0" : "F"))
-    .setTitle(bonupr + "Haiku Purity" + bonust)
-    .setDescription(hpl)
-    .setFooter("Haikus by Baba!", "https://media.discordapp.net/attachments/574840583563116566/949515044746559568/JSO3bX0V.png");
+    var objs = [];
+    var pagetotal = Math.ceil(hpl.total / pagestuff.ipp);
+    for (var e = 0; e < pagetotal; e++)
+    {
+        var obj = {content: "BABA MAKE HAIKU"};
 
-    return exampleEmbed;
+        var footer = "Haikus by Baba!";
+        if (pagetotal > 1) 
+        {
+            footer += " - Page " + (1 + e) + " of " + pagetotal;
+            var row = new Discord.MessageActionRow();
+            
+            var pButton = new Discord.MessageButton().setCustomId("page"+(e - 1)).setLabel("Previous").setStyle("PRIMARY");
+            var nButton = new Discord.MessageButton().setCustomId("page"+(1 + e)).setLabel("Next").setStyle("PRIMARY");
+            if (e == 0)
+            {
+                pButton.setDisabled(true);
+            }
+            if (e == pagetotal - 1)
+            {
+                nButton.setDisabled(true);
+            }
+    
+            row.addComponents(pButton, nButton);
+            obj.components = [row];
+        }
+    
+        var exampleEmbed = new Discord.MessageEmbed() // embed for the haiku
+        .setColor("#" + (Math.random() < .5 ? "0" : "F") + (Math.random() < .5 ? "0" : "F") + (Math.random() < .5 ? "0" : "F") + (Math.random() < .5 ? "0" : "F") + (Math.random() < .5 ? "0" : "F") + (Math.random() < .5 ? "0" : "F"))
+        .setTitle(bonupr + "Haiku Purity" + bonust)
+        .setDescription(hpl.retstring[e])
+        .setFooter(footer, "https://media.discordapp.net/attachments/574840583563116566/949515044746559568/JSO3bX0V.png");
+        obj.embeds = [exampleEmbed];
+        objs.push(obj);
+    }
+    
+    return objs;
 }
 
 
@@ -332,7 +370,7 @@ function babaDayNextWed()
 function babaJeremy()
 {
     var adjective = data.adjectives[Math.floor(Math.random() * data.adjectives.length)];
-    var animal = data.animals[Math.floor(Math.random() * data.animals.length)].replace(" ", "");
+    var animal = data.animals[Math.floor(Math.random() * data.animals.length)].replaceAll(' ', '');
 
     return { content: "```" + adjective + animal + "```" };
 }
@@ -364,6 +402,15 @@ function babaWednesday(msgContent, callback)
                 IsHoliday.push(hols[i]);
             }
         }
+        
+        if (msgContent.includes('next birthday'))
+        {
+            var hols = FindNextHoliday(d1, yr, CheckHoliday("BIRTHDAY", holidays));
+            for ( var i = 0; i < hols.length; i++) //loop through the holidays that are requested
+            {
+                IsHoliday.push(hols[i]);
+            }
+        }
     
         if(IsHoliday.length > 0) //reply with password file string if baba password
         {
@@ -376,6 +423,13 @@ function babaWednesday(msgContent, callback)
                     yr = holidayinfo.year;
     
                 let d2 = GetDate(d1, yr, holidayinfo);
+
+                if (isNaN(d2))
+                {
+                    var atch = new Discord.MessageAttachment().setFile(babadata.datalocation + "FrogHolidays/error.png");
+                    outs.push({ content: "The date does not exist so BABA will give you ERROR frog!", files: [atch] });
+                    continue;
+                }
     
                 var additionaltext = "";
                 var showwed = false;
@@ -457,8 +511,26 @@ function babaWednesday(msgContent, callback)
                 if (d1.getTime() - d2.getTime() == 0)
                 {
                     outputname =  holidayinfo.name + ".png"; //if today is the event, show something cool
-    
+
+                    var custom = false;
                     if (holidayinfo.name == "date")
+                    {
+                        custom = true;
+                    }
+                    else
+                    {
+                        try
+                        {
+                            fs.accessSync(templocal + outputname, fs.constants.R_OK | fs.constants.W_OK);
+                        } 
+                        catch (err)
+                        {
+                            custom = true;
+                            outputname = "date.png";
+                        }
+                    }
+    
+                    if (custom)
                     {
                         images(templocal + outputname).save(templocal + "outputfrog_0.png");
     
@@ -480,6 +552,7 @@ function babaWednesday(msgContent, callback)
                 else
                 {
                     weeks = Math.floor(weeks);
+                    if (weeks > 999999) weeks = 1000000;
                     var base = holidayinfo.name + "_base.png";
     
                     try 
@@ -517,6 +590,9 @@ function babaWednesday(msgContent, callback)
         {
             outs.push({ content: "It is Wednesday, My Dudes" });
         }
+
+        if (outs.length == 0)
+            outs.push({ content: "Baba Broke Getting that Event!" });
         
         return callback(outs);
     });

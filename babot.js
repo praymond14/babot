@@ -5,15 +5,21 @@ const { REST } = require('@discordjs/rest');
 const { Routes } = require('discord-api-types/v9');
 var babadata = require('./babotdata.json'); //baba configuration file
 const txtCommands = require('./textCommands.js');
-const { setCommandRoles } = require('./helperFunc');
+//const { setCommandRoles } = require('./helperFunc');
+const { voiceChannelChange, startUpChecker } = require("./voice.js");
+const { cacheOpts } = require('./database');
 
 // Initialize Discord Bot
-const bot = new Client({ intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MESSAGES, Intents.FLAGS.DIRECT_MESSAGES], partials: ["CHANNEL"]});
+const bot = new Client({ intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MESSAGES, Intents.FLAGS.DIRECT_MESSAGES, Intents.FLAGS.GUILD_VOICE_STATES], partials: ["CHANNEL"]});
 bot.login(babadata.token); //login
 
 bot.on('ready', function (evt) 
 {
 	console.log('Connected');
+	cacheOpts(function()
+	{
+		startUpChecker(bot);
+	});
 });
 
 bot.commands = new Collection();
@@ -26,6 +32,11 @@ for(const file of commandFiles) { //adds all commands in the commands folder
 }
 
 bot.on('messageCreate', async message => {txtCommands.babaMessage(bot, message)}); //baba message handler
+
+bot.on('voiceStateUpdate', (oldMember, newMember) => 
+{
+	voiceChannelChange(newMember, oldMember);
+});
 
 bot.on('interactionCreate', async interaction => {
 	if(!interaction.isCommand()) return;
@@ -51,3 +62,4 @@ var cleanupFn = function cleanup()
 
 process.on('SIGINT', cleanupFn);
 process.on('SIGTERM', cleanupFn);
+

@@ -7,7 +7,7 @@ module.exports = {
         .setDescription('Translate between users and names')
         .addUserOption(option =>
             option.setName('discord_user')
-            .setDescription('user to look up')),
+            .setDescription('user to look up').setRequired(true)),
     async execute(interaction, bot) {
         await interaction.deferReply();
         var user = interaction.options.getUser('discord_user');

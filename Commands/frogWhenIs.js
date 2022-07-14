@@ -1,5 +1,6 @@
 const { babaWednesday } = require("../commandFunctions.js");
 const { SlashCommandBuilder } = require('@discordjs/builders');
+const { FrogButtons } = require("../helperFunc.js");
 
 module.exports = {
 	data: new SlashCommandBuilder()
@@ -16,10 +17,16 @@ module.exports = {
 	async execute(interaction, bot) {
 		await interaction.deferReply();
         var event = interaction.options.getString("event");
+        var message = await interaction.fetchReply();
         
         babaWednesday(`${event} when is`, function(texts) 
         {
-            interaction.editReply(texts[0]);
+            if (texts.length > 1)
+            {
+                FrogButtons(texts, interaction, message);
+                interaction.editReply(texts[0]);
+            }
+            else interaction.editReply(texts[0]);
         });
 	},
 };

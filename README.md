@@ -25,6 +25,7 @@ JOKE IS OLD.
     "adminId": admin role ID as string,  
     "logchn": log channel ID as string,  
     "politicschan": politics channel ID as string,  
+    "botchan": bot commands channel ID as string,  
     "holidaychan": leave as "0" - will be auto-filled,  
     "holidayval": leave as "null" - will be auto-filled,  
     "temp": temp file location as string,  

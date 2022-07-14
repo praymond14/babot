@@ -5,6 +5,7 @@
     "adminId":"",
     "logchan":"",
     "politicschan":"",
+    "botchan":"",
     "holidaychan":"0",
     "holidayval":"null",
     "temp":"./",

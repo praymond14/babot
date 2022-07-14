@@ -1,4 +1,4 @@
-const { setGrole, setVote, setVBH, movetoChannel, SetHolidayChan, MonthsPlus, CreateChannel, CheckFrogID, getErrorFlag, timedOutFrog } = require("./helperFunc.js");
+const { setGrole, setVote, setVBH, movetoChannel, SetHolidayChan, MonthsPlus, CreateChannel, CheckFrogID, getErrorFlag, timedOutFrog, handleButtonsEmbed } = require("./helperFunc.js");
 const { babaFriday,  babaHelp, babaPlease, babaPizza, babaVibeFlag, babaYugo, babaHaikuEmbed, babaWednesday, babaDayNextWed } = require("./commandFunctions.js");
 const { Client, Intents } = require('discord.js'); //discord module for interation with discord api
 const Discord = require('discord.js'); //discord module for interation with discord api
@@ -232,9 +232,17 @@ function babaMessage(bot, message)
 			var chans = msgContent.includes("channels");
 			var mye = msgContent.includes("my") ? message.author.id : 0;
 			var buy = msgContent.includes("by");
-			babaHaikuEmbed(purity, list, chans, mye, buy, msgContent, function(embed) 
+			var info = {"ipp": 5, "page": 0};
+			babaHaikuEmbed(purity, list, chans, mye, buy, msgContent, info, function(cont) 
 			{
-				message.channel.send({ content: "BABA MAKE HAIKU", embeds: [embed] });
+				message.channel.send(cont[info.page]).then(m2 => 
+				{
+					if (cont[info.page].components != null)
+					{
+						handleButtonsEmbed(message.channel, m2, message.author.id, cont);
+					}
+				})
+				.catch(console.error);;
 			});
 		}
 
