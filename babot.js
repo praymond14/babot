@@ -16,10 +16,13 @@ bot.login(babadata.token); //login
 bot.on('ready', function (evt) 
 {
 	console.log('Connected');
-	cacheOpts(function()
+	if (babadata.testing === undefined)
 	{
-		startUpChecker(bot);
-	});
+		cacheOpts(function()
+		{
+			startUpChecker(bot);
+		});
+	}
 });
 
 bot.commands = new Collection();
@@ -35,7 +38,8 @@ bot.on('messageCreate', async message => {txtCommands.babaMessage(bot, message)}
 
 bot.on('voiceStateUpdate', (oldMember, newMember) => 
 {
-	voiceChannelChange(newMember, oldMember);
+	if (babadata.testing === undefined)
+		voiceChannelChange(newMember, oldMember);
 });
 
 bot.on('interactionCreate', async interaction => {
