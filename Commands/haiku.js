@@ -1,5 +1,6 @@
 const { babaHaikuEmbed } = require("../commandFunctions.js");
 const { SlashCommandBuilder } = require('@discordjs/builders');
+const { sqlEscapeStringThingforAdamBecauseHeWillDoanSQLInjectionOtherwise, handleButtonsEmbed } = require("../helperFunc.js");
 
 module.exports = {
 	data: new SlashCommandBuilder()
@@ -27,6 +28,14 @@ module.exports = {
             .addStringOption(option => option.setName('date').setDescription('the date').setRequired(true)))
     .addSubcommand(subcommand =>
         subcommand
+            .setName('custom')
+            .setDescription('Haiku based on custom options!')
+            .addStringOption(option => option.setName('person_name').setDescription('the persons name'))
+            .addChannelOption(option => option.setName('channel').setDescription('the channel name'))
+            .addStringOption(option => option.setName('start_date').setDescription('start date'))
+            .addStringOption(option => option.setName('end_date').setDescription('end date')))
+    .addSubcommand(subcommand =>
+        subcommand
             .setName('purity_score_list')
             .setDescription('List of haiku purity scores')
             .addStringOption(option =>
@@ -34,6 +43,7 @@ module.exports = {
                     .setDescription('The type of haiku purity list')
                     .setRequired(true)
                     .addChoice('Channels', 'chan')
+                    .addChoice('Date', 'd8')
                     .addChoice('Users', 'userN')))
     .addSubcommand(subcommand =>
         subcommand
@@ -72,6 +82,9 @@ module.exports = {
         {
             var person = interaction.options.getString('person_name');
             var user = interaction.options.getUser('discord_user');
+            if (person != null)
+                person = sqlEscapeStringThingforAdamBecauseHeWillDoanSQLInjectionOtherwise(person);
+
             buy = 1;
 
             if (user == null && person == null)
@@ -82,6 +95,7 @@ module.exports = {
         else if (subCommand === 'on')
         {
             var date = interaction.options.getString('date');
+
             buy = 3;
 
             msgstr = `${date}`;
@@ -93,6 +107,20 @@ module.exports = {
 
             msgstr = `${chan}`;
         } 
+        else if (subCommand === 'custom')
+        {
+            var sdate = interaction.options.getString('start_date');
+            var edate = interaction.options.getString('end_date');
+            var chan = interaction.options.getChannel('channel');
+            var person = interaction.options.getString('person_name');
+
+            if (person != null)
+                person = sqlEscapeStringThingforAdamBecauseHeWillDoanSQLInjectionOtherwise(person);
+
+            buy = 4;
+
+            msgstr = [sdate, edate, chan, person];
+        } 
         else if (subCommand === 'purity_score_list')
         {
             var listType = interaction.options.getString('list_type');
@@ -102,18 +130,26 @@ module.exports = {
             {
                 chans = true;
             }
+            else if (listType === 'd8')
+            {
+                chans = 2;
+            }
             msgstr = "";
         } 
         else if (subCommand === 'purity_score_user')
         {
             var person = interaction.options.getString('person_name');
             var user = interaction.options.getUser('discord_user');
+
+            if (person != null)
+                person = sqlEscapeStringThingforAdamBecauseHeWillDoanSQLInjectionOtherwise(person);
+
             purity = true;
 
             if (user == null && person == null) mye = interaction.user.id;
 
             msgstr = `${person} ${user}`;
-        } 
+        }
         else if (subCommand === 'purity_score_channel')
         {
             var channel = interaction.options.getChannel('channel');
@@ -127,9 +163,15 @@ module.exports = {
             msgstr = `${date}`;
         }
         
-        babaHaikuEmbed(purity, list, chans, mye, buy, msgstr, function(embed) 
+        var message = await interaction.fetchReply();
+        var info = {"ipp": 5, "page": 0}
+        babaHaikuEmbed(purity, list, chans, mye, buy, msgstr, info, function(cont) 
         {
-            interaction.editReply({ content: "BABA MAKE HAIKU", embeds: [embed] })
+            interaction.editReply(cont[info.page]);
+            if (cont[info.page].components != null)
+            {
+                handleButtonsEmbed(interaction.channel, message, interaction.user.id, cont);
+            }
         });
 	},
 };

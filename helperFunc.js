@@ -87,29 +87,34 @@ async function setVBH(msg) //reacts to message with emoji defined by babadata.em
 	msg.react(babadata.emoji); //reply with ban hammer emoji
 }
 
-async function movetoChannel(msg, channel, logchan) //archive the message and delete it
+async function movetoChannel(msg, channel, logchan, silent) //archive the message and delete it
 {
 	var hiddenChan = msg.guild.channels.cache.get(logchan); //gets the special archive channel
 	var usr = msg.author; //gets the user that sent the message
-	var savemsg = "This message sent by: <@" + usr + "> in <#" + channel.id + ">\n> "; //sets the header of the message to mention the original poster
+	var savemsg = "";
+	if (!silent) savemsg = "This message sent by: <@" + usr + "> in <#" + channel.id + ">\n> "; //sets the header of the message to mention the original poster
 	savemsg += msg.content; //insert the actual message below
+
+	if (silent == 2) savemsg += "\n\n> Sent by: <@" + usr + ">";
+
 	var attch = msg.attachments; //get the attacments from the original message
 
-	hiddenChan.send(savemsg,); //send the text
+	hiddenChan.send(savemsg); //send the text
 
-	var reactMap = msg.reactions.cache; //get a map of the reactions
-	var memgage = "";
-	for(let [k, reee] of reactMap) //iterate through all the reactions
+	if (!silent)
 	{
-		memgage += k + ": " + reee.count + " reactions\n";
+		var reactMap = msg.reactions.cache; //get a map of the reactions
+		var memgage = "";
+		for(let [k, reee] of reactMap) //iterate through all the reactions
+		{
+			memgage += k + ": " + reee.count + " reactions\n";
+		}
+	
+		if (memgage != "")
+		{
+			hiddenChan.send("```" + memgage + "```",); //send the text
+		}
 	}
-
-	if (memgage != "")
-	{
-		hiddenChan.send("```" + memgage + "```",); //send the text
-	}
-
-	var newAttach;
 	var icount = 0;
 	for(let [k, img] of attch)
 	{
@@ -153,6 +158,34 @@ function getErrorFlag()
 	return babadata.datalocation + "Flags/" + "error.png";
 }
 
+function sqlEscapeStringThingforAdamBecauseHeWillDoanSQLInjectionOtherwise(str)
+ {
+    return str.replace(/[\0\x08\x09\x1a\n\r"'\\\%]/g, function (char) 
+	{
+        switch (char) {
+            case "\0":
+                return "\\0";
+            case "\x08":
+                return "\\b";
+            case "\x09":
+                return "\\t";
+            case "\x1a":
+                return "\\z";
+            case "\n":
+                return "\\n";
+            case "\r":
+                return "\\r";
+            case "\"":
+            case "'":
+            case "\\":
+            case "%":
+                return "\\"+char;
+            default:
+                return char;
+        }
+    });
+}
+
 function GetDate(d1, yr, holidayinfo) //Gets the specified date from the selected holiday at the year provided
 {
 	let d2 = new Date(); //new Date
@@ -175,11 +208,20 @@ function GetDate(d1, yr, holidayinfo) //Gets the specified date from the selecte
 			d2 = new Date(yr, holidayinfo.month - 1, holidayinfo.day); //get holiday
 			break;
 		case 1:
-			d2 = new Date(yr, holidayinfo.month - 1, 1); //get first of specified month
-			var dtcalc = 1 + (holidayinfo.dayofweek - d2.getDay() - 7) % 7;
-			dtcalc = dtcalc + (7 * holidayinfo.week); //calculate the day of the month
+			var wk = holidayinfo.week;
+			var mnth = holidayinfo.month;
 
-			d2 = new Date(yr, holidayinfo.month - 1, dtcalc); //get holiday
+			if (holidayinfo.week < 0)
+			{
+				wk++;
+				mnth++;
+			}
+
+			d2 = new Date(yr, mnth - 1, 1); //get first of specified month
+			var dtcalc = 1 + (holidayinfo.dayofweek - d2.getDay() - 7) % 7;
+			dtcalc = dtcalc + (7 * wk); //calculate the day of the month
+
+			d2 = new Date(yr, mnth - 1, dtcalc); //get holiday
 			break;
 		case 2:
 			var sm = d1.getMonth() + 1; //get the month to start on
@@ -230,6 +272,13 @@ function GetDate(d1, yr, holidayinfo) //Gets the specified date from the selecte
 
 function MakeImage(templocal, base, wednesdayoverlay, weeks, outputname, holidayinfo, textoverlay) //Image Creation is now function
 {
+	var plu = false;
+	if (weeks > 999999) 
+	{
+		plu = true;
+		weeks = 999999;
+	}
+
 	var bonus = 0;
 	var yeartop = holidayinfo.year && holidayinfo.name != "date" ? true : false;
 
@@ -238,7 +287,7 @@ function MakeImage(templocal, base, wednesdayoverlay, weeks, outputname, holiday
 		bonus = Math.floor(weeks / 100);
 		weeks = weeks % 100;
 	}
-
+	
 	var im = images(templocal + base) //creates the image using secified overlays
 		.draw(images(templocal + "mydudes.png"), 0, 0)
 		.draw(images(templocal + wednesdayoverlay), 0, 0);
@@ -249,7 +298,7 @@ function MakeImage(templocal, base, wednesdayoverlay, weeks, outputname, holiday
 			   .draw(images(templocal + wednesdayoverlay), 0, 0);
 	}
 
-	var res = BonusGenerator(bonus, im, templocal, weeks, 1, 1);
+	var res = BonusGenerator(bonus, im, templocal, weeks, 1, 1, plu);
 	im = res[0];
 	var textlocal = res[1];
 
@@ -566,7 +615,7 @@ function CheckFrogID(frogdata, id)
 	return -1;
 }
 
-function BonusGenerator(bonus, im, templocal, weeks, ct, ln) //for more than 100 weeks
+function BonusGenerator(bonus, im, templocal, weeks, ct, ln, moere) //for more than 100 weeks
 {
 	var mult = (40 * ln); //for text output
 	var textlocal = 93 + mult - 38; //numbwr
@@ -608,6 +657,8 @@ function BonusGenerator(bonus, im, templocal, weeks, ct, ln) //for more than 100
 
 			var whitenm = "White" + GetWhite(Math.pow(100, (ct - 1) % 4) * weeks) + ".png"; //white overaly because otherwise there will be 1000 image
 			
+			if (h == 900 && moere) h = h + "+";
+
 			if (ct != 3 && weeks != 0) //only block white on values where last line wasnt 1000
 				im.draw(images(templocal + whitenm), 0, 0);
 
@@ -629,7 +680,7 @@ function BonusGenerator(bonus, im, templocal, weeks, ct, ln) //for more than 100
 			bonusbonus = (bonusbonus * 10) + bonus;
 		}
 
-		var res = BonusGenerator(bonusbonus, im, templocal, (kip ? weeks : bonus), (ct == 3 ? ct + 2 : ct + 1), ln + (kip ? 0 : 1)); //do it again
+		var res = BonusGenerator(bonusbonus, im, templocal, (kip ? weeks : bonus), (ct == 3 ? ct + 2 : ct + 1), ln + (kip ? 0 : 1), moere); //do it again
 		
 		im = res[0];
 		textlocal = res[1];
@@ -637,6 +688,30 @@ function BonusGenerator(bonus, im, templocal, weeks, ct, ln) //for more than 100
 		return [im, textlocal]; //return textlocal for text spot and image
 	}
 	else return [im, textlocal]; //return textlocal for text spot and image
+}
+
+function FrogButtons(texts, interaction, message)
+{
+	for (var i = 0; i < texts.length; i++)
+	{
+		var row = new Discord.MessageActionRow();
+		
+		var pButton = new Discord.MessageButton().setCustomId("page"+(i - 1)).setLabel("Previous").setStyle("PRIMARY");
+		var nButton = new Discord.MessageButton().setCustomId("page"+(1 + i)).setLabel("Next").setStyle("PRIMARY");
+		if (i == 0)
+		{
+			pButton.setDisabled(true);
+		}
+		if (i == texts.length - 1)
+		{
+			nButton.setDisabled(true);
+		}
+
+		row.addComponents(pButton, nButton);
+
+		texts[i].components = [row];
+	}
+	handleButtonsEmbed(interaction.channel, message, interaction.user.id, texts);
 }
 
 function GetWhite(weekct) //For frogs more than 100 weeks; "Retarded Lookup Table" - Hank 2021
@@ -707,7 +782,7 @@ function CheckHoliday(msg, holdaylist) //checks if any of the holiday list is sa
 
 		for ( var i = 0; i < hol.name.length; i++) 
 		{
-			if (msg == "ALL" || msg.toLowerCase().includes(hol.name[i].replace("[NY]", new Date().getFullYear() + 1))) //checks if the holiday name is in the message
+			if ((msg == "BIRTHDAY" && hol.safename == "Birthday") || msg == "ALL" || msg.toLowerCase().includes(hol.name[i].replace("[NY]", new Date().getFullYear() + 1))) //checks if the holiday name is in the message
 			{
 				var item = {};
 				item.name = x; //picture lookup value
@@ -737,6 +812,7 @@ function CheckHoliday(msg, holdaylist) //checks if any of the holiday list is sa
 				switch(hol.mode)
 				{
 					case -1: //Nested Holiday
+						if (msg == "BIRTHDAY") msg = "ALL";
 						var tempret = CheckHoliday(msg, hol.sub) //Check all the subs
 						for ( var j = 0; j < tempret.length; j++) 
 						{
@@ -797,7 +873,7 @@ function setCommandRoles(cmds)
 {
 	const permissions = [
 		{
-			id: babadata.adminid,
+			id: babadata.adminId,
 			type: 'ROLE',
 			permission: true,
 		},
@@ -809,6 +885,29 @@ function setCommandRoles(cmds)
 			cmd.permissions.add({permissions}).then(console.log("Added permissions to " + cmd.name));
 		}
 	});
+}
+
+function handleButtonsEmbed(channel, message, userid, data)
+{
+	console.log("Handling buttons embed");
+	const filter = i => i.customId.includes("page") && i.message.id === message.id && i.user.id === userid;
+
+	const collector = channel.createMessageComponentCollector({ filter, time: 30000 });
+	
+	collector.on('collect', async i => {
+		if (i.customId.includes("page")) 
+		{
+			//i.deferUpdate();
+			var page = parseInt(i.customId.replace("page", ""));
+			
+			i.update(data[page]);
+			collector.resetTimer();
+
+			//await i.update({ content: 'A button was clicked!', components: [] });
+		}
+	});
+
+	collector.on('end', collected => message.edit({components: []}));
 }
 
 //const download = (url, path, callback) => { //download function //depricated with the request deprication
@@ -846,5 +945,8 @@ module.exports = {
 	GetDate, 
 	dateDiffInDays, 
 	MakeImage,
-	setCommandRoles
+	setCommandRoles,
+	sqlEscapeStringThingforAdamBecauseHeWillDoanSQLInjectionOtherwise,
+	handleButtonsEmbed,
+	FrogButtons
 };

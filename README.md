@@ -22,15 +22,24 @@ JOKE IS OLD.
     "token": bot token as string,  
     "pass": response for password command as string,  
     "datalocation": location of data unpacked from FrogHolidays.zip as string,  
-    "adminid": admin role ID as string,  
+    "adminId": admin role ID as string,  
     "logchn": log channel ID as string,  
     "politicschan": politics channel ID as string,  
+    "botchan": bot commands channel ID as string,  
     "holidaychan": leave as "0" - will be auto-filled,  
     "holidayval": leave as "null" - will be auto-filled,  
     "temp": temp file location as string,  
     "emoji": server ban hammer emoji ID as string,
     "clientId": bot apllication id as string,
-    "guildId": server guild id as string
+    "guildId": server guild id as string,
+    "database": 
+    {
+        "host": database host,
+        "user": database user,
+        "password": database password,
+        "database": database that is used,
+        "port": port of the database
+    }
 }  
 ```
 
@@ -54,6 +63,8 @@ This guide installs nvm (Node Version Manager), node, and forever.
 - `forever start babot.js`
 
 ## Running
+One time (or when changed) `node deployCommands.js`, you should see "Successfully registered application commands."
+
 `node babot.js`  
 or  
 `forever start babot.js`

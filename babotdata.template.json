@@ -2,19 +2,22 @@
     "token":"CHANGEME",
     "pass":"server passwords listed here",
     "datalocation":"./Data/",
-    "adminid":"",
+    "adminId":"",
     "logchan":"",
     "politicschan":"",
+    "botchan":"",
     "holidaychan":"0",
     "holidayval":"null",
     "temp":"./",
     "emoji":"",
-    "clientid":"",
-    "guildID":"",
+    "clientId":"",
+    "guildId":"",
     "database": {
         "host": "",
+        "port": 0,
         "user": "",
         "password": "",
-        "database": ""
+        "database": "",
+        "port": ""
     }
 }
