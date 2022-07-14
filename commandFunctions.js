@@ -271,6 +271,7 @@ function babaHaikuEmbed(purity, list, chans, mye, buy, msgContent, pagestuff, ca
     { 
         HaikuSelection(function(haiku, simnames)
         {
+            var obj = {content: "BABA MAKE HAIKU"};
             if (haiku == null) 
             {
                 var bad = new Discord.MessageEmbed() // embed for the haiku
@@ -305,7 +306,8 @@ function babaHaikuEmbed(purity, list, chans, mye, buy, msgContent, pagestuff, ca
             .setDescription(haiku.HaikuFormatted)
             .setFooter("- " + (!haiku.Accidental ? "Purposful Haiku by " : "") + signature, "https://media.discordapp.net/attachments/574840583563116566/949515044746559568/JSO3bX0V.png");
             
-            return callback(exampleEmbed);
+            obj.embeds = [exampleEmbed];
+            return callback([obj]);
         }, buy, msgContent);
     }
 }

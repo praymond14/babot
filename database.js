@@ -186,10 +186,10 @@ function HaikuSelection(callback, by, msgContent)
 	Left Join userval on haiku.PersonName = userval.PersonName 
 	Left Join channelval on haiku.ChannelID = channelval.ChannelID`
 	if (by == 1)
-		query += "WHERE " + searchPerson(msgContent);
+		query += " WHERE " + searchPerson(msgContent);
 	else if (by == 2)
 	{
-		query += "WHERE " + searchChannel(msgContent);
+		query += " WHERE " + searchChannel(msgContent);
 	}
 	else if (by == 3)
 	{
@@ -199,7 +199,7 @@ function HaikuSelection(callback, by, msgContent)
 			d1 = new Date(IsDate.year, IsDate.month - 1, IsDate.day);
 			var mpre = d1.getMonth() + 1 < 10 ? 0 : "";
 			var dpre = d1.getUTCDate() < 10 ? 0 : "";
-			query += "WHERE " + searchDate(`${d1.getFullYear()}-${mpre}${d1.getMonth() + 1}-${dpre}${d1.getUTCDate()}`);
+			query += " WHERE " + searchDate(`${d1.getFullYear()}-${mpre}${d1.getMonth() + 1}-${dpre}${d1.getUTCDate()}`);
 		}
 		else return callback(null);
 	}
