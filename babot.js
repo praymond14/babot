@@ -24,6 +24,7 @@ bot.on('ready', function (evt)
 			startUpChecker(bot);
 		});
 	}
+	dailyCallStart(bot);
 });
 
 bot.commands = new Collection();
@@ -43,7 +44,6 @@ bot.on('voiceStateUpdate', (oldMember, newMember) =>
 		voiceChannelChange(newMember, oldMember);
 });
 
-dailyCallStart();
 
 bot.on('interactionCreate', async interaction => {
 	if(!interaction.isCommand()) return;

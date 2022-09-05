@@ -58,15 +58,15 @@ function babaMessage(bot, message)
 		if (msgContent.includes("🐸 debug")) //0 null, 1 spook, 2 thanks, 3 crimbo, 4 defeat
 		{
 			if (msgContent.includes("0"))
-				SetHolidayChan(message, "null");
+				SetHolidayChan(message.guild, "null");
 			else if (msgContent.includes("1"))
-				SetHolidayChan(message, "spook");
+				SetHolidayChan(message.guild, "spook");
 			else if (msgContent.includes("2"))
-				SetHolidayChan(message, "thanks");
+				SetHolidayChan(message.guild, "thanks");
 			else if (msgContent.includes("3"))
-				SetHolidayChan(message, "crimbo");
+				SetHolidayChan(message.guild, "crimbo");
 			else if (msgContent.includes("4"))
-				SetHolidayChan(message, "defeat");
+				SetHolidayChan(message.guild, "defeat");
 	
 			message.author.send("```HC: " + babadata.holidaychan + "\nHV: " + babadata.holidayval + "```");
 		}
@@ -108,7 +108,7 @@ function babaMessage(bot, message)
 		}
 		else if (msgContent.includes("cmes"))
 		{
-			var message_id = message.content.split(' ').slice(1, 2).join(' ').replace(' ',''); //get the name for the role
+			var message_id = message.content.split(' ')[1]; //get the name for the role
 			
 			var mess = message.content.split(' ').slice(2, ).join(' '); //get the name for the role
 			message_id = message_id.replace(/\D/g,''); //get message id
@@ -117,7 +117,7 @@ function babaMessage(bot, message)
 		}
 		else if (msgContent.includes("reee"))
 		{
-			var message_id = message.content.split(' ').slice(1, 2).join(' ').replace(' ',''); //get the name for the role
+			var message_id = message.content.split(' ')[1]; //get the name for the role
 			
 			var mess = message.content.split(' ').slice(2, ).join(' '); //get the name for the role
 			message_id = message_id.replace(/\D/g,''); //get message id
@@ -143,21 +143,6 @@ function babaMessage(bot, message)
 					}
 				});
 			});
-		}
-		else if (msgContent.includes("tim"))
-		{
-			var u_id = message.content.split(' ').slice(1, 2).join(' ').replace(' ',''); //get the name for the role
-			
-			var mess = message.content.split(' ').slice(2, ).join(' '); //get the name for the role
-			u_id = u_id.replace(/\D/g,''); //get message id
-
-			var time = mess.match(/(\d+)/);
-			if (time != null) time = time[0] * 60 * 1000;
-
-			thanos = bot.users.fetch(u_id).then(user => {
-				g.members.fetch(user).then(member => member.timeout(time, 'Baba Plase')
-				.catch(console.error));
-			}).catch(console.error);
 		}
 	}
 
@@ -185,7 +170,7 @@ function babaMessage(bot, message)
 		//560231259842805770  563063109422415872
 		if(msgContent.includes(yr - 1) && msgContent.includes("560231259842805770") && msgContent.includes("563063109422415872") && !message.author.bot) //if message contains baba and is not from bot
 		{
-			SetHolidayChan(message, "null", 0);
+			SetHolidayChan(message.guild, "null", 0);
 		}
 	}
 

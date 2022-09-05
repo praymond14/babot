@@ -21,6 +21,8 @@ var opts2 = ["```. .\n<V>```", "```o o\n<V>```", "```. .\n< >\n V ```", "```o o\
 
 optionsDOW = optionsDOW.concat(opts2);
 
+var to = null;
+
 async function setGrole(msg, rname) //creates role and sets users
 {
 	console.log(msg);
@@ -468,7 +470,7 @@ function FindDate(message) //Not Thanks to Jeremy's Link
 	return item;
 }
 
-function SetHolidayChan(msg, name, resetid = -1)
+function SetHolidayChan(guild, name, resetid = -1)
 {
 	let to = 0;
 	let rawdata = fs.readFileSync(__dirname + '/babotdata.json');
@@ -476,9 +478,9 @@ function SetHolidayChan(msg, name, resetid = -1)
 	if (resetid > 0)
 		baadata.holidaychan = resetid.toString();
 
-	if (msg.guild != null && resetid < 0)
+	if (guild != null && resetid < 0)
 	{
-		const chanyu = msg.guild.channels.resolve(babadata.holidaychan);
+		const chanyu = guild.channels.resolve(babadata.holidaychan);
 		
 		if (chanyu != null)
 		{
@@ -517,22 +519,22 @@ function SetHolidayChan(msg, name, resetid = -1)
 			}
 		}
 	}
-	else if (msg.guild != null && resetid == 0)
+	else if (guild != null && resetid == 0)
 	{
 		to = 300
-		msg.guild.channels.fetch(babadata.holidaychan).then(channels => {
+		guild.channels.fetch(babadata.holidaychan).then(channels => {
 			var holidaychan = channels;
 
 			if (holidaychan != null)
 			{
-				msg.guild.channels.fetch().then(channels => {
+				guild.channels.fetch().then(channels => {
 					channels.each(chan => {
 						if (chan.type == "GUILD_CATEGORY")
 						{
 							if (chan.name.toLowerCase() === "archive")
 							{
 								holidaychan.setParent(chan);
-								holidaychan.permissionOverwrites.edit(msg.guild.roles.everyone, { SEND_MESSAGES: false });
+								holidaychan.permissionOverwrites.edit(guild.roles.everyone, { SEND_MESSAGES: false });
 								baadata.holidaychan = "0";
 							}
 						}
@@ -551,12 +553,12 @@ function SetHolidayChan(msg, name, resetid = -1)
 	babadata = baadata;
 }
 
-function MonthsPlus(message, d1)
+function MonthsPlus(guild, d1)
 {
 	var yr = d1.getFullYear();
 	if (d1.getMonth() == 9 && babadata.holidayval != "spook")
 	{
-		SetHolidayChan(message, "spook");
+		SetHolidayChan(guild, "spook");
 
 		//set channel info
 	}
@@ -573,13 +575,13 @@ function MonthsPlus(message, d1)
 
 		if (tgday.getFullYear() == yr && babadata.holidayval != "thanks")
 		{
-			SetHolidayChan(message, "thanks");
+			SetHolidayChan(guild, "thanks");
 		}
 		else if (tgday.getDate() < tday)
 		{
 			if (babadata.holidayval != "crimbo")
 			{
-				SetHolidayChan(message, "crimbo");
+				SetHolidayChan(guild, "crimbo");
 			}
 		}
 	}
@@ -587,13 +589,13 @@ function MonthsPlus(message, d1)
 	if (d1.getMonth() == 11)
 	{
 		if (d1.getDate() <= 25 && babadata.holidayval != "crimbo")
-			SetHolidayChan(message, "crimbo");
+			SetHolidayChan(guild, "crimbo");
 		else if (babadata.holidayval != "defeat")
-			SetHolidayChan(message, "defeat");
+			SetHolidayChan(guild, "defeat");
 	}
 }
 
-function CreateChannel(server, name, message, d1)
+function CreateChannel(server, name, d1)
 {
 	server.channels.fetch().then(channels => {
 		channels.each(chan => {
@@ -608,8 +610,8 @@ function CreateChannel(server, name, message, d1)
 						position: 3
 					}).then(result => {
 						console.log('Here is channel id', result.id)
-						SetHolidayChan(message, "null", result.id)
-						setTimeout(function(){MonthsPlus(message, d1)}, 100);
+						SetHolidayChan(server, "null", result.id)
+						setTimeout(function(){MonthsPlus(server, d1)}, 100);
 					})
 				}
 			}
@@ -948,7 +950,7 @@ function funnyDOWText(dow)
 	return text;
 }
 
-function dailyCallStart()
+function dailyCallStart(bot)
 {
 	var now = new Date();
 
@@ -959,37 +961,56 @@ function dailyCallStart()
     midnight.setMilliseconds(0);
 
 	var timeToMidnight = midnight.getTime() - now.getTime();
-	dailyCall(timeToMidnight);
+	dailyCall(timeToMidnight, bot);
 }
 
-function holidayDaily(d1)
+function holidayDaily(d1, server)
 {
 	if (d1.getMonth() < 9)
 	{
 		if (babadata.holidayval != "defeat" && d1.getMonth() == 0 && d1.getDate() == 1 && babadata.holidayval != "null")
 		{
-			SetHolidayChan(message, "defeat");
+			SetHolidayChan(server, "defeat");
 		}
 	}
 	else if (d1.getMonth() >= 9)
 	{
 		if (babadata.holidaychan == 0)
 		{
-			var server = message.guild;
-			CreateChannel(server, "text channels", message, d1);
+			CreateChannel(server, "text channels", d1);
 		}
-		MonthsPlus(message, d1);
+		MonthsPlus(server, d1);
 	}
 }
 
-function dailyCall(timetilmidnight)
+function dailyCall(timetilmidnight, bot)
 {
-	var date = new Date();
-	console.log("Daily Call Running: " + date.toDateString());
-	setTimeout(function()
+	let rawdata = fs.readFileSync(babadata.datalocation + "FrogHolidays/" + 'frogholidays.json'); //load file each time of calling wednesday
+	let frogdata = JSON.parse(rawdata);
+
+	var dateoveride = [false, 1, 1]; //allows for overiding date manually (testing)
+
+	var yr = new Date().getFullYear() + 1; //get this year
+	var dy = dateoveride[0] ? dateoveride[2] : new Date().getDate(); //get this day
+	var my = dateoveride[0] ? dateoveride[1] - 1 : new Date().getMonth(); //get this month
+	var d1 = new Date(yr, my, dy) //todayish
+
+	var g = bot.guilds.resolve(frogdata.froghelp.mainfrog);
+	holidayDaily(d1, g);
+
+	console.log("Daily Call Running: " + d1.toDateString());
+	console.log("Calling next command in: " + timetilmidnight / 1000 / 60 + " minutes");
+	to = setTimeout(function()
 	{
-		dailyCall(86400000);
+		dailyCall(86400000, bot);
 	}, timetilmidnight);
+}
+
+var cleanupFn = function cleanup() 
+{
+	console.log("Ending Daily Call Timer");
+	if (to != null)  
+		clearTimeout(to);
 }
 
 //const download = (url, path, callback) => { //download function //depricated with the request deprication
@@ -1008,6 +1029,10 @@ const download = (url, path, callback) =>
             res.body.pipe(dest);
     });
 }
+
+process.on('SIGINT', cleanupFn);
+process.on('SIGTERM', cleanupFn);
+
 
 module.exports = {
 	setGrole,
