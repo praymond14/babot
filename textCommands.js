@@ -108,12 +108,17 @@ function babaMessage(bot, message)
 		}
 		else if (msgContent.includes("cmes"))
 		{
-			var message_id = message.content.split(' ')[1]; //get the name for the role
+			var message_id = message.content.split(' ')[1];
 			
 			var mess = message.content.split(' ').slice(2, ).join(' '); //get the name for the role
 			message_id = message_id.replace(/\D/g,''); //get message id
 			var hiddenChan = g.channels.cache.get(message_id); //gets the special archive channel
-			hiddenChan.send(mess);
+			const guildUser = g.members.fetch(message.author);
+			const canSend = guildUser.communicationDisabledUntilTimestamp;
+
+			if(!canSend) {
+				hiddenChan.send(mess);
+			}
 		}
 		else if (msgContent.includes("reee"))
 		{
