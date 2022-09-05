@@ -8,6 +8,7 @@ const txtCommands = require('./textCommands.js');
 //const { setCommandRoles } = require('./helperFunc');
 const { voiceChannelChange, startUpChecker } = require("./voice.js");
 const { cacheOpts } = require('./database');
+const { dailyCallStart } = require('./helperFunc');
 
 // Initialize Discord Bot
 const bot = new Client({ intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MESSAGES, Intents.FLAGS.DIRECT_MESSAGES, Intents.FLAGS.GUILD_VOICE_STATES], partials: ["CHANNEL"]});
@@ -41,6 +42,8 @@ bot.on('voiceStateUpdate', (oldMember, newMember) =>
 	if (babadata.testing === undefined)
 		voiceChannelChange(newMember, oldMember);
 });
+
+dailyCallStart();
 
 bot.on('interactionCreate', async interaction => {
 	if(!interaction.isCommand()) return;

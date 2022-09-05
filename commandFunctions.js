@@ -1,11 +1,12 @@
 const { FormatPurityList, HPLGenChannel, HPLGenUsers, HPLSelectChannel, HPLSelectUser, HPLSelectDate, HaikuSelection, GetSimilarName, ObtainDBHolidays, NameFromUserID, HPLGenD8 } = require("./database.js");
-const { getD1, FindDate, CheckHoliday, FindNextHoliday, GetDate, dateDiffInDays, MakeImage } = require("./helperFunc.js");
+const { getD1, FindDate, CheckHoliday, FindNextHoliday, GetDate, dateDiffInDays, MakeImage, funnyDOWText } = require("./helperFunc.js");
 var babadata = require('./babotdata.json'); //baba configuration file
 var data = require(babadata.datalocation + 'data.json'); //extra data
 const Discord = require('discord.js'); //discord module for interation with discord api
 const fs = require('fs');
 const images = require('images');
 const Jimp = require('jimp');
+const https = require('https');
 
 const options = { year: 'numeric', month: 'long', day: 'numeric' }; // for date parsing to string
 
@@ -590,7 +591,11 @@ function babaWednesday(msgContent, callback)
         }
         else
         {
-            outs.push({ content: "It is Wednesday, My Dudes" });
+		    var tod = new Date();
+            if (tod.getDay() == 3)
+                outs.push({ content: "It is Wednesday, My Dudes" });
+            else
+                outs.push({ content: funnyDOWText(3) });
         }
 
         if (outs.length == 0)
@@ -638,6 +643,23 @@ function babaWhomst(user, callback)
         user);
 }
 
+function babaHurricane(callback)
+{
+    var tempFilePath = babadata.temp + "hurricane.png";
+    const file = fs.createWriteStream(tempFilePath);
+    const request = https.get("https://www.nhc.noaa.gov/xgtwo/two_atl_5d0.png", function(response) {
+       response.pipe(file);
+    
+       // after download completed close filestream
+       file.on("finish", () => {
+           file.close();
+           console.log("Download Completed");
+
+           callback({ content: "Baba Hurricane Info", files: [tempFilePath] });
+       });
+    });
+}
+
 module.exports = {
     babaFriday, 
     babaHelp, 
@@ -652,5 +674,6 @@ module.exports = {
     babaProgress,
     babaJeremy,
     babaRNG,
-    babaWhomst
+    babaWhomst,
+    babaHurricane
 };

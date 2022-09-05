@@ -115,6 +115,50 @@ function babaMessage(bot, message)
 			var hiddenChan = g.channels.cache.get(message_id); //gets the special archive channel
 			hiddenChan.send(mess);
 		}
+		else if (msgContent.includes("reee"))
+		{
+			var message_id = message.content.split(' ').slice(1, 2).join(' ').replace(' ',''); //get the name for the role
+			
+			var mess = message.content.split(' ').slice(2, ).join(' '); //get the name for the role
+			message_id = message_id.replace(/\D/g,''); //get message id
+
+			var items = mess.split(" ");
+			console.log(items);
+			var chanMap = g.channels.fetch().then(channels => {
+				channels.each(chan => { //iterate through all the channels
+					if (chan.type == "GUILD_TEXT") //make sure the channel is a text channel
+					{
+						chan.messages.fetch(message_id).then(message => 
+							{
+								for (var i = 0; i < items.length; i++)
+								{
+									if (items[i].includes("<"))
+									{
+										items[i] = items[i].match(/(\d+)/)[0];
+									}
+									console.log(items[i]);
+									message.react(items[i]).catch(console.error);
+								}
+							}).catch(console.error); //try to get the message, if it exists call setVote, otherwise catch the error
+					}
+				});
+			});
+		}
+		else if (msgContent.includes("tim"))
+		{
+			var u_id = message.content.split(' ').slice(1, 2).join(' ').replace(' ',''); //get the name for the role
+			
+			var mess = message.content.split(' ').slice(2, ).join(' '); //get the name for the role
+			u_id = u_id.replace(/\D/g,''); //get message id
+
+			var time = mess.match(/(\d+)/);
+			if (time != null) time = time[0] * 60 * 1000;
+
+			thanos = bot.users.fetch(u_id).then(user => {
+				g.members.fetch(user).then(member => member.timeout(time, 'Baba Plase')
+				.catch(console.error));
+			}).catch(console.error);
+		}
 	}
 
 	if (babadata.holidaychan == null)
@@ -145,23 +189,6 @@ function babaMessage(bot, message)
 		}
 	}
 
-	if (d1.getMonth() < 9 && message.guild != null)
-	{
-		if (babadata.holidayval != "defeat" && d1.getMonth() == 0 && d1.getDate() == 1 && babadata.holidayval != "null")
-		{
-			SetHolidayChan(message, "defeat");
-		}
-	}
-	else if (d1.getMonth() >= 9 && message.guild != null)
-	{
-		if (babadata.holidaychan == 0)
-		{
-			var server = message.guild;
-			CreateChannel(server, "text channels", message, d1);
-		}
-		MonthsPlus(message, d1);
-	}
-
 	if(message.content.toLowerCase().includes('perchance') && !message.author.bot) //perchance update
 	{
 		message.channel.send("You can't just say perchance");
@@ -175,10 +202,6 @@ function babaMessage(bot, message)
 		if(msgContent.includes('password')) //reply with password file string if baba password
 		{
 			text += '\n' + babadata.pass;
-		}
-		if (message.content.includes("847324692288765993")) //this could do something better but its ok for now
-		{
-			text += "\nLET'S SAUSAGE";
 		}
 
 		message.channel.send({ content: text });
