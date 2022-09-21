@@ -283,7 +283,8 @@ function babaHaikuEmbed(purity, list, chans, mye, buy, msgContent, pagestuff, ca
                 .setColor("#" + (Math.random() < .5 ? "0" : "F") + (Math.random() < .5 ? "0" : "F") + (Math.random() < .5 ? "0" : "F") + (Math.random() < .5 ? "0" : "F") + (Math.random() < .5 ? "0" : "F") + (Math.random() < .5 ? "0" : "F"))
                 .setDescription("No Haikus Found!")
                 .setFooter("Haikus by Baba", "https://media.discordapp.net/attachments/574840583563116566/949515044746559568/JSO3bX0V.png");
-                return callback(bad);
+                obj.embeds = [bad];
+                return callback([obj]);
             }
 
             var showchan = Math.random();
