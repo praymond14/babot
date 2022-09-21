@@ -23,8 +23,6 @@ function handleDisconnect(print)
 		handleDisconnect(err.code);
 	});
 }
-  
-handleDisconnect("Initializing");
 
 function compare( a, b ) 
 {
@@ -369,8 +367,11 @@ function GetParent(retme, id)
 
 var cleanupFn = function cleanup() 
 {
-	console.log("Ending SQL Connection");
-	con.end();
+	if (!process.argv.includes("-db"))
+	{
+		console.log("Ending SQL Connection");
+		con.end();
+	}
 }
 
 function userVoiceChange(queryz, userID, channelID, guild)
@@ -601,5 +602,6 @@ module.exports = {
 	optIn,
 	optOut,
 	cacheOpts,
-	HPLGenD8
+	HPLGenD8,
+	handleDisconnect
 }

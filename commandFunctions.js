@@ -8,6 +8,8 @@ const images = require('images');
 const Jimp = require('jimp');
 const https = require('https');
 
+const dbenable = !process.argv.includes("-db")
+
 const options = { year: 'numeric', month: 'long', day: 'numeric' }; // for date parsing to string
 
 function babaFriday()
@@ -157,6 +159,8 @@ function babaRepost()
 
 function babaHaikuEmbed(purity, list, chans, mye, buy, msgContent, pagestuff, callback)
 {
+    if (!dbenable) return callback([{content: "Database is not enabled so no haikus for you!"}]);
+
     if (purity)
     {
         var hpl = {"retstring": ["No Haiku Purity Found!"], "total": 1};
@@ -383,6 +387,9 @@ function babaWednesday(msgContent, callback)
     var outs = [];
     //let rawdata = fs.readFileSync(babadata.datalocation + "FrogHolidays/" + 'frogholidays.json'); //load file each time of calling wednesday
     //let holidays = JSON.parse(rawdata);
+
+    if (!dbenable) return callback([{content: funnyDOWText(3) }]);
+
     ObtainDBHolidays(function(holidays)
     {
         let d1 = getD1(); //get today
@@ -626,6 +633,8 @@ function babaWednesday(msgContent, callback)
 
 function babaWhomst(user, callback)
 {
+    if (!dbenable) return callback({content: "Whomst mayhaps are they, BABA not know as BABA Databasen't" });
+
     NameFromUserID(
         function(result)
         {

@@ -116,7 +116,8 @@ function babaMessage(bot, message)
 			const guildUser = g.members.fetch(message.author);
 			const canSend = guildUser.communicationDisabledUntilTimestamp;
 
-			if(!canSend) {
+			if(!canSend) 
+			{
 				hiddenChan.send(mess);
 			}
 		}
@@ -128,26 +129,40 @@ function babaMessage(bot, message)
 			message_id = message_id.replace(/\D/g,''); //get message id
 
 			var items = mess.split(" ");
-			console.log(items);
 			var chanMap = g.channels.fetch().then(channels => {
 				channels.each(chan => { //iterate through all the channels
 					if (chan.type == "GUILD_TEXT") //make sure the channel is a text channel
 					{
 						chan.messages.fetch(message_id).then(message => 
+						{
+							for (var i = 0; i < items.length; i++)
 							{
-								for (var i = 0; i < items.length; i++)
+								if (items[i].includes("<"))
 								{
-									if (items[i].includes("<"))
-									{
-										items[i] = items[i].match(/(\d+)/)[0];
-									}
-									console.log(items[i]);
-									message.react(items[i]).catch(console.error);
+									items[i] = items[i].match(/(\d+)/)[0];
 								}
-							}).catch(console.error); //try to get the message, if it exists call setVote, otherwise catch the error
+								console.log(items[i]);
+								message.react(items[i]).catch(console.error);
+							}
+						}).catch(console.error); //try to get the message, if it exists call setVote, otherwise catch the error
 					}
 				});
 			});
+		}
+		else if (msgContent.includes("tim"))
+		{
+			var u_id = message.content.split(' ').slice(1, 2).join(' ').replace(' ',''); //get the name for the role
+			
+			var mess = message.content.split(' ').slice(2, ).join(' '); //get the name for the role
+			u_id = u_id.replace(/\D/g,''); //get message id
+
+			var time = mess.match(/(\d+)/);
+			if (time != null) time = time[0] * 60 * 1000;
+
+			bot.users.fetch(u_id).then(user => {
+				g.members.fetch(user).then(member => member.timeout(time, 'Baba Plase')
+				.catch(console.error));
+			}).catch(console.error);
 		}
 	}
 
@@ -182,6 +197,20 @@ function babaMessage(bot, message)
 	if(message.content.toLowerCase().includes('perchance') && !message.author.bot) //perchance update
 	{
 		message.channel.send("You can't just say perchance");
+	}
+
+	if(message.content.toLowerCase().includes('adam')) //if message contains baba and is not from bot
+	{
+		if(msgContent.includes("please") && !message.author.bot)
+		{
+			message.channel.send("Indeed, Adam Please!");
+		}
+		else
+		{
+			var num = Math.floor(Math.random() * 100); //pick a random one
+			if (num < 2)
+				message.channel.send("<:adam:995385148331802634>");
+		}
 	}
 
 	if(message.content.toLowerCase().includes('!baba') && !message.author.bot) //if message contains baba and is not from bot
