@@ -9,7 +9,7 @@ module.exports = {
 	async execute(interaction, bot) {
         var templocal = babadata.datalocation + "Extra/";
         var coinimg = Math.floor(Math.random() * 4);
-        var newAttch = new Discord.MessageAttachment().setFile(templocal + `/cf${coinimg}.gif`);
+        var newAttch = templocal + `/cf${coinimg}.gif`;
 		await interaction.reply({ content: "Flipping Coin!", files: [newAttch] });
 
         var message = await interaction.fetchReply();

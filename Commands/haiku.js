@@ -28,10 +28,16 @@ module.exports = {
             .addStringOption(option => option.setName('date').setDescription('the date').setRequired(true)))
     .addSubcommand(subcommand =>
         subcommand
+            .setName('keyword')
+            .setDescription('Haiku with the specified keyword!')
+            .addStringOption(option => option.setName('keyword').setDescription('the keyword to search for').setRequired(true)))
+    .addSubcommand(subcommand =>
+        subcommand
             .setName('custom')
             .setDescription('Haiku based on custom options!')
             .addStringOption(option => option.setName('person_name').setDescription('the persons name'))
             .addChannelOption(option => option.setName('channel').setDescription('the channel name'))
+            .addStringOption(option => option.setName('keyword').setDescription('keyword to search for'))
             .addStringOption(option => option.setName('start_date').setDescription('start date'))
             .addStringOption(option => option.setName('end_date').setDescription('end date')))
     .addSubcommand(subcommand =>
@@ -113,14 +119,28 @@ module.exports = {
             var edate = interaction.options.getString('end_date');
             var chan = interaction.options.getChannel('channel');
             var person = interaction.options.getString('person_name');
+            var keyword = interaction.options.getString('keyword');
 
             if (person != null)
                 person = sqlEscapeStringThingforAdamBecauseHeWillDoanSQLInjectionOtherwise(person);
+            
+            if (keyword != null)
+                keyword = sqlEscapeStringThingforAdamBecauseHeWillDoanSQLInjectionOtherwise(keyword);
 
             buy = 4;
 
-            msgstr = [sdate, edate, chan, person];
+            msgstr = [sdate, edate, chan, person, keyword];
         } 
+        else if (subCommand === 'keyword')
+        {
+            var keyword = interaction.options.getString('keyword');
+            
+            if (keyword != null)
+                keyword = sqlEscapeStringThingforAdamBecauseHeWillDoanSQLInjectionOtherwise(keyword);
+                
+            buy = 5;
+            msgstr = `${keyword}`;
+        }
         else if (subCommand === 'purity_score_list')
         {
             var listType = interaction.options.getString('list_type');

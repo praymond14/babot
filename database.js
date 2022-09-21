@@ -23,8 +23,6 @@ function handleDisconnect(print)
 		handleDisconnect(err.code);
 	});
 }
-  
-handleDisconnect("Initializing");
 
 function compare( a, b ) 
 {
@@ -144,6 +142,19 @@ function searchDate(msgContent)
 	return ` Lower("` + msgContent + `") LIKE CONCAT("%", Lower(date), "%")`;
 }
 
+function searchKeyword(msgContent)
+{
+	var addquery = [];
+
+	var words = msgContent.split(" ");
+	for (var x in words)
+	{
+		addquery.push(`Lower(haiku) Like CONCAT("%", Lower("` + words[x] + `"), "%")`)
+	}
+
+	return addquery.join(" AND ");
+}
+
 function HPLSelectChannel(callback, msgContent)
 {
 	con.query(`SELECT ChannelName as Name, haiku.ChannelID as ID, Count(*) as Count, SUM(IF(Accidental = '1', 1, 0)) as Accidental, SUM(IF(Accidental = '1', 1, 0))/COUNT(Accidental) * 100 As Purity FROM haiku 
@@ -211,6 +222,7 @@ function HaikuSelection(callback, by, msgContent)
 		var endDate = null;
 		var chan = msgContent[2];
 		var pson = msgContent[3];
+		var kword = msgContent[4];
 
 		var addquery = [];
 
@@ -257,10 +269,17 @@ function HaikuSelection(callback, by, msgContent)
 		if (pson != null)
 			addquery.push("(" + searchPerson(pson) + ")");
 
+		if (kword != null)
+			addquery.push("(" + searchKeyword(kword) + ")");
+
 		if (addquery.length)
 			query += " WHERE ";
 
 		query += addquery.join(" AND ");
+	}
+	else if (by == 5)
+	{
+		query += " WHERE (" + searchKeyword(msgContent) + ")";
 	}
 
 	console.log(query);
@@ -348,8 +367,11 @@ function GetParent(retme, id)
 
 var cleanupFn = function cleanup() 
 {
-	console.log("Ending SQL Connection");
-	con.end();
+	if (!process.argv.includes("-db"))
+	{
+		console.log("Ending SQL Connection");
+		con.end();
+	}
 }
 
 function userVoiceChange(queryz, userID, channelID, guild)
@@ -580,5 +602,6 @@ module.exports = {
 	optIn,
 	optOut,
 	cacheOpts,
-	HPLGenD8
+	HPLGenD8,
+	handleDisconnect
 }

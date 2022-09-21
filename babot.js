@@ -7,7 +7,8 @@ var babadata = require('./babotdata.json'); //baba configuration file
 const txtCommands = require('./textCommands.js');
 //const { setCommandRoles } = require('./helperFunc');
 const { voiceChannelChange, startUpChecker } = require("./voice.js");
-const { cacheOpts } = require('./database');
+const { cacheOpts, handleDisconnect } = require('./database');
+const { dailyCallStart } = require('./helperFunc');
 
 // Initialize Discord Bot
 const bot = new Client({ intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MESSAGES, Intents.FLAGS.DIRECT_MESSAGES, Intents.FLAGS.GUILD_VOICE_STATES], partials: ["CHANNEL"]});
@@ -16,13 +17,21 @@ bot.login(babadata.token); //login
 bot.on('ready', function (evt) 
 {
 	console.log('Connected');
-	if (babadata.testing === undefined)
+
+	if (!process.argv.includes("-db"))
 	{
-		cacheOpts(function()
+		handleDisconnect("Initializing");
+
+		if (babadata.testing === undefined)
 		{
-			startUpChecker(bot);
-		});
+			cacheOpts(function()
+			{
+				startUpChecker(bot);
+			});
+		}
 	}
+
+	dailyCallStart(bot);
 });
 
 bot.commands = new Collection();
@@ -38,9 +47,10 @@ bot.on('messageCreate', async message => {txtCommands.babaMessage(bot, message)}
 
 bot.on('voiceStateUpdate', (oldMember, newMember) => 
 {
-	if (babadata.testing === undefined)
+	if (babadata.testing === undefined && !process.argv.includes("-db"))
 		voiceChannelChange(newMember, oldMember);
 });
+
 
 bot.on('interactionCreate', async interaction => {
 	if(!interaction.isCommand()) return;

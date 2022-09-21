@@ -1,11 +1,14 @@
 const { FormatPurityList, HPLGenChannel, HPLGenUsers, HPLSelectChannel, HPLSelectUser, HPLSelectDate, HaikuSelection, GetSimilarName, ObtainDBHolidays, NameFromUserID, HPLGenD8 } = require("./database.js");
-const { getD1, FindDate, CheckHoliday, FindNextHoliday, GetDate, dateDiffInDays, MakeImage } = require("./helperFunc.js");
+const { getD1, FindDate, CheckHoliday, FindNextHoliday, GetDate, dateDiffInDays, MakeImage, funnyDOWText } = require("./helperFunc.js");
 var babadata = require('./babotdata.json'); //baba configuration file
 var data = require(babadata.datalocation + 'data.json'); //extra data
 const Discord = require('discord.js'); //discord module for interation with discord api
 const fs = require('fs');
 const images = require('images');
 const Jimp = require('jimp');
+const https = require('https');
+
+const dbenable = !process.argv.includes("-db")
 
 const options = { year: 'numeric', month: 'long', day: 'numeric' }; // for date parsing to string
 
@@ -156,6 +159,8 @@ function babaRepost()
 
 function babaHaikuEmbed(purity, list, chans, mye, buy, msgContent, pagestuff, callback)
 {
+    if (!dbenable) return callback([{content: "Database is not enabled so no haikus for you!"}]);
+
     if (purity)
     {
         var hpl = {"retstring": ["No Haiku Purity Found!"], "total": 1};
@@ -382,6 +387,9 @@ function babaWednesday(msgContent, callback)
     var outs = [];
     //let rawdata = fs.readFileSync(babadata.datalocation + "FrogHolidays/" + 'frogholidays.json'); //load file each time of calling wednesday
     //let holidays = JSON.parse(rawdata);
+
+    if (!dbenable) return callback([{content: funnyDOWText(3) }]);
+
     ObtainDBHolidays(function(holidays)
     {
         let d1 = getD1(); //get today
@@ -590,7 +598,11 @@ function babaWednesday(msgContent, callback)
         }
         else
         {
-            outs.push({ content: "It is Wednesday, My Dudes" });
+		    var tod = new Date();
+            if (tod.getDay() == 3)
+                outs.push({ content: "It is Wednesday, My Dudes" });
+            else
+                outs.push({ content: funnyDOWText(3) });
         }
 
         if (outs.length == 0)
@@ -621,6 +633,8 @@ function babaWednesday(msgContent, callback)
 
 function babaWhomst(user, callback)
 {
+    if (!dbenable) return callback({content: "Whomst mayhaps are they, BABA not know as BABA Databasen't" });
+
     NameFromUserID(
         function(result)
         {
@@ -638,6 +652,23 @@ function babaWhomst(user, callback)
         user);
 }
 
+function babaHurricane(callback)
+{
+    var tempFilePath = babadata.temp + "hurricane.png";
+    const file = fs.createWriteStream(tempFilePath);
+    const request = https.get("https://www.nhc.noaa.gov/xgtwo/two_atl_5d0.png", function(response) {
+       response.pipe(file);
+    
+       // after download completed close filestream
+       file.on("finish", () => {
+           file.close();
+           console.log("Download Completed");
+
+           callback({ content: "Baba Hurricane Info", files: [tempFilePath] });
+       });
+    });
+}
+
 module.exports = {
     babaFriday, 
     babaHelp, 
@@ -652,5 +683,6 @@ module.exports = {
     babaProgress,
     babaJeremy,
     babaRNG,
-    babaWhomst
+    babaWhomst,
+    babaHurricane
 };
