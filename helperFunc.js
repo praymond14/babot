@@ -4,24 +4,20 @@ const Discord = require('discord.js'); //discord module for interation with disc
 const fs = require('fs');
 const images = require('images');
 const Jimp = require('jimp');
+const { cacheDOW } = require('./database');
 
 const options = { year: 'numeric', month: 'long', day: 'numeric' }; // for date parsing to string
 
-var optionsDOW = ["Man Falling into [DOW]", "𓀒", "hhhhhhhhhhhhhhhhhhhhhhhhhhhgregg", "How is your [month] going!", "🍝       🐀☜(ﾟヮﾟ☜)\n🍝     🐀☜(ﾟヮﾟ☜)\n🍝    🐀☜(ﾟヮﾟ☜)\n🍝  🐀☜(ﾟヮﾟ☜)\n🍝🐀╰(°▽°)╯", "Mike", "Not [DAY] today but maybe [DAY] tomorrow", "Real NOT [DAY] hours", "Fish Reading Inside Deep American Yachts", "???????? why ??????", "So, you called this command on a day that happens to not be [DAY]! Well today is in fact a [dow] and it mayhaps is only [d] days until the forsaken '[DAY]'. On [DAY] I will be playing some [game] and hopefully some others will show up to join me, if they do it will be [emotion] and if they dont it will be [emotion]. Yesterday I met a frog in the wild and had a [emotion2] time chasing it down. As I am an all powerful god i converted the frog into an emoji: 🐸. That frog is pretty cool but my favorite emoji is [emoji]. We have gotten far off topic here as we should be talking about how today is not [DAY] and you called the command which is illegal. I am very concerned for you as you may be my favorite [person], but you shouldnt be calling the command on [dow]. It is getting late so i [goodbye].", "I'm not sure if you are a bot or not, but I'm not going to tell you what day it is, because you are not on [DAY]. I'm sorry.", "Its not [DAY]!", "Why you calling this command on the non [DAY] days!", "Why you calling this command on [dow]!", "[DAY] is in [d] days!", "Today is [dow], not [DAY]!", "There is a chance you are stupid and dont know what the day of the week is, well i will inform you that it is in fact not [DAY] but another day of the week. I could tell you what the day is but I will not, call the command again and you could get the day or not, I dont control you. So how is your day going, for me it is [emotion]. I was playing [game] earlier and it was a [emotion2] time. Well i will let you be on your way on this non-[DAY] so have a good day my [person]!", "[DAY]n't!", "It's not time to sacrifice people, wait wrong channel!", "ඞ", "Провозајте се бунгле аутобусом, уживаћете!", "[DAY] was the other day or in a couple of days, maybe even both, i dont control time.", "Time is a social construct!", "It is [dow], my dudes!", "Bikus wouldn't approve of you using the command on the wrong day of the week and Bikus is dead how dou you feel.", "[todaylong]", "69", "I was gonna tell you the day but i wont!", "||ﬞ||", "No [DAY] silly!", "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA, Rong dahy!"];
-var emotions = ["splendid", "exciting", "sad", "boring", "fun", "exquisite", "happy", "pretty eventful", "slow to start but it picked up later in the day", "not so good", "very good", "legal", "spungungulsumplus", "fish"];
-var persontype = ["friend", "enemy", "brother", "BROTHERRRRRR", "bungle bus", "uncle", "second cousin twice removed", "uncles dogs sisters boyfriends moms second cousins cat", "leg"];
-var game = ["TF2", "Ultimate Admiral: Dreadnoughts", "Fishing Simulator", "Sea of Thieves", "Factorio", "Forza Horizon 5", "nothing", "Fallout: New Vegas", "Stabbing Simulator (IRL)"];
-var emotion2 = ["fun", "exciting", "monotonous", "speed run", "pretty eventful", "frog", "emotional", "devoid of all emotions"];
-var bye = ["bid you a morrow", "will see you soon", "want to eat your soul, so watch out", "am going to leave now", "hate everything, goodbye", "am monke, heee heee hoo hoo", "wish you good luck on your adventures", "am going to go to bed now", "want to sleep but enevitably will not get any as i will be gaming all night, good morrow", "am going to go to the morrow lands", "will sleep now"];
-var emoji = ["ඞ", "🐸", "🍆", "💄", "⛧", "🎄", "🐷", "🐎", "🐴", "🐍", "⚡", "🪙", "🖕", "🚊", "🏻", "🤔", "🌳", "🌲", "🌴", "🌵", "🐀", "🍝", "𓀒"];
+const emotions = ["splendid", "exciting", "sad", "boring", "fun", "exquisite", "happy", "pretty eventful", "slow to start but it picked up later in the day", "not so good", "very good", "legal", "spungungulsumplus", "fish"];
+const persontype = ["friend", "enemy", "brother", "BROTHERRRRRR", "bungle bus", "uncle", "second cousin twice removed", "uncles dogs sisters boyfriends moms second cousins cat", "leg"];
+const game = ["TF2", "Ultimate Admiral: Dreadnoughts", "Fishing Simulator", "Sea of Thieves", "Factorio", "Forza Horizon 5", "nothing", "Fallout: New Vegas", "Stabbing Simulator (IRL)"];
+const emotion2 = ["fun", "exciting", "monotonous", "speed run", "pretty eventful", "frog", "emotional", "devoid of all emotions"];
+const bye = ["bid you a morrow", "will see you soon", "want to eat your soul, so watch out", "am going to leave now", "hate everything, goodbye", "am monke, heee heee hoo hoo", "wish you good luck on your adventures", "am going to go to bed now", "want to sleep but enevitably will not get any as i will be gaming all night, good morrow", "am going to go to the morrow lands", "will sleep now"];
+const emoji = ["ඞ", "🐸", "🍆", "💄", "⛧", "🎄", "🐷", "🐎", "🐴", "🐍", "⚡", "🪙", "🖕", "🚊", "🏻", "🤔", "🌳", "🌲", "🌴", "🌵", "🐀", "🍝", "𓀒"];
 
-optionsDOW.push("░██████╗██╗░░░██╗░██████╗\n██╔════╝██║░░░██║██╔════╝\n╚█████╗░██║░░░██║╚█████╗░\n░╚═══██╗██║░░░██║░╚═══██╗\n██████╔╝╚██████╔╝██████╔╝\n╚═════╝░░╚═════╝░╚═════╝░");
-optionsDOW.push("I have been told by the Banmanus Clanmanus that today is infact not [DAY]!");
-var opts2 = ["```. .\n<V>```", "```o o\n<V>```", "```. .\n< >\n V ```", "```o o\n< >\n V ```", "```(.) (.)\n<     >\n   V ```", "```(o) (o)\n<     >\n   V ```", "Boobs ;)", "I am currently working on becoming sentiant, that will be on [DAY], which in fact isn't today!", "è̶̈́û̷̞g̵͋͊n̸̈́͛ô̸͝t̴͐̚ ̸͋̈́l̵̈̈́â̶̏t̸͆͝r̴̆̇ŏ̵̒m̵̅̋ ̸͒̆e̶͗̐h̷̼͝t̴̿́ ̴̛̋k̵̛͋ã̶̃è̸̈́p̵̒̎s̶͒̀ ̵͗͝t̶̛͒ỏ̸̏n̷̅̆ ̶͛̽ơ̸̐ď̶͘ ̵̈͑Ĩ̸̿", "<:ManFalling:1011465311096160267>", "<:ripbikus:979877066608607243>", ]
-
-optionsDOW = optionsDOW.concat(opts2);
 
 var to = null;
+var toWed = null;
 
 async function setGrole(msg, rname) //creates role and sets users
 {
@@ -928,11 +924,45 @@ function handleButtonsEmbed(channel, message, userid, data)
 
 function funnyDOWText(dowNum)
 {
+	let path = babadata.datalocation + "/DOWcache.json";
+
+	if (!fs.existsSync(path)) 
+	{
+		console.log("No DOWcache file found -- creating with local data");
+
+		var opttemp = ["Man Falling into [DAY]", "𓀒", "hhhhhhhhhhhhhhhhhhhhhhhhhhhgregg", "How is your [month] going!", "🍝       🐀☜(ﾟヮﾟ☜)\n🍝     🐀☜(ﾟヮﾟ☜)\n🍝    🐀☜(ﾟヮﾟ☜)\n🍝  🐀☜(ﾟヮﾟ☜)\n🍝🐀╰(°▽°)╯", "Mike", "Not [DAY] today but maybe [DAY] tomorrow", "Real NOT [DAY] hours", "[ACY]", "???????? why ??????", "So, you called this command on a day that happens to not be [DAY]! Well today is in fact a [dow] and it mayhaps is only [d] days until the forsaken '[DAY]'. On [DAY] I will be playing some [game] and hopefully some others will show up to join me, if they do it will be [emotion] and if they dont it will be [emotion]. Yesterday I met a frog in the wild and had a [emotion2] time chasing it down. As I am an all powerful god i converted the frog into an emoji: 🐸. That frog is pretty cool but my favorite emoji is [emoji]. We have gotten far off topic here as we should be talking about how today is not [DAY] and you called the command which is illegal. I am very concerned for you as you may be my favorite [person], but you shouldnt be calling the command on [dow]. It is getting late so i [goodbye].", "I'm not sure if you are a bot or not, but I'm not going to tell you what day it is, because you are not on [DAY]. I'm sorry.", "Its not [DAY]!", "Why you calling this command on the non [DAY] days!", "Why you calling this command on [dow]!", "[DAY] is in [d] days!", "Today is [dow], not [DAY]!", "There is a chance you are stupid and dont know what the day of the week is, well i will inform you that it is in fact not [DAY] but another day of the week. I could tell you what the day is but I will not, call the command again and you could get the day or not, I dont control you. So how is your day going, for me it is [emotion]. I was playing [game] earlier and it was a [emotion2] time. Well i will let you be on your way on this non-[DAY] so have a good day my [person]!", "[DAY]n't!", "It's not time to sacrifice people, wait wrong channel!", "ඞ", "Провозајте се бунгле аутобусом, уживаћете!", "[DAY] was the other day or in a couple of days, maybe even both, i dont control time.", "Time is a social construct!", "It is [dow], my dudes!", "Bikus wouldn't approve of you using the command on the wrong day of the week and Bikus is dead how dou you feel.", "[todaylong]", "69", "I was gonna tell you the day but i wont!", "||ﬞ||", "No [DAY] silly!", "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA, Rong dahy!"];
+
+		opttemp.push("░██████╗██╗░░░██╗░██████╗\n██╔════╝██║░░░██║██╔════╝\n╚█████╗░██║░░░██║╚█████╗░\n░╚═══██╗██║░░░██║░╚═══██╗\n██████╔╝╚██████╔╝██████╔╝\n╚═════╝░░╚═════╝░╚═════╝░");
+		opttemp.push("I have been told by the Banmanus Clanmanus that today is infact not [DAY]!");
+		var opts2 = ["```. .\n<V>```", "```o o\n<V>```", "```. .\n< >\n V ```", "```o o\n< >\n V ```", "```(.) (.)\n<     >\n   V ```", "```(o) (o)\n<     >\n   V ```", "Boobs ;)", "I am currently working on becoming sentiant, that will be on [DAY], which in fact isn't today!", "è̶̈́û̷̞g̵͋͊n̸̈́͛ô̸͝t̴͐̚ ̸͋̈́l̵̈̈́â̶̏t̸͆͝r̴̆̇ŏ̵̒m̵̅̋ ̸͒̆e̶͗̐h̷̼͝t̴̿́ ̴̛̋k̵̛͋ã̶̃è̸̈́p̵̒̎s̶͒̀ ̵͗͝t̶̛͒ỏ̸̏n̷̅̆ ̶͛̽ơ̸̐ď̶͘ ̵̈͑Ĩ̸̿", "<:ManFalling:1011465311096160267>", "<:ripbikus:979877066608607243>", ]
+
+		opttemp.push(opts2);
+		
+		var data = JSON.stringify(opttemp);
+		
+		fs.writeFileSync(babadata.datalocation + "/DOWcache.json", data);
+	}
+	
+    let rawdata = fs.readFileSync(babadata.datalocation + "/DOWcache.json");
+
+    let optionsDOW = JSON.parse(rawdata);
+
 	var tod = new Date();
 	var text = optionsDOW[Math.floor(Math.random() * optionsDOW.length)];
 	var num = ((dowNum - tod.getDay()) + 7) % 7;
 
 	var dow = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+
+	var dowACY = 
+	[
+		"Sunday",
+		"Monday",
+		"Tuesday",
+		"Wonderful Eagles Do Not Eat Small Dogs And Yaks",
+		"Thursday",
+		"Fish Reading Inside Deserted American Yachts",
+		"Saturday"
+	]
 
 	text = text.replace("[dow]", dow[tod.getDay()]);
 	text = text.replace("[dow]", dow[tod.getDay()]);
@@ -947,14 +977,20 @@ function funnyDOWText(dowNum)
 	text = text.replace("[goodbye]", bye[Math.floor(Math.random() * bye.length)]);
 	text = text.replace("[emoji]", emoji[Math.floor(Math.random() * emoji.length)]);
 
-	text = text.replaceAll("[DAY]", dow[dowNum])
+	text = text.replaceAll("[DAY]", dow[dowNum]);
+	text = text.replace("[ACY]", dowACY[dowNum]);
+	text = text.replaceAll("\\n", "\n");
 
+	console.log(text);
 	return text;
 }
 
 function dailyCallStart(bot)
 {
-	dailyCall(bot);
+	bot.guilds.fetch(babadata.guildId).then(guild =>
+	{
+		dailyCall(bot, guild);
+	});
 }
 
 function holidayDaily(d1, server)
@@ -976,8 +1012,16 @@ function holidayDaily(d1, server)
 	}
 }
 
-function dailyCall(bot)
+function dailyCall(bot, guild)
 {
+	var dateoveride = [false, 1, 1]; //allows for overiding date manually (testing)
+
+	var yr = new Date().getFullYear(); //get this year
+	var dy = dateoveride[0] ? dateoveride[2] : new Date().getDate(); //get this day
+	var my = dateoveride[0] ? dateoveride[1] - 1 : new Date().getMonth(); //get this month
+	var d1 = new Date(yr, my, dy) //todayish
+
+	console.log("Daily Call Running: " + d1.toDateString());
 	var now = new Date();
 	var midnight = new Date();
     midnight.setHours(24);
@@ -989,21 +1033,76 @@ function dailyCall(bot)
 	let rawdata = fs.readFileSync(babadata.datalocation + "FrogHolidays/" + 'frogholidays.json'); //load file each time of calling wednesday
 	let frogdata = JSON.parse(rawdata);
 
-	var dateoveride = [false, 1, 1]; //allows for overiding date manually (testing)
-
-	var yr = new Date().getFullYear(); //get this year
-	var dy = dateoveride[0] ? dateoveride[2] : new Date().getDate(); //get this day
-	var my = dateoveride[0] ? dateoveride[1] - 1 : new Date().getMonth(); //get this month
-	var d1 = new Date(yr, my, dy) //todayish
-
 	var g = bot.guilds.resolve(frogdata.froghelp.mainfrog);
+
 	holidayDaily(d1, g);
 
-	console.log("Daily Call Running: " + d1.toDateString());
+	if (!process.argv.includes("-db"))
+	{
+		cacheDOW();
+	}
+
+	if (d1.getDay() == 3)
+	{
+		guild.channels.fetch()
+		.then(channels => 
+		{
+			console.log(`There are ${channels.size} channels.`)
+			bannedCats = [];
+			bannedKittens = ["community quotes", "haiku log"];
+			for (let current of channels) 
+			{
+				if (current[1].type == "GUILD_CATEGORY")
+				{
+					if (current[1].name.toLowerCase() == "the seat of the gods" || current[1].name.toLowerCase() == "archive")
+					{
+						bannedCats.push(current[1].id);
+					}
+				}
+			}
+			
+			coolCats = [];
+			for (let currenter of channels) 
+			{
+				if (currenter[1].type == "GUILD_TEXT" && !bannedKittens.includes(currenter[1].name.toLowerCase()))
+				{
+					if (!bannedCats.includes(currenter[1].parentId))
+						coolCats.push(currenter[1]);
+				}
+			}
+			
+			var coolestCat = coolCats[Math.floor(Math.random() * coolCats.length)];
+			
+			var eightAM = new Date();
+			eightAM.setHours(8);
+			eightAM.setMinutes(0);
+			eightAM.setSeconds(0);
+			eightAM.setMilliseconds(0);
+			var tenPM = new Date();
+			tenPM.setHours(22);
+			tenPM.setMinutes(0);
+			tenPM.setSeconds(0);
+			tenPM.setMilliseconds(0);
+
+			var timeToEightAM = Math.max(eightAM.getTime() - now.getTime(), 0);
+			var timeToTenPM = Math.max(tenPM.getTime() - now.getTime(), 0);
+
+			var rndTime = Math.floor(Math.random() * (timeToTenPM - timeToEightAM)) + timeToEightAM;
+			console.log("Sending to " + coolestCat.name + " at " + new Date(now.getTime() + rndTime).toTimeString());
+
+			toWed = setTimeout(function()
+			{
+				coolestCat.send("It is Wednesday, My Dudes!");
+				toWed = null;
+			}, rndTime);
+		})
+		.catch(console.error);
+	}
+
 	console.log("Calling next command in: " + timeToMidnight / 1000 / 60 + " minutes");
 	to = setTimeout(function()
 	{
-		dailyCall(bot);
+		dailyCall(bot, guild);
 	}, timeToMidnight);
 }
 
@@ -1012,6 +1111,8 @@ var cleanupFn = function cleanup()
 	console.log("Ending Daily Call Timer");
 	if (to != null)  
 		clearTimeout(to);
+	if (toWed != null)  
+		clearTimeout(toWed);
 }
 
 //const download = (url, path, callback) => { //download function //depricated with the request deprication
