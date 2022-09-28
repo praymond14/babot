@@ -19,6 +19,7 @@ const fs = require('fs'); //file stream used for del fuction
 
 const { Console } = require('console');
 const { SSL_OP_SSLEAY_080_CLIENT_DH_BUG } = require('constants');
+const { cacheDOW } = require("./database.js");
 /* [ 	["christmas", 12, 25, 0, 0], 
 	["thanksgiving", 11, 0, 4, 4], 
 	["st patrick", 3, 17, 0, 0],
@@ -116,9 +117,19 @@ function babaMessage(bot, message)
 			const guildUser = g.members.fetch(message.author);
 			const canSend = guildUser.communicationDisabledUntilTimestamp;
 
-			if(!canSend) 
+			if(!canSend)
 			{
-				hiddenChan.send(mess);
+				hiddenChan.send(mess).then(msg=>
+				{
+					if (msgContent.includes("🐸"))
+					{
+						msg.react("🐸");
+					}
+					if (msgContent.includes("s-d"))
+					{
+						setTimeout(function(){msg.delete();}, 8000);
+					}
+				});
 			}
 		}
 		else if (msgContent.includes("reee"))
@@ -164,6 +175,18 @@ function babaMessage(bot, message)
 				.catch(console.error));
 			}).catch(console.error);
 		}
+		else if (msgContent.includes("refried beans")) //probably would break adams brain
+		{
+			if (!process.argv.includes("-db"))
+			{
+				cacheDOW();
+				message.author.send("DOW cache updated (hopefully)");
+			}
+			else
+			{
+				message.author.send("DOW cache not updated");
+			}
+		}
 	}
 
 	if (babadata.holidaychan == null)
@@ -194,9 +217,20 @@ function babaMessage(bot, message)
 		}
 	}
 
+	if (Math.random() * 100000 <= 1)
+	{
+		message.channel.send("The Equine Lunar God Empress demands a blood sacrifice.");
+	}
+
 	if(message.content.toLowerCase().includes('perchance') && !message.author.bot) //perchance update
 	{
 		message.channel.send("You can't just say perchance");
+	}
+
+	if(msgContent.toLowerCase().includes('christmas is bad') || msgContent.toLowerCase().includes('christmas bad')) //perchance update
+	{
+		
+		message.channel.send("<@" + message.author.id + "> Christmas is good");
 	}
 
 	if(message.content.toLowerCase().includes('adam')) //if message contains baba and is not from bot
@@ -210,7 +244,16 @@ function babaMessage(bot, message)
 			var num = Math.floor(Math.random() * 100); //pick a random one
 			if (num < 2)
 				message.channel.send("<:adam:995385148331802634>");
+			if (num < 25)
+				message.react("995385148331802634").catch(console.error);
 		}
+	}
+
+	if (msgContent.includes("frog") || msgContent.includes("🐸"))
+	{
+		var num = Math.floor(Math.random() * 100); //pick a random one
+		if (num <= 69)
+			message.react("🐸");
 	}
 
 	if(message.content.toLowerCase().includes('!baba') && !message.author.bot) //if message contains baba and is not from bot

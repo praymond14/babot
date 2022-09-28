@@ -18,6 +18,7 @@ function babaFriday()
     var newAttch = new Discord.MessageAttachment().setFile(templocal + "/Friday.jpg"); //makes a new discord attachment
     return { content: "FRIDAY!", files: [newAttch] };
 }
+
 function babaRNG(min, max, spoiler)
 {
     var num = Math.floor(Math.random() * (max - min + 1)) + min;
@@ -603,7 +604,12 @@ function babaWednesday(msgContent, callback)
             if (tod.getDay() == 3)
                 outs.push({ content: "It is Wednesday, My Dudes" });
             else
-                outs.push({ content: funnyDOWText(3) });
+            {
+                if (msgContent.replace("wednesday", "").replace("when is", "").replace("day of week", "").replace("days until", "").trim() == "next")
+                    outs.push({ content: "The definition of insanity is doing the same thing over and over expecting a different result" });
+                else
+                    outs.push({ content: funnyDOWText(3) });
+            }
         }
 
         if (outs.length == 0)
@@ -653,11 +659,26 @@ function babaWhomst(user, callback)
         user);
 }
 
-function babaHurricane(callback)
+function babaHurricane(hurricanename, callback)
 {
     var tempFilePath = babadata.temp + "hurricane.png";
     const file = fs.createWriteStream(tempFilePath);
-    const request = https.get("https://www.nhc.noaa.gov/xgtwo/two_atl_5d0.png", function(response) {
+    var url = "https://www.nhc.noaa.gov/xgtwo/two_atl_5d0.png";
+
+    if (hurricanename != "")
+    {
+        var hurricanenameNum = hurricanename.toUpperCase().charCodeAt(0)
+        if (hurricanenameNum >= 65 && hurricanenameNum <= 90)
+        {
+            hurricanenameNum = hurricanenameNum - 64;
+            if (hurricanenameNum < 10) hurricanenameNum = "0" + hurricanenameNum;
+        }
+        url = "https://www.nhc.noaa.gov/storm_graphics/AT" + hurricanenameNum + "/refresh/AL" + hurricanenameNum + "2022_5day_cone_no_line_and_wind+png/"
+    }
+    
+    console.log(url);
+
+    const request = https.get(url, function(response) {
        response.pipe(file);
     
        // after download completed close filestream

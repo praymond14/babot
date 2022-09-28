@@ -551,6 +551,34 @@ function endLeftUsersCrash(onlineusers, guild)
 	);
 }
 
+function cacheDOW()
+{
+	con.query(`Select * from dowfunny`,
+	function (err, result)
+		{
+			var opts = [];
+			if (err) throw err;
+			for (var i = 0; i < result.length; i++)
+			{
+				var res = result[i];
+				if (res.enabled)
+				{
+					text = res.text;
+					if (res.text2 != null)
+					{
+						text += " " + res.text2;
+					}
+					opts.push(text);
+				}
+			}
+
+			var data = JSON.stringify(opts);
+
+			fs.writeFileSync(babadata.datalocation + "/DOWcache.json", data);
+		}
+	);
+}
+
 function cacheOpts(callback)
 {
 	con.query(`Select * from opting`,
@@ -603,5 +631,6 @@ module.exports = {
 	optOut,
 	cacheOpts,
 	HPLGenD8,
-	handleDisconnect
+	handleDisconnect,
+	cacheDOW
 }
