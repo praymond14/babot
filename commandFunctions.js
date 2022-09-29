@@ -665,7 +665,8 @@ function babaHurricane(hurricanename, callback)
     const file = fs.createWriteStream(tempFilePath);
     var url = "https://www.nhc.noaa.gov/xgtwo/two_atl_5d0.png";
 
-    if (hurricanename != "")
+    console.log("Hurricane lookup for " + hurricanename);
+    if (hurricanename != "" && hurricanename != null)
     {
         var hurricanenameNum = hurricanename.toUpperCase().charCodeAt(0)
         if (hurricanenameNum >= 65 && hurricanenameNum <= 90)
