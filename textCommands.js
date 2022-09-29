@@ -229,7 +229,6 @@ function babaMessage(bot, message)
 
 	if(msgContent.toLowerCase().includes('christmas is bad') || msgContent.toLowerCase().includes('christmas bad')) //perchance update
 	{
-		
 		message.channel.send("<@" + message.author.id + "> Christmas is good");
 	}
 
