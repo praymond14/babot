@@ -922,7 +922,44 @@ function handleButtonsEmbed(channel, message, userid, data)
 	collector.on('end', collected => message.edit({components: []}));
 }
 
-function funnyDOWText(dowNum)
+function generateOps(opsArray, authorID)
+{
+    let rawdata = fs.readFileSync(babadata.datalocation + "/DOWcontrol.json");
+    var controlList = JSON.parse(rawdata);
+	var cLevel = 0;
+
+	for (var i = 0; i < controlList.length; i++)
+	{
+		if (controlList[i].ID == authorID)
+		{
+			cLevel = controlList[i].Control;
+		}
+	}
+	
+	ops = [];
+	for (var i = 0; i < opsArray.length; i++)
+	{
+		if (cLevel <= 1)
+		{
+			if (opsArray[i].enabledDef == true)
+			{
+				ops.push(opsArray[i].text);
+			}
+		}
+
+		if (cLevel >= 1)
+		{
+			if (opsArray[i].IDS != null && opsArray[i].IDS.toString().includes(authorID))
+			{
+				ops.push(opsArray[i].text);
+			}
+		}
+	}
+
+	return ops;
+}
+
+function funnyDOWText(dowNum, authorID)
 {
 	let path = babadata.datalocation + "/DOWcache.json";
 
@@ -945,7 +982,12 @@ function funnyDOWText(dowNum)
 	
     let rawdata = fs.readFileSync(babadata.datalocation + "/DOWcache.json");
 
-    let optionsDOW = JSON.parse(rawdata);
+    var optionsDOW = JSON.parse(rawdata);
+
+	if (typeof optionsDOW[0] != "string")
+	{
+		optionsDOW = generateOps(optionsDOW, authorID);
+	}
 
 	var tod = new Date();
 	var text = optionsDOW[Math.floor(Math.random() * optionsDOW.length)];
@@ -964,6 +1006,8 @@ function funnyDOWText(dowNum)
 		"Saturday"
 	]
 
+	if (text == null) text = "You are not allowed to enjoy [DAY], you are a bad person!";
+
 	text = text.replace("[dow]", dow[tod.getDay()]);
 	text = text.replace("[dow]", dow[tod.getDay()]);
 	text = text.replace("[d]", num);
@@ -981,7 +1025,6 @@ function funnyDOWText(dowNum)
 	text = text.replace("[ACY]", dowACY[dowNum]);
 	text = text.replaceAll("\\n", "\n");
 
-	console.log(text);
 	return text;
 }
 

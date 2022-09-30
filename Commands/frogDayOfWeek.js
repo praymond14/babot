@@ -15,7 +15,7 @@ module.exports = {
         var event = interaction.options.getString("event");
         var message = await interaction.fetchReply();
         
-        babaWednesday(`${event} day of week`, function(texts) 
+        babaWednesday(`${event} day of week`, interaction.user, function(texts) 
         {
             if (texts.length > 1)
             {

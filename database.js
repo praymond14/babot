@@ -561,20 +561,79 @@ function cacheDOW()
 			for (var i = 0; i < result.length; i++)
 			{
 				var res = result[i];
-				if (res.enabled)
+				text = res.text;
+				if (res.text2 != null)
 				{
-					text = res.text;
-					if (res.text2 != null)
-					{
-						text += " " + res.text2;
-					}
-					opts.push(text);
+					text += " " + res.text2;
 				}
+
+				var resj = 
+				{
+					"text": text,
+					"enabledDef": res.enabled,
+					"IDS": res.overideIDs
+				}
+
+				opts.push(resj);
 			}
 
 			var data = JSON.stringify(opts);
 
 			fs.writeFileSync(babadata.datalocation + "/DOWcache.json", data);
+		}
+	);
+	
+	con.query(`Select * from dowcontrol`,
+	function (err, result)
+		{
+			var opts = [];
+			if (err) throw err;
+			for (var i = 0; i < result.length; i++)
+			{
+				var res = result[i];
+
+				var resj = 
+				{
+					"ID": res.IDDOWControl,
+					"Control": res.controlLevel
+				}
+
+				opts.push(resj);
+			}
+
+			var data = JSON.stringify(opts);
+
+			fs.writeFileSync(babadata.datalocation + "/DOWcontrol.json", data);
+		}
+	);
+}
+
+function controlDOW(id, level)
+{
+	con.query(`Select * from dowcontrol where IDDOWControl = "${id}"`,
+	function (err, result)
+		{
+			if (err) throw err;
+			if (result.length == 0)
+			{
+				con.query(`INSERT INTO dowcontrol (IDDOWControl, controlLevel) VALUES ("${id}", "${level}")`,
+				function (err, result)
+					{
+						if (err) throw err;
+						cacheDOW();
+					}
+				);
+			}
+			else
+			{
+				con.query(`UPDATE dowcontrol Set controlLevel = "${level}" WHERE IDDOWControl = "${id}"`,
+				function (err, result)
+					{
+						if (err) throw err;
+						cacheDOW();
+					}
+				);
+			}
 		}
 	);
 }
@@ -632,5 +691,6 @@ module.exports = {
 	cacheOpts,
 	HPLGenD8,
 	handleDisconnect,
-	cacheDOW
+	cacheDOW,
+	controlDOW
 }

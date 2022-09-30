@@ -16,7 +16,7 @@ module.exports = {
         var event = interaction.options.getString("event");
         var message = await interaction.fetchReply();
         
-        babaWednesday(`${event} wednesday`, function(texts) 
+        babaWednesday(`${event} wednesday`, interaction.user, function(texts) 
         {
             setTimeout(function()
             {

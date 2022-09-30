@@ -32,7 +32,7 @@ module.exports = {
 			}
 			else
 			{
-				var text = funnyDOWText(5);
+				var text = funnyDOWText(5, interaction.user.id);
 
 				interaction.editReply(text);
 			}
