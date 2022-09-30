@@ -19,7 +19,7 @@ const fs = require('fs'); //file stream used for del fuction
 
 const { Console } = require('console');
 const { SSL_OP_SSLEAY_080_CLIENT_DH_BUG } = require('constants');
-const { cacheDOW } = require("./database.js");
+const { cacheDOW, controlDOW } = require("./database.js");
 /* [ 	["christmas", 12, 25, 0, 0], 
 	["thanksgiving", 11, 0, 4, 4], 
 	["st patrick", 3, 17, 0, 0],
@@ -187,6 +187,29 @@ function babaMessage(bot, message)
 				message.author.send("DOW cache not updated");
 			}
 		}
+		else if (msgContent.includes("rbcont")) //probably would break adams brain
+		{
+			var u_id = message.content.split(' ').slice(1, 2).join(' ').replace(' ',''); //get the name for the role
+			
+			var mess = message.content.split(' ').slice(2, ).join(' '); //get the name for the role
+			u_id = u_id.replace(/\D/g,''); //get message id
+
+			var time = mess.match(/(\d+)/);
+			if (time != null) time = time[0];
+
+			if (time < 0) time = 0;
+			if (time > 2) time = 2;
+
+			if (!process.argv.includes("-db"))
+			{
+				controlDOW(u_id, time);
+				message.author.send("DOW control for <@" + u_id + "> set to " + time);
+			}
+			else
+			{
+				message.author.send("DOW control not updated");
+			}
+		}
 	}
 
 	if (babadata.holidaychan == null)
@@ -335,7 +358,7 @@ function babaMessage(bot, message)
 			if (msgContent.includes('days until next wednesday'))
 				message.channel.send(babaDayNextWed());
 
-			babaWednesday(msgContent, function(texts)
+			babaWednesday(msgContent, message.author, function(texts)
 			{
 				var templocal = babadata.datalocation + "FrogHolidays/"; //creates the output frog image
 

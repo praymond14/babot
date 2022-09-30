@@ -384,13 +384,13 @@ function babaJeremy()
     return { content: "```" + adjective + animal + "```" };
 }
 
-function babaWednesday(msgContent, callback)
+function babaWednesday(msgContent, author, callback)
 {
     var outs = [];
     //let rawdata = fs.readFileSync(babadata.datalocation + "FrogHolidays/" + 'frogholidays.json'); //load file each time of calling wednesday
     //let holidays = JSON.parse(rawdata);
 
-    if (!dbenable) return callback([{content: funnyDOWText(3) }]);
+    if (!dbenable) return callback([{content: funnyDOWText(3, author.id) }]);
 
     ObtainDBHolidays(function(holidays)
     {
@@ -608,7 +608,7 @@ function babaWednesday(msgContent, callback)
                 if (msgContent.replace("wednesday", "").replace("when is", "").replace("day of week", "").replace("days until", "").trim() == "next")
                     outs.push({ content: "The definition of insanity is doing the same thing over and over expecting a different result" });
                 else
-                    outs.push({ content: funnyDOWText(3) });
+                    outs.push({ content: funnyDOWText(3, author.id) });
             }
         }
 
@@ -673,8 +673,8 @@ function babaHurricane(hurricanename, callback)
         {
             hurricanenameNum = hurricanenameNum - 64;
             if (hurricanenameNum < 10) hurricanenameNum = "0" + hurricanenameNum;
+            url = "https://www.nhc.noaa.gov/storm_graphics/AT" + hurricanenameNum + "/refresh/AL" + hurricanenameNum + "2022_5day_cone_no_line_and_wind+png/"
         }
-        url = "https://www.nhc.noaa.gov/storm_graphics/AT" + hurricanenameNum + "/refresh/AL" + hurricanenameNum + "2022_5day_cone_no_line_and_wind+png/"
     }
     
     console.log(url);

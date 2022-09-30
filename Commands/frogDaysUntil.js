@@ -25,7 +25,7 @@ module.exports = {
         } 
         else 
         {
-            babaWednesday(`${event} days until`, function(texts) 
+            babaWednesday(`${event} days until`, interaction.user, function(texts) 
             {
                 if (texts.length > 1)
                 {
