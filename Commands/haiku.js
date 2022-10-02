@@ -42,6 +42,15 @@ module.exports = {
             .addStringOption(option => option.setName('end_date').setDescription('end date')))
     .addSubcommand(subcommand =>
         subcommand
+            .setName('all')
+            .setDescription('Gets all haikus based on certain factors!')
+            .addStringOption(option => option.setName('person_name').setDescription('the persons name'))
+            .addChannelOption(option => option.setName('channel').setDescription('the channel name'))
+            .addStringOption(option => option.setName('keyword').setDescription('keyword to search for'))
+            .addStringOption(option => option.setName('start_date').setDescription('start date'))
+            .addStringOption(option => option.setName('end_date').setDescription('end date')))
+    .addSubcommand(subcommand =>
+        subcommand
             .setName('purity_score_list')
             .setDescription('List of haiku purity scores')
             .addStringOption(option =>
@@ -113,7 +122,7 @@ module.exports = {
 
             msgstr = `${chan}`;
         } 
-        else if (subCommand === 'custom')
+        else if (subCommand === 'custom' || subCommand === 'all')
         {
             var sdate = interaction.options.getString('start_date');
             var edate = interaction.options.getString('end_date');
@@ -129,7 +138,7 @@ module.exports = {
 
             buy = 4;
 
-            msgstr = [sdate, edate, chan, person, keyword];
+            msgstr = [sdate, edate, chan, person, keyword, subCommand];
         } 
         else if (subCommand === 'keyword')
         {

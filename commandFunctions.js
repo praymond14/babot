@@ -1,5 +1,5 @@
-const { FormatPurityList, HPLGenChannel, HPLGenUsers, HPLSelectChannel, HPLSelectUser, HPLSelectDate, HaikuSelection, GetSimilarName, ObtainDBHolidays, NameFromUserID, HPLGenD8 } = require("./database.js");
-const { getD1, FindDate, CheckHoliday, FindNextHoliday, GetDate, dateDiffInDays, MakeImage, funnyDOWText } = require("./helperFunc.js");
+const { FormatPurityList, HPLGenChannel, HPLGenUsers, HPLSelectChannel, HPLSelectUser, HPLSelectDate, HaikuSelection, ObtainDBHolidays, NameFromUserID, HPLGenD8 } = require("./database.js");
+const { getD1, FindDate, CheckHoliday, FindNextHoliday, GetDate, dateDiffInDays, MakeImage, funnyDOWText, EmbedHaikuGen } = require("./helperFunc.js");
 var babadata = require('./babotdata.json'); //baba configuration file
 var data = require(babadata.datalocation + 'data.json'); //extra data
 const Discord = require('discord.js'); //discord module for interation with discord api
@@ -7,8 +7,6 @@ const fs = require('fs');
 const images = require('images');
 const Jimp = require('jimp');
 const https = require('https');
-
-const dbenable = !process.argv.includes("-db")
 
 const options = { year: 'numeric', month: 'long', day: 'numeric' }; // for date parsing to string
 
@@ -160,7 +158,7 @@ function babaRepost()
 
 function babaHaikuEmbed(purity, list, chans, mye, buy, msgContent, pagestuff, callback)
 {
-    if (!dbenable) return callback([{content: "Database is not enabled so no haikus for you!"}]);
+    if (!(global.dbAccess[1] && global.dbAccess[0])) return callback([{content: "Database is not enabled so no haikus for you!"}]);
 
     if (purity)
     {
@@ -277,44 +275,7 @@ function babaHaikuEmbed(purity, list, chans, mye, buy, msgContent, pagestuff, ca
     { 
         HaikuSelection(function(haiku, simnames)
         {
-            var obj = {content: "BABA MAKE HAIKU"};
-            if (haiku == null) 
-            {
-                var bad = new Discord.MessageEmbed() // embed for the haiku
-                .setColor("#" + (Math.random() < .5 ? "0" : "F") + (Math.random() < .5 ? "0" : "F") + (Math.random() < .5 ? "0" : "F") + (Math.random() < .5 ? "0" : "F") + (Math.random() < .5 ? "0" : "F") + (Math.random() < .5 ? "0" : "F"))
-                .setDescription("No Haikus Found!")
-                .setFooter("Haikus by Baba", "https://media.discordapp.net/attachments/574840583563116566/949515044746559568/JSO3bX0V.png");
-                obj.embeds = [bad];
-                return callback([obj]);
-            }
-
-            var showchan = Math.random();
-            var showname = Math.random();
-            var showdate = Math.random();
-
-            //get signiture and things
-            var outname = showname < .025 ? "Anonymous" : (showname < .325 ? haiku.PersonName : (showname < .5 ? haiku.DiscordName : GetSimilarName(simnames))); // .85 > random discord name
-            var channame = showchan < .35 ? haiku.ChannelName : "";
-            var datetime = showdate < .5 ? new Date(haiku.Date) : "";
-
-            var signature = "";
-            
-            if (channame == "" && datetime == "") signature = outname; // randomness is great, dont judge
-            else 
-            {
-                signature = outname;
-
-                if (channame != "") signature += " in " + channame;
-                if (datetime != "") signature += " on " + datetime.toLocaleDateString('en-US', options);
-            }
-
-            exampleEmbed = new Discord.MessageEmbed() // embed for the haiku
-            .setColor("#" + (Math.random() < .5 ? "0" : "F") + (Math.random() < .5 ? "0" : "F") + (Math.random() < .5 ? "0" : "F") + (Math.random() < .5 ? "0" : "F") + (Math.random() < .5 ? "0" : "F") + (Math.random() < .5 ? "0" : "F"))
-            .setDescription(haiku.HaikuFormatted)
-            .setFooter("- " + (!haiku.Accidental ? "Purposful Haiku by " : "") + signature, "https://media.discordapp.net/attachments/574840583563116566/949515044746559568/JSO3bX0V.png");
-            
-            obj.embeds = [exampleEmbed];
-            return callback([obj]);
+            return callback(EmbedHaikuGen(haiku, simnames));
         }, buy, msgContent);
     }
 }
@@ -390,7 +351,7 @@ function babaWednesday(msgContent, author, callback)
     //let rawdata = fs.readFileSync(babadata.datalocation + "FrogHolidays/" + 'frogholidays.json'); //load file each time of calling wednesday
     //let holidays = JSON.parse(rawdata);
 
-    if (!dbenable) return callback([{content: funnyDOWText(3, author.id) }]);
+    if (!(global.dbAccess[1] && global.dbAccess[0])) return callback([{content: funnyDOWText(3, author.id) }]);
 
     ObtainDBHolidays(function(holidays)
     {
@@ -640,7 +601,7 @@ function babaWednesday(msgContent, author, callback)
 
 function babaWhomst(user, callback)
 {
-    if (!dbenable) return callback({content: "Whomst mayhaps are they, BABA not know as BABA Databasen't" });
+    if (!(global.dbAccess[1] && global.dbAccess[0])) return callback({content: "Whomst mayhaps are they, BABA not know as BABA Databasen't" });
 
     NameFromUserID(
         function(result)
