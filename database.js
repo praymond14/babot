@@ -619,7 +619,7 @@ function cacheDOW()
 	function (err, result)
 		{
 			var opts = [];
-			if (err) return;
+			if (err) throw err;
 			for (var i = 0; i < result.length; i++)
 			{
 				var res = result[i];
@@ -649,7 +649,7 @@ function cacheDOW()
 	function (err, result)
 		{
 			var opts = [];
-			if (err) return;
+			if (err) throw err;
 			for (var i = 0; i < result.length; i++)
 			{
 				var res = result[i];
