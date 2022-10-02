@@ -245,7 +245,6 @@ function HaikuSelection(callback, by, msgContent)
 	}
 	else if (by == 3)
 	{
-		console.log(FindDate(msgContent));
 		var IsDate = FindDate(msgContent);
 		if (IsDate != null)
 		{
