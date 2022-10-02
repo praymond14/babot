@@ -177,7 +177,7 @@ function babaMessage(bot, message)
 		}
 		else if (msgContent.includes("refried beans")) //probably would break adams brain
 		{
-			if (!process.argv.includes("-db"))
+			if ((global.dbAccess[1] && global.dbAccess[0]))
 			{
 				cacheDOW();
 				message.author.send("DOW cache updated (hopefully)");
@@ -200,7 +200,7 @@ function babaMessage(bot, message)
 			if (time < 0) time = 0;
 			if (time > 2) time = 2;
 
-			if (!process.argv.includes("-db"))
+			if ((global.dbAccess[1] && global.dbAccess[0]))
 			{
 				controlDOW(u_id, time);
 				message.author.send("DOW control for <@" + u_id + "> set to " + time);

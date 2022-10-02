@@ -8,7 +8,9 @@ const txtCommands = require('./textCommands.js');
 //const { setCommandRoles } = require('./helperFunc');
 const { voiceChannelChange, startUpChecker } = require("./voice.js");
 const { cacheOpts, handleDisconnect } = require('./database');
-const { dailyCallStart } = require('./helperFunc');
+const { dailyCallStart } = require('./dailycall.js');
+
+global.dbAccess = [!process.argv.includes("-db"), process.argv.includes("-db") ? false : true];
 
 // Initialize Discord Bot
 const bot = new Client({ intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MESSAGES, Intents.FLAGS.DIRECT_MESSAGES, Intents.FLAGS.GUILD_VOICE_STATES], partials: ["CHANNEL"]});
@@ -18,7 +20,7 @@ bot.on('ready', function (evt)
 {
 	console.log('Connected');
 
-	if (!process.argv.includes("-db"))
+	if (global.dbAccess[1])
 	{
 		handleDisconnect("Initializing");
 
@@ -47,7 +49,7 @@ bot.on('messageCreate', async message => {txtCommands.babaMessage(bot, message)}
 
 bot.on('voiceStateUpdate', (oldMember, newMember) => 
 {
-	if (babadata.testing === undefined && !process.argv.includes("-db"))
+	if (babadata.testing === undefined && (global.dbAccess[1] && global.dbAccess[0]))
 		voiceChannelChange(newMember, oldMember);
 });
 

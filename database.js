@@ -5,8 +5,25 @@ const { FindDate } = require('./helperFunc');
 
 var con;
 
+var timeoutDisconnect = null;
+var timeoutClear = null;
+
+var timeoutCT = 0;
+
 function handleDisconnect(print) 
 {
+	if (timeoutCT == 0) 
+	{
+		console.log("Cleaning Timeouts in handleDisconnect");
+		global.dbAccess[0] = true;
+
+		if (timeoutDisconnect != null) clearTimeout(timeoutDisconnect);
+		if (timeoutClear != null) clearTimeout(timeoutClear);
+
+		timeoutDisconnect = null;
+		timeoutClear = null;
+	}
+
 	console.log(print + " - Starting Database Connection");
 	con = mysql.createConnection({
 		host: babadata.database.host,
@@ -19,8 +36,32 @@ function handleDisconnect(print)
 
 	con.on('error', function(err) 
 	{
-		console.log('db error', err);
-		handleDisconnect(err.code);
+		//console.log('db error', err);
+		if (err.code == "ETIMEDOUT")
+		{
+			timeoutCT++;
+			console.log("Timeout CT: " + timeoutCT);
+			if (timeoutCT >= 5)
+			{
+				if (timeoutClear != null) clearTimeout(timeoutClear);
+				console.log("Too many timeouts, entering minutely check mode");
+				global.dbAccess[0] = false;
+				timeoutDisconnect = setTimeout(handleDisconnect, 60000, err.code);
+				timeoutClear = setTimeout(function() 
+				{ 
+					timeoutCT = 0; 
+					global.dbAccess[0] = true; 
+					console.log("Database Access Restored");
+				}, 90000);
+			}
+			else
+				handleDisconnect(err.code);
+		}
+		else
+		{
+			timeoutCT = 0;
+			handleDisconnect(err.code);
+		}
 	});
 }
 
@@ -290,9 +331,15 @@ function HaikuSelection(callback, by, msgContent)
 		if (result.length == 0) return callback(null);
 
         var num = Math.floor(Math.random() * result.length);
-        var haiku = result[num];
+        var haiku = [result[num]];
 
-		var qq = `SELECT Distinct DiscordName FROM haiku where Lower(PersonName) = Lower("` + haiku.PersonName + `");`;
+		if (by == 4 && msgContent[5] == "all")
+		{
+			haiku = result;
+			return callback(haiku, null);
+		}
+
+		var qq = `SELECT Distinct DiscordName FROM haiku where Lower(PersonName) = Lower("` + haiku[0].PersonName + `");`;
 
 		con.query(qq, function (err2, result2)
 		{
@@ -302,12 +349,6 @@ function HaikuSelection(callback, by, msgContent)
 	});
 }
 
-function GetSimilarName(names)
-{
-	var num = Math.floor(Math.random() * names.length);
-	var nam = names[num];
-	return nam.DiscordName;
-}
 
 function ObtainDBHolidays(callback)
 {
@@ -367,10 +408,21 @@ function GetParent(retme, id)
 
 var cleanupFn = function cleanup() 
 {
-	if (!process.argv.includes("-db"))
+	if ((global.dbAccess[1] && global.dbAccess[0]))
 	{
 		console.log("Ending SQL Connection");
 		con.end();
+	}
+
+	if (timeoutClear != null)
+	{
+		console.log("Clearing Timeout - DB Reconnecter");
+		clearTimeout(timeoutClear);
+	}
+	if (timeoutDisconnect != null)
+	{
+		console.log("Clearing Timeout - DB Checker");
+		clearTimeout(timeoutDisconnect);
 	}
 }
 
@@ -553,6 +605,16 @@ function endLeftUsersCrash(onlineusers, guild)
 
 function cacheDOW()
 {
+	con.ping(function (err) 
+	{
+		if(err) 
+		{
+			console.log("Could not load the baba DB Cache!");
+			handleDisconnect("CacheDOW");
+			return;
+		}
+  	});
+
 	con.query(`Select * from dowfunny`,
 	function (err, result)
 		{
@@ -677,7 +739,6 @@ module.exports = {
 	HPLSelectDate,
 	HPLSelectUser,
 	HaikuSelection,
-	GetSimilarName,
 	ObtainDBHolidays,
 	NameFromUserID,
 	userJoinedVoice,

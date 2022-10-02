@@ -4,7 +4,6 @@ const Discord = require('discord.js'); //discord module for interation with disc
 const fs = require('fs');
 const images = require('images');
 const Jimp = require('jimp');
-const { cacheDOW } = require('./database');
 
 const options = { year: 'numeric', month: 'long', day: 'numeric' }; // for date parsing to string
 
@@ -15,9 +14,6 @@ const emotion2 = ["fun", "exciting", "monotonous", "speed run", "pretty eventful
 const bye = ["bid you a morrow", "will see you soon", "want to eat your soul, so watch out", "am going to leave now", "hate everything, goodbye", "am monke, heee heee hoo hoo", "wish you good luck on your adventures", "am going to go to bed now", "want to sleep but enevitably will not get any as i will be gaming all night, good morrow", "am going to go to the morrow lands", "will sleep now"];
 const emoji = ["ඞ", "🐸", "🍆", "💄", "⛧", "🎄", "🐷", "🐎", "🐴", "🐍", "⚡", "🪙", "🖕", "🚊", "🏻", "🤔", "🌳", "🌲", "🌴", "🌵", "🐀", "🍝", "𓀒"];
 
-
-var to = null;
-var toWed = null;
 
 async function setGrole(msg, rname) //creates role and sets users
 {
@@ -1028,135 +1024,127 @@ function funnyDOWText(dowNum, authorID)
 	return text;
 }
 
-function dailyCallStart(bot)
+
+function SingleHaiku(haiku, simnames, page, pagetotal)
 {
-	bot.guilds.fetch(babadata.guildId).then(guild =>
+	var obj = {content: "BABA MAKE HAIKU"};
+    var showchan = Math.random();
+    var showname = Math.random();
+    var showdate = Math.random();
+
+    //get signiture and things
+	var outname = "";
+	var channame = "";
+	var datetime = "";
+
+	if (simnames == null)
 	{
-		dailyCall(bot, guild);
-	});
+    	outname = haiku.DiscordName;
+		channame = haiku.ChannelName;
+		datetime = new Date(haiku.Date);
+	}
+    else
+	{
+		outname = showname < .025 ? "Anonymous" : (showname < .325 ? haiku.PersonName : (showname < .5 ? haiku.DiscordName : GetSimilarName(simnames))); // .85 > random discord name
+		channame = showchan < .35 ? haiku.ChannelName : "";
+		datetime = showdate < .5 ? new Date(haiku.Date) : "";
+	}
+
+    var signature = "";
+
+    if (channame == "" && datetime == "") signature = outname; // randomness is great, dont judge
+    else 
+    {
+        signature = outname;
+
+        if (channame != "") signature += " in " + channame;
+        if (datetime != "") signature += " on " + datetime.toLocaleDateString('en-US', options);
+    }
+
+    exampleEmbed = new Discord.MessageEmbed() // embed for the haiku
+    .setColor("#" + (Math.random() < .5 ? "0" : "F") + (Math.random() < .5 ? "0" : "F") + (Math.random() < .5 ? "0" : "F") + (Math.random() < .5 ? "0" : "F") + (Math.random() < .5 ? "0" : "F") + (Math.random() < .5 ? "0" : "F"))
+    .setDescription(haiku.HaikuFormatted)
+    .setFooter("- " + (!haiku.Accidental ? "Purposful Haiku by " : "") + signature + (page != null ? " - Page " + (1 + page) + " of " + pagetotal : ""), "https://media.discordapp.net/attachments/574840583563116566/949515044746559568/JSO3bX0V.png");
+
+    obj.embeds = [exampleEmbed];
+	return obj;
 }
 
-function holidayDaily(d1, server)
+function EmbedHaikuGen(haiku, simnames)
 {
-	if (d1.getMonth() < 9)
+    var objs = [];
+    if (haiku == null) 
+    {
+		var obj = {content: "BABA MAKE HAIKU"};
+        var bad = new Discord.MessageEmbed() // embed for the haiku
+        .setColor("#" + (Math.random() < .5 ? "0" : "F") + (Math.random() < .5 ? "0" : "F") + (Math.random() < .5 ? "0" : "F") + (Math.random() < .5 ? "0" : "F") + (Math.random() < .5 ? "0" : "F") + (Math.random() < .5 ? "0" : "F"))
+        .setDescription("No Haikus Found!")
+        .setFooter("Haikus by Baba", "https://media.discordapp.net/attachments/574840583563116566/949515044746559568/JSO3bX0V.png");
+        obj.embeds = [bad];
+        return [obj];
+    }
+
+	if (haiku.length == 1)
+		return [SingleHaiku(haiku[0], simnames)];
+	else
 	{
-		if (babadata.holidayval != "defeat" && d1.getMonth() == 0 && d1.getDate() == 1 && babadata.holidayval != "null")
+		var objs = [];
+		for (var e = 0; e < haiku.length; e++)
 		{
-			SetHolidayChan(server, "defeat");
-		}
-	}
-	else if (d1.getMonth() >= 9)
-	{
-		if (babadata.holidaychan == 0)
-		{
-			CreateChannel(server, "text channels", d1);
-		}
-		MonthsPlus(server, d1);
-	}
-}
+			var ovb = SingleHaiku(haiku[e], simnames, e, haiku.length);
+			
+			var row = new Discord.MessageActionRow();
 
-function dailyCall(bot, guild)
-{
-	var dateoveride = [false, 1, 1]; //allows for overiding date manually (testing)
-
-	var yr = new Date().getFullYear(); //get this year
-	var dy = dateoveride[0] ? dateoveride[2] : new Date().getDate(); //get this day
-	var my = dateoveride[0] ? dateoveride[1] - 1 : new Date().getMonth(); //get this month
-	var d1 = new Date(yr, my, dy) //todayish
-
-	console.log("Daily Call Running: " + d1.toDateString());
-	var now = new Date();
-	var midnight = new Date();
-    midnight.setHours(24);
-    midnight.setMinutes(1);
-    midnight.setSeconds(0);
-    midnight.setMilliseconds(0);
-	var timeToMidnight = midnight.getTime() - now.getTime();
-
-	let rawdata = fs.readFileSync(babadata.datalocation + "FrogHolidays/" + 'frogholidays.json'); //load file each time of calling wednesday
-	let frogdata = JSON.parse(rawdata);
-
-	var g = bot.guilds.resolve(frogdata.froghelp.mainfrog);
-
-	holidayDaily(d1, g);
-
-	if (!process.argv.includes("-db"))
-	{
-		cacheDOW();
-	}
-
-	if (d1.getDay() == 3)
-	{
-		guild.channels.fetch()
-		.then(channels => 
-		{
-			console.log(`There are ${channels.size} channels.`)
-			bannedCats = [];
-			bannedKittens = ["community quotes", "haiku log"];
-			for (let current of channels) 
+			if (haiku.length > 100) 
 			{
-				if (current[1].type == "GUILD_CATEGORY")
+				var p100btn = new Discord.MessageButton().setCustomId("page"+(e - 100)).setLabel("-100").setStyle("PRIMARY");
+				if (e < 100)
 				{
-					if (current[1].name.toLowerCase() == "the seat of the gods" || current[1].name.toLowerCase() == "archive")
-					{
-						bannedCats.push(current[1].id);
-					}
+					p100btn.setDisabled(true);
 				}
+				row.addComponents(p100btn);
 			}
 			
-			coolCats = [];
-			for (let currenter of channels) 
+			var pButton = new Discord.MessageButton().setCustomId("page"+(e - 1)).setLabel("Previous").setStyle("PRIMARY");
+			var nButton = new Discord.MessageButton().setCustomId("page"+(1 + e)).setLabel("Next").setStyle("PRIMARY");
+
+			if (e == 0)
 			{
-				if (currenter[1].type == "GUILD_TEXT" && !bannedKittens.includes(currenter[1].name.toLowerCase()))
+				pButton.setDisabled(true);
+			}
+			if (e == haiku.length - 1)
+			{
+				nButton.setDisabled(true);
+			}
+	
+			row.addComponents(pButton, nButton);
+			
+			if (haiku.length > 100) 
+			{
+				var n100btn = new Discord.MessageButton().setCustomId("page"+(e + 100)).setLabel("+100").setStyle("PRIMARY");
+				if (e >= haiku.length - 100)
 				{
-					if (!bannedCats.includes(currenter[1].parentId))
-						coolCats.push(currenter[1]);
+					n100btn.setDisabled(true);
 				}
+				row.addComponents(n100btn);
 			}
 			
-			var coolestCat = coolCats[Math.floor(Math.random() * coolCats.length)];
-			
-			var eightAM = new Date();
-			eightAM.setHours(8);
-			eightAM.setMinutes(0);
-			eightAM.setSeconds(0);
-			eightAM.setMilliseconds(0);
-			var tenPM = new Date();
-			tenPM.setHours(22);
-			tenPM.setMinutes(0);
-			tenPM.setSeconds(0);
-			tenPM.setMilliseconds(0);
-
-			var timeToEightAM = Math.max(eightAM.getTime() - now.getTime(), 0);
-			var timeToTenPM = Math.max(tenPM.getTime() - now.getTime(), 0);
-
-			var rndTime = Math.floor(Math.random() * (timeToTenPM - timeToEightAM)) + timeToEightAM;
-			console.log("Sending to " + coolestCat.name + " at " + new Date(now.getTime() + rndTime).toTimeString());
-
-			toWed = setTimeout(function()
-			{
-				coolestCat.send("It is Wednesday, My Dudes!");
-				toWed = null;
-			}, rndTime);
-		})
-		.catch(console.error);
+			ovb.components = [row];
+			objs.push(ovb);
+		}
+		
+		return objs;
 	}
-
-	console.log("Calling next command in: " + timeToMidnight / 1000 / 60 + " minutes");
-	to = setTimeout(function()
-	{
-		dailyCall(bot, guild);
-	}, timeToMidnight);
 }
 
-var cleanupFn = function cleanup() 
+
+function GetSimilarName(names)
 {
-	console.log("Ending Daily Call Timer");
-	if (to != null)  
-		clearTimeout(to);
-	if (toWed != null)  
-		clearTimeout(toWed);
+	var num = Math.floor(Math.random() * names.length);
+	var nam = names[num];
+	return nam.DiscordName;
 }
+
 
 //const download = (url, path, callback) => { //download function //depricated with the request deprication
 //	request.head(url, (err, res, body) => {
@@ -1174,9 +1162,6 @@ const download = (url, path, callback) =>
             res.body.pipe(dest);
     });
 }
-
-process.on('SIGINT', cleanupFn);
-process.on('SIGTERM', cleanupFn);
 
 
 module.exports = {
@@ -1202,5 +1187,6 @@ module.exports = {
 	handleButtonsEmbed,
 	FrogButtons,
 	funnyDOWText,
-	dailyCallStart
+	EmbedHaikuGen,
+	GetSimilarName
 };
