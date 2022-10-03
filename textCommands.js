@@ -277,6 +277,12 @@ function babaMessage(bot, message)
 		if (num <= 69)
 			message.react("🐸");
 	}
+	if (msgContent.includes("huzzah"))
+	{
+		var num = Math.floor(Math.random() * 100); //pick a random one
+		if (num <= 69)
+			message.react("891799760346955796");
+	}
 
 	if(message.content.toLowerCase().includes('!baba') && !message.author.bot) //if message contains baba and is not from bot
 	{
