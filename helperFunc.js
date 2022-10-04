@@ -1104,7 +1104,7 @@ function EmbedHaikuGen(haiku, simnames)
 				}
 				row.addComponents(p100btn);
 			}
-			
+
 			var pButton = new Discord.MessageButton().setCustomId("page"+(e - 1)).setLabel("Previous").setStyle("PRIMARY");
 			var nButton = new Discord.MessageButton().setCustomId("page"+(1 + e)).setLabel("Next").setStyle("PRIMARY");
 
