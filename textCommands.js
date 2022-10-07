@@ -277,7 +277,7 @@ function babaMessage(bot, message)
 		if (num <= 69)
 			message.react("🐸");
 	}
-	if (msgContent.includes("huzzah") || msgContent.includes":luna:")
+	if (msgContent.includes("huzzah") || msgContent.includes(":luna:"))
 	{
 		var num = Math.floor(Math.random() * 100); //pick a random one
 		if (num <= 69)
