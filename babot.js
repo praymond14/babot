@@ -32,7 +32,7 @@ bot.on('ready', function (evt)
 			});
 		}
 	}
-
+	
 	dailyCallStart(bot);
 });
 

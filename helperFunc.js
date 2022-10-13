@@ -8,12 +8,13 @@ const Jimp = require('jimp');
 const options = { year: 'numeric', month: 'long', day: 'numeric' }; // for date parsing to string
 
 const emotions = ["splendid", "exciting", "sad", "boring", "fun", "exquisite", "happy", "pretty eventful", "slow to start but it picked up later in the day", "not so good", "very good", "legal", "spungungulsumplus", "fish"];
-const persontype = ["friend", "enemy", "brother", "BROTHERRRRRR", "bungle bus", "uncle", "second cousin twice removed", "uncles dogs sisters boyfriends moms second cousins cat", "leg"];
+const persontype = ["friend", "enemy", "brother", "BROTHERRRRRR", "bungle bus", "uncle", "second cousin twice removed", "uncles dogs sisters boyfriends moms second cousins cat", "leg", "adam"];
 const game = ["TF2", "Ultimate Admiral: Dreadnoughts", "Fishing Simulator", "Sea of Thieves", "Factorio", "Forza Horizon 5", "nothing", "Fallout: New Vegas", "Stabbing Simulator (IRL)"];
 const emotion2 = ["fun", "exciting", "monotonous", "speed run", "pretty eventful", "frog", "emotional", "devoid of all emotions"];
-const bye = ["bid you a morrow", "will see you soon", "want to eat your soul, so watch out", "am going to leave now", "hate everything, goodbye", "am monke, heee heee hoo hoo", "wish you good luck on your adventures", "am going to go to bed now", "want to sleep but enevitably will not get any as i will be gaming all night, good morrow", "am going to go to the morrow lands", "will sleep now"];
+const bye = ["bid you a morrow", "will see you soon", "want to eat your soul, so watch out", "am going to leave now", "hate everything, goodbye", "am monke, heee heee hoo hoo", "wish you good luck on your adventures", "am going to go to bed now", "want to sleep but enevitably will not get any as i will be gaming all night, good morrow", "am going to go to the morrow lands", "will sleep now", "am pleased to sleep"];
 const emoji = ["ඞ", "🐸", "🍆", "💄", "⛧", "🎄", "🐷", "🐎", "🐴", "🐍", "⚡", "🪙", "🖕", "🚊", "🏻", "🤔", "🌳", "🌲", "🌴", "🌵", "🐀", "🍝", "𓀒"];
 
+var lookuptable = {};
 
 async function setGrole(msg, rname) //creates role and sets users
 {
@@ -1024,6 +1025,57 @@ function funnyDOWText(dowNum, authorID)
 	return text;
 }
 
+function normalizeMSG(msgContent)
+{
+	var newmesg = "";
+
+	var msCNT = [...msgContent]
+
+	for (var i = 0; i < msCNT.length; i++)
+	{
+		var c = msCNT[i];
+
+		if (lookuptable[c] != undefined)
+		{
+			newmesg += lookuptable[c];
+			if (lookuptable[c + " "] != undefined && msCNT[i + 1] == " ")
+			{
+				i++;
+			}
+		}
+		else
+		{
+			newmesg += c;
+		}
+	}
+
+	return newmesg;
+}
+
+function loadInDBFSV()
+{
+	var rawdata = fs.readFileSync(babadata.datalocation + "/comparisions.fsv", {encoding:'utf8', flag:'r'});
+	//console.log(rawdata);
+	var result = rawdata.split(/\r?\n/);
+	for (var i = 1; i < result.length; i++)
+	{
+		var lnez = result[i].split("🐸");
+		var actual = "";
+		for (var j = 1; j < lnez.length - 2; j++)
+		{
+			iteml = lnez[j].toLowerCase();
+
+			if (j == 1) actual = iteml;
+			else
+			{
+				if (typeof lookuptable[iteml] == 'undefined' && iteml != actual)
+				{
+					lookuptable[iteml] = actual;
+				}
+			}
+		}
+	}
+}
 
 function SingleHaiku(haiku, simnames, page, pagetotal)
 {
@@ -1188,5 +1240,7 @@ module.exports = {
 	FrogButtons,
 	funnyDOWText,
 	EmbedHaikuGen,
-	GetSimilarName
+	GetSimilarName,
+	loadInDBFSV,
+	normalizeMSG
 };

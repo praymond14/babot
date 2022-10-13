@@ -1,4 +1,4 @@
-const { setGrole, setVote, setVBH, movetoChannel, SetHolidayChan, MonthsPlus, CreateChannel, CheckFrogID, getErrorFlag, timedOutFrog, handleButtonsEmbed } = require("./helperFunc.js");
+const { setGrole, setVote, setVBH, movetoChannel, SetHolidayChan, MonthsPlus, CreateChannel, CheckFrogID, getErrorFlag, timedOutFrog, handleButtonsEmbed, normalizeMSG } = require("./helperFunc.js");
 const { babaFriday,  babaHelp, babaPlease, babaPizza, babaVibeFlag, babaYugo, babaHaikuEmbed, babaWednesday, babaDayNextWed } = require("./commandFunctions.js");
 const { Client, Intents } = require('discord.js'); //discord module for interation with discord api
 const Discord = require('discord.js'); //discord module for interation with discord api
@@ -44,7 +44,7 @@ function babaMessage(bot, message)
 	var sentvalid = false;
 	var idint = CheckFrogID(frogdata, message.author.id);
 	var rid = frogdata.froghelp.rfrog[0];
-	var msgContent = message.content.toLowerCase();
+	var msgContent =  normalizeMSG(message.content.toLowerCase());
 
 	if (message.channel.type == "DM" && idint >= 0)
 	{
@@ -210,6 +210,14 @@ function babaMessage(bot, message)
 				message.author.send("DOW control not updated");
 			}
 		}
+		else if (msgContent.includes("saintnick"))
+		{
+			var name = message.content.split(' ').slice(1, ).join(' '); //get the name for the role
+
+			g.members.fetch(bot.user.id).then(member => {
+				member.setNickname(name, "Baba Plase");
+			});
+		}
 	}
 
 	if (babadata.holidaychan == null)
@@ -245,7 +253,7 @@ function babaMessage(bot, message)
 		message.channel.send("The Equine Lunar God Empress demands a blood sacrifice.");
 	}
 
-	if(message.content.toLowerCase().includes('perchance') && !message.author.bot) //perchance update
+	if(msgContent.includes('perchance') && !message.author.bot) //perchance update
 	{
 		message.channel.send("You can't just say perchance");
 	}
@@ -255,7 +263,7 @@ function babaMessage(bot, message)
 		message.channel.send("<@" + message.author.id + "> Christmas is good");
 	}
 
-	if(message.content.toLowerCase().includes('adam')) //if message contains baba and is not from bot
+	if(msgContent.includes('adam')) //if message contains baba and is not from bot
 	{
 		if(msgContent.includes("please") && !message.author.bot)
 		{
@@ -277,14 +285,15 @@ function babaMessage(bot, message)
 		if (num <= 69)
 			message.react("🐸");
 	}
+	
 	if (msgContent.includes("huzzah") || msgContent.includes(":luna:"))
 	{
 		var num = Math.floor(Math.random() * 100); //pick a random one
 		if (num <= 69)
-			message.react("891799760346955796");
+			message.react("891799760346955796").catch(console.error);
 	}
 
-	if(message.content.toLowerCase().includes('!baba') && !message.author.bot) //if message contains baba and is not from bot
+	if(msgContent.includes('!baba') && !message.author.bot) //if message contains baba and is not from bot
 	{
 		var exampleEmbed = null;
 		var text = 'BABA IS ADMIN'; //start of reply string for responce message.
@@ -303,7 +312,11 @@ function babaMessage(bot, message)
 
 		if (msgContent.includes("please")) //this could do something better but its ok for now
 		{
-			message.channel.send(babaPlease());
+			var cont = babaPlease()
+			if (cont != null)
+			{
+				message.channel.send(cont);
+			}
 		}
 
 		if (msgContent.includes("order pizza"))
