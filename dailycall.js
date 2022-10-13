@@ -1,7 +1,7 @@
 var babadata = require('./babotdata.json'); //baba configuration file
 const fs = require('fs');
 const Discord = require('discord.js'); //discord module for interation with discord api
-const { SetHolidayChan, CreateChannel, MonthsPlus } = require('./helperFunc');
+const { SetHolidayChan, CreateChannel, MonthsPlus, loadInDBFSV } = require('./helperFunc');
 const { cacheDOW } = require('./database');
 
 
@@ -10,6 +10,7 @@ var toWed = null;
 
 function dailyCallStart(bot)
 {
+	loadInDBFSV();
 	bot.guilds.fetch(babadata.guildId).then(guild =>
 	{
 		dailyCall(bot, guild);
@@ -46,7 +47,7 @@ function dailyCall(bot, guild)
 	{
 		cacheDOW();
 	}
-
+	
 	if (d1.getDay() == 3)
 	{
 		guild.channels.fetch()
@@ -54,7 +55,7 @@ function dailyCall(bot, guild)
 		{
 			console.log(`There are ${channels.size} channels.`)
 			bannedCats = [];
-			bannedKittens = ["community quotes", "haiku log"];
+			bannedKittens = ["826320007675641876", "917516043583361034"];
 			for (let current of channels) 
 			{
 				if (current[1].type == "GUILD_CATEGORY")
@@ -69,7 +70,7 @@ function dailyCall(bot, guild)
 			coolCats = [];
 			for (let currenter of channels) 
 			{
-				if (currenter[1].type == "GUILD_TEXT" && !bannedKittens.includes(currenter[1].name.toLowerCase()))
+				if (currenter[1].type == "GUILD_TEXT" && !bannedKittens.includes(currenter[1].id))
 				{
 					if (!bannedCats.includes(currenter[1].parentId))
 						coolCats.push(currenter[1]);

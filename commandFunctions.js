@@ -1,5 +1,5 @@
 const { FormatPurityList, HPLGenChannel, HPLGenUsers, HPLSelectChannel, HPLSelectUser, HPLSelectDate, HaikuSelection, ObtainDBHolidays, NameFromUserID, HPLGenD8 } = require("./database.js");
-const { getD1, FindDate, CheckHoliday, FindNextHoliday, GetDate, dateDiffInDays, MakeImage, funnyDOWText, EmbedHaikuGen } = require("./helperFunc.js");
+const { getD1, FindDate, CheckHoliday, FindNextHoliday, GetDate, dateDiffInDays, MakeImage, funnyDOWText, EmbedHaikuGen, normalizeMSG } = require("./helperFunc.js");
 var babadata = require('./babotdata.json'); //baba configuration file
 var data = require(babadata.datalocation + 'data.json'); //extra data
 const Discord = require('discord.js'); //discord module for interation with discord api
@@ -158,6 +158,16 @@ function babaRepost()
 
 function babaHaikuEmbed(purity, list, chans, mye, buy, msgContent, pagestuff, callback)
 {
+    if (buy != 4)
+        msgContent = normalizeMSG(msgContent);
+    else
+    {
+        for (var i = 0; i < msgContent.length; i++)
+        {
+            if (msgContent[i] != null)
+                msgContent[i] = normalizeMSG(msgContent[i]);
+        }
+    }
     if (!(global.dbAccess[1] && global.dbAccess[0])) return callback([{content: "Database is not enabled so no haikus for you!"}]);
 
     if (purity)
@@ -347,6 +357,7 @@ function babaJeremy()
 
 function babaWednesday(msgContent, author, callback)
 {
+    msgContent = normalizeMSG(msgContent);
     var outs = [];
     //let rawdata = fs.readFileSync(babadata.datalocation + "FrogHolidays/" + 'frogholidays.json'); //load file each time of calling wednesday
     //let holidays = JSON.parse(rawdata);
