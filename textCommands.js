@@ -345,7 +345,7 @@ function babaMessage(bot, message)
 		message.react("🐸");
 	}
 
-	if (msgContent.includes("huzzah") || msgContent.includes(":luna:"))
+	if (msgContent.includes("huzzah") || msgContent.includes(":luna:") || msgContent.includes("doubled"))
 	{
 		message.react("891799760346955796").catch(console.error);
 	}
