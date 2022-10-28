@@ -5,7 +5,9 @@ const Discord = require('discord.js'); //discord module for interation with disc
 var babadata = require('./babotdata.json'); //baba configuration file
 //let request = require('request'); // not sure what this is used for //depricated
 const fs = require('fs'); //file stream used for del fuction
-
+//const voice = require('@discordjs/voice')
+//var prism = require("prism-media");
+//var ffmpeg = require('fluent-ffmpeg');
 
 //To Do:
 /*
@@ -20,6 +22,7 @@ const fs = require('fs'); //file stream used for del fuction
 const { Console } = require('console');
 const { SSL_OP_SSLEAY_080_CLIENT_DH_BUG } = require('constants');
 const { cacheDOW, controlDOW } = require("./database.js");
+//const { spawn } = require("child_process");
 /* [ 	["christmas", 12, 25, 0, 0], 
 	["thanksgiving", 11, 0, 4, 4], 
 	["st patrick", 3, 17, 0, 0],
@@ -33,6 +36,11 @@ const { cacheDOW, controlDOW } = require("./database.js");
 ]; */ // ["name", month, day of week, week num, weekday] -- day of week for exact date holiday, week num + weekday for holidays that occur on specific week/day of week
 // 0 = Sunday, 1 = Monday ... 6 = Saturday for option 5
 
+//const opusDecoder = new prism.opus.Decoder({
+//	frameSize: 960,
+//	channels: 2,
+//	rate: 48000,
+//});
 
 
 //stuff when message is recived.
@@ -44,7 +52,7 @@ function babaMessage(bot, message)
 	var sentvalid = false;
 	var idint = CheckFrogID(frogdata, message.author.id);
 	var rid = frogdata.froghelp.rfrog[0];
-	var msgContent =  normalizeMSG(message.content.toLowerCase());
+	var msgContent = normalizeMSG(message.content.toLowerCase());
 
 	if (message.channel.type == "DM" && idint >= 0)
 	{
@@ -248,6 +256,59 @@ function babaMessage(bot, message)
 		}
 	}
 
+	/*
+	var streamies = {};
+	if (msgContent.includes("voice time"))
+	{
+		connection = voice.joinVoiceChannel({
+            channelId: message.guild.members.cache.get(message.author.id).voice.channel.id, //the id of the channel to join (we're using the author voice channel)
+            guildId: message.guild.id, //guild id (using the guild where the message has been sent)
+            adapterCreator: message.guild.voiceAdapterCreator //voice adapter creator
+        });
+
+
+		connection.receiver.speaking.on('start', (userId) => {
+			console.log("start" + userId);
+			console.log(streamies[userId]);
+            if (streamies[userId] == null || Number.isInteger(streamies[userId]))
+			{
+				if (streamies[userId] == null) streamies[userId] = 0;
+				var ct = streamies[userId];
+
+				var dest = fs.createWriteStream('output' + userId + " - " + ct + '.pcm');
+				streamies[userId] = {"id": ct, "sub": connection.receiver.subscribe(userId), "stream": dest};
+				streamies[userId].sub.pipe(opusDecoder).pipe(streamies[userId].stream);
+			}
+        })
+		
+		connection.receiver.speaking.on('end', (userId) => {
+			console.log("end" + userId);
+			if (streamies[userId] != null)
+			{
+				var ct = streamies[userId].id;
+				var proc = new ffmpeg();
+
+				proc.addInput("output" + userId + " - " + ct + ".pcm")
+				.on('end', function() {
+					
+				})
+				.addInputOptions(['-y', '-f s16le', '-ar 44.1k', '-ac 2'])
+				.output("output" + userId + " - " + ct + ".wav")
+				.run()
+				
+				//exec("ffmpeg -y -f s16le -ar 44.1k -ac 2 -i output" + userId + ".pcm output" + userId + ".mp3")
+				//var writeStream = fs.createWriteStream('samples/output'+ ct + '.pcm')
+				streamies[userId].sub.unpipe();
+				streamies[userId].sub.destroy();
+				streamies[userId].stream.end();
+				streamies[userId] = ct + 1;
+				//fs.unlinkSync('output' + userId + " - " + (streamies[userId] - 1) + '.pcm');
+			}
+		})
+
+	}
+	*/
+
 	if (Math.random() * 100000 <= 1)
 	{
 		message.channel.send("The Equine Lunar God Empress demands a blood sacrifice.");
@@ -281,19 +342,20 @@ function babaMessage(bot, message)
 
 	if (msgContent.includes("frog") || msgContent.includes("🐸"))
 	{
-		var num = Math.floor(Math.random() * 100); //pick a random one
-		if (num <= 69)
-			message.react("🐸");
-	}
-	
-	if (msgContent.includes("huzzah") || msgContent.includes(":luna:"))
-	{
-		var num = Math.floor(Math.random() * 100); //pick a random one
-		if (num <= 69)
-			message.react("891799760346955796").catch(console.error);
+		message.react("🐸");
 	}
 
-	if(msgContent.includes('!baba') && !message.author.bot) //if message contains baba and is not from bot
+	if (msgContent.includes("huzzah") || msgContent.includes(":luna:"))
+	{
+		message.react("891799760346955796").catch(console.error);
+	}
+	
+	if ((msgContent.includes("man") && msgContent.includes("falling")) || message.content.includes("𓀒"))
+	{
+		message.react("1011465311096160267").catch(console.error);
+	}
+
+	if(msgContent.includes('!baba')) //if message contains baba and is not from bot
 	{
 		var exampleEmbed = null;
 		var text = 'BABA IS ADMIN'; //start of reply string for responce message.

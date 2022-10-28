@@ -164,7 +164,7 @@ function babaHaikuEmbed(purity, list, chans, mye, buy, msgContent, pagestuff, ca
     {
         for (var i = 0; i < msgContent.length; i++)
         {
-            if (msgContent[i] != null)
+            if (typeof(msgContent[i]) == "string")
                 msgContent[i] = normalizeMSG(msgContent[i]);
         }
     }
