@@ -5,6 +5,12 @@ const { SetHolidayChan, CreateChannel, MonthsPlus, loadInDBFSV } = require('./he
 const { cacheDOW } = require('./database');
 
 
+var adam = 
+{
+	"3" : ["It is Wednesday, My Dudes!", "Rejoice, For it is Wednesday", "WEDNESDAY FROG!", "Adam Please - It is Wednesday", "!baba wednesday next event"],
+	"5" : ["It is Friday, My Dudes!", "Rejoice, For it is Friday", "FRIDAY FROG!", "Adam Please - It is Friday", "Friday Moment", "!baba friday"],
+}
+
 var to = null;
 var toWed = null;
 
@@ -47,9 +53,18 @@ function dailyCall(bot, guild)
 	{
 		cacheDOW();
 	}
+
+	if (d1.getDay() == 5)
+		console.log("FRIDAY!");
 	
-	if (d1.getDay() == 3)
+	if (d1.getDay() == 3 || d1.getDay() == 5)
 	{
+		var msgs = "";
+		if (d1.getDay() == 3)
+			msgs = adam["3"][Math.floor(Math.random() * adam["3"].length)];
+		else if (d1.getDay() == 5)
+			msgs = adam["5"][Math.floor(Math.random() * adam["5"].length)];
+
 		guild.channels.fetch()
 		.then(channels => 
 		{
