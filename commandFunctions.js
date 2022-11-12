@@ -85,7 +85,8 @@ function babaProgress()
 
 function babaHelp()
 {
-    var helptext = "```Commands:"
+    var helptext = "BABA IS HELP"
+    helptext += "\n```Commands:"
 
     helptext += "\nAll commands can be run as slash commands!";
 
