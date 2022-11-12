@@ -1,8 +1,8 @@
 var babadata = require('./babotdata.json'); //baba configuration file
 const fs = require('fs');
 const Discord = require('discord.js'); //discord module for interation with discord api
-const { SetHolidayChan, CreateChannel, MonthsPlus, loadInDBFSV } = require('./helperFunc');
-const { cacheDOW } = require('./database');
+const { SetHolidayChan, CreateChannel, MonthsPlus, loadInDBFSV, FindNextHoliday, CheckHoliday, getD1 } = require('./helperFunc');
+const { cacheDOW, ObtainDBHolidays } = require('./database');
 
 
 var adam = 
@@ -21,6 +21,39 @@ function dailyCallStart(bot)
 	{
 		dailyCall(bot, guild);
 	});
+}
+
+function DisplayBirthdays(guild)
+{
+	if ((global.dbAccess[1] && global.dbAccess[0]))
+	{
+		ObtainDBHolidays(function(holidays)
+		{
+			let d1 = getD1(); //get today
+			var yr = d1.getFullYear();
+			var hols = FindNextHoliday(d1, yr, CheckHoliday("BIRTHDAY", holidays));
+
+			var generalChan = guild.channels.fetch(babadata.generalchan).then(channel => {
+				if (hols.length > 0)
+				{
+					var names = [];
+					for (var i = 0; i < hols.length; i++)
+					{
+						if (hols[i].day == d1.getDate() && hols[i].month == d1.getMonth() + 1)
+						{
+							names.push(hols[i]["safename"]);
+						}
+					}
+					if (names.length > 0)
+					{
+						console.log("Celebrating: " + names.join(" and "))
+						channel.send("!baba wednesday " + names.join(" and "));
+					}
+				}
+			})
+			.catch(console.error);
+		});
+	}
 }
 
 
@@ -53,6 +86,8 @@ function dailyCall(bot, guild)
 	{
 		cacheDOW();
 	}
+
+	DisplayBirthdays(guild);
 
 	if (d1.getDay() == 5)
 		console.log("FRIDAY!");
@@ -113,7 +148,7 @@ function dailyCall(bot, guild)
 
 			toWed = setTimeout(function()
 			{
-				coolestCat.send("It is Wednesday, My Dudes!");
+				coolestCat.send(msgs);
 				toWed = null;
 			}, rndTime);
 		})

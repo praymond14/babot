@@ -1,4 +1,4 @@
-const { setGrole, setVote, setVBH, movetoChannel, SetHolidayChan, MonthsPlus, CreateChannel, CheckFrogID, getErrorFlag, timedOutFrog, handleButtonsEmbed, normalizeMSG } = require("./helperFunc.js");
+const { setGrole, setVote, setVBH, movetoChannel, SetHolidayChan, CheckFrogID, getErrorFlag, timedOutFrog, handleButtonsEmbed, normalizeMSG, preformEasterEggs } = require("./helperFunc.js");
 const { babaFriday,  babaHelp, babaPlease, babaPizza, babaVibeFlag, babaYugo, babaHaikuEmbed, babaWednesday, babaDayNextWed } = require("./commandFunctions.js");
 const { Client, Intents } = require('discord.js'); //discord module for interation with discord api
 const Discord = require('discord.js'); //discord module for interation with discord api
@@ -21,7 +21,7 @@ const fs = require('fs'); //file stream used for del fuction
 
 const { Console } = require('console');
 const { SSL_OP_SSLEAY_080_CLIENT_DH_BUG } = require('constants');
-const { cacheDOW, controlDOW } = require("./database.js");
+const { TextCommandBackup } = require("./textextra.js");
 //const { spawn } = require("child_process");
 /* [ 	["christmas", 12, 25, 0, 0], 
 	["thanksgiving", 11, 0, 4, 4], 
@@ -62,171 +62,7 @@ function babaMessage(bot, message)
 		sentvalid = true;
 	}
 	
-	if (sentvalid)
-	{
-		if (msgContent.includes("🐸 debug")) //0 null, 1 spook, 2 thanks, 3 crimbo, 4 defeat
-		{
-			if (msgContent.includes("0"))
-				SetHolidayChan(message.guild, "null");
-			else if (msgContent.includes("1"))
-				SetHolidayChan(message.guild, "spook");
-			else if (msgContent.includes("2"))
-				SetHolidayChan(message.guild, "thanks");
-			else if (msgContent.includes("3"))
-				SetHolidayChan(message.guild, "crimbo");
-			else if (msgContent.includes("4"))
-				SetHolidayChan(message.guild, "defeat");
-	
-			message.author.send("```HC: " + babadata.holidaychan + "\nHV: " + babadata.holidayval + "```");
-		}
-		else if (msgContent.includes("clrre"))
-		{
-			var message_id = message.content.replace(/\D/g,''); //get message id
-			var chanMap = g.channels.fetch().then(channels => {
-				channels.each(chan => { //iterate through all the channels
-					if (chan.type == "GUILD_TEXT") //make sure the channel is a text channel
-					{
-						chan.messages.fetch(message_id).then(message => message.reactions.removeAll()).catch(console.error); //try to get the message, if it exists call setVote, otherwise catch the error
-					}
-				});
-			});
-		}
-		else if (msgContent.includes("funny silence"))
-		{
-			var message_id = message.content.replace(/\D/g,''); //get message id
-			var chanMap = g.channels.fetch().then(channels => {
-				channels.each(chan => { //iterate through all the channels
-					if (chan.type == "GUILD_TEXT") //make sure the channel is a text channel
-					{
-						chan.messages.fetch(message_id).then(message => movetoChannel(message, chan, babadata.logchan)).catch(console.error); //try to get the message, if it exists call setVote, otherwise catch the error
-					}
-				});
-			});
-		}
-		else if (msgContent.includes("silence"))
-		{
-			var message_id = message.content.replace(/\D/g,''); //get message id
-			var chanMap = g.channels.fetch().then(channels => {
-				channels.each(chan => { //iterate through all the channels
-					if (chan.type == "GUILD_TEXT") //make sure the channel is a text channel
-					{
-						chan.messages.fetch(message_id).then(message => message.delete()).catch(console.error); //try to get the message, if it exists call setVote, otherwise catch the error
-					}
-				});
-			});
-		}
-		else if (msgContent.includes("cmes"))
-		{
-			var message_id = message.content.split(' ')[1];
-			
-			var mess = message.content.split(' ').slice(2, ).join(' '); //get the name for the role
-			message_id = message_id.replace(/\D/g,''); //get message id
-			var hiddenChan = g.channels.cache.get(message_id); //gets the special archive channel
-			const guildUser = g.members.fetch(message.author);
-			const canSend = guildUser.communicationDisabledUntilTimestamp;
-
-			if(!canSend)
-			{
-				hiddenChan.send(mess).then(msg=>
-				{
-					if (msgContent.includes("🐸"))
-					{
-						msg.react("🐸");
-					}
-					if (msgContent.includes("s-d"))
-					{
-						setTimeout(function(){msg.delete();}, 8000);
-					}
-				});
-			}
-		}
-		else if (msgContent.includes("reee"))
-		{
-			var message_id = message.content.split(' ')[1]; //get the name for the role
-			
-			var mess = message.content.split(' ').slice(2, ).join(' '); //get the name for the role
-			message_id = message_id.replace(/\D/g,''); //get message id
-
-			var items = mess.split(" ");
-			var chanMap = g.channels.fetch().then(channels => {
-				channels.each(chan => { //iterate through all the channels
-					if (chan.type == "GUILD_TEXT") //make sure the channel is a text channel
-					{
-						chan.messages.fetch(message_id).then(message => 
-						{
-							for (var i = 0; i < items.length; i++)
-							{
-								if (items[i].includes("<"))
-								{
-									items[i] = items[i].match(/(\d+)/)[0];
-								}
-								console.log(items[i]);
-								message.react(items[i]).catch(console.error);
-							}
-						}).catch(console.error); //try to get the message, if it exists call setVote, otherwise catch the error
-					}
-				});
-			});
-		}
-		else if (msgContent.includes("tim"))
-		{
-			var u_id = message.content.split(' ').slice(1, 2).join(' ').replace(' ',''); //get the name for the role
-			
-			var mess = message.content.split(' ').slice(2, ).join(' '); //get the name for the role
-			u_id = u_id.replace(/\D/g,''); //get message id
-
-			var time = mess.match(/(\d+)/);
-			if (time != null) time = time[0] * 60 * 1000;
-
-			bot.users.fetch(u_id).then(user => {
-				g.members.fetch(user).then(member => member.timeout(time, 'Baba Plase')
-				.catch(console.error));
-			}).catch(console.error);
-		}
-		else if (msgContent.includes("refried beans")) //probably would break adams brain
-		{
-			if ((global.dbAccess[1] && global.dbAccess[0]))
-			{
-				cacheDOW();
-				message.author.send("DOW cache updated (hopefully)");
-			}
-			else
-			{
-				message.author.send("DOW cache not updated");
-			}
-		}
-		else if (msgContent.includes("rbcont")) //probably would break adams brain
-		{
-			var u_id = message.content.split(' ').slice(1, 2).join(' ').replace(' ',''); //get the name for the role
-			
-			var mess = message.content.split(' ').slice(2, ).join(' '); //get the name for the role
-			u_id = u_id.replace(/\D/g,''); //get message id
-
-			var time = mess.match(/(\d+)/);
-			if (time != null) time = time[0];
-
-			if (time < 0) time = 0;
-			if (time > 2) time = 2;
-
-			if ((global.dbAccess[1] && global.dbAccess[0]))
-			{
-				controlDOW(u_id, time);
-				message.author.send("DOW control for <@" + u_id + "> set to " + time);
-			}
-			else
-			{
-				message.author.send("DOW control not updated");
-			}
-		}
-		else if (msgContent.includes("saintnick"))
-		{
-			var name = message.content.split(' ').slice(1, ).join(' '); //get the name for the role
-
-			g.members.fetch(bot.user.id).then(member => {
-				member.setNickname(name, "Baba Plase");
-			});
-		}
-	}
+	TextCommandBackup(bot, message, sentvalid, msgContent, g)
 
 	if (babadata.holidaychan == null)
 	{
@@ -309,54 +145,13 @@ function babaMessage(bot, message)
 	}
 	*/
 
-	if (Math.random() * 100000 <= 1)
-	{
-		message.channel.send("The Equine Lunar God Empress demands a blood sacrifice.");
-	}
-
-	if(msgContent.includes('perchance') && !message.author.bot) //perchance update
-	{
-		message.channel.send("You can't just say perchance");
-	}
-
-	if(msgContent.toLowerCase().includes('christmas is bad') || msgContent.toLowerCase().includes('christmas bad')) //perchance update
-	{
-		message.channel.send("<@" + message.author.id + "> Christmas is good");
-	}
-
-	if(msgContent.includes('adam')) //if message contains baba and is not from bot
-	{
-		if(msgContent.includes("please") && !message.author.bot)
-		{
-			message.channel.send("Indeed, Adam Please!");
-		}
-		else
-		{
-			var num = Math.floor(Math.random() * 100); //pick a random one
-			if (num < 2)
-				message.channel.send("<:adam:995385148331802634>");
-			if (num < 25)
-				message.react("995385148331802634").catch(console.error);
-		}
-	}
-
-	if (msgContent.includes("frog") || msgContent.includes("🐸"))
-	{
-		message.react("🐸");
-	}
-
-	if (msgContent.includes("huzzah") || msgContent.includes(":luna:"))
-	{
-		message.react("891799760346955796").catch(console.error);
-	}
-	
-	if ((msgContent.includes("man") && msgContent.includes("falling")) || message.content.includes("𓀒"))
-	{
-		message.react("1011465311096160267").catch(console.error);
-	}
+	preformEasterEggs(message, msgContent)
 
 	if(msgContent.includes('!baba')) //if message contains baba and is not from bot
 	{
+		if (msgContent.includes("baba is help") && message.author.bot)
+			return
+		
 		var exampleEmbed = null;
 		var text = 'BABA IS ADMIN'; //start of reply string for responce message.
 		

@@ -154,7 +154,7 @@ function timedOutFrog(i, texts, message, templocal)
 
 function getD1()
 {
-	var dateoveride = [false, 1, 1]; //allows for overiding date manually (testing)
+	var dateoveride = [false, 3, 8]; //allows for overiding date manually (testing)
 	var yr = new Date().getFullYear(); //get this year
 	var dy = dateoveride[0] ? dateoveride[2] : new Date().getDate(); //get this day
 	var my = dateoveride[0] ? dateoveride[1] - 1 : new Date().getMonth(); //get this month
@@ -821,8 +821,9 @@ function CheckHoliday(msg, holdaylist) //checks if any of the holiday list is sa
 				switch(hol.mode)
 				{
 					case -1: //Nested Holiday
-						if (msg == "BIRTHDAY") msg = "ALL";
-						var tempret = CheckHoliday(msg, hol.sub) //Check all the subs
+						smsg = msg;
+						if (msg == "BIRTHDAY") smsg = "ALL";
+						var tempret = CheckHoliday(smsg, hol.sub) //Check all the subs
 						for ( var j = 0; j < tempret.length; j++) 
 						{
 							retme[ct] = tempret[j]; //Add items in return list to current returnlist
@@ -1198,6 +1199,55 @@ function GetSimilarName(names)
 }
 
 
+function preformEasterEggs(message, msgContent)
+{
+	if (Math.random() * 100000 <= 1)
+	{
+		message.reply("The Equine Lunar God Empress demands a blood sacrifice.");
+	}
+
+	if(msgContent.includes('perchance') && !message.author.bot) //perchance update
+	{
+		message.reply("You can't just say perchance");
+	}
+
+	if(msgContent.includes('christmas') && msgContent.includes('bad')) //perchance update
+	{
+		message.reply("🎅🏻🎁 Christmas is GREAT! 🎄❄️");
+	}
+
+	if(msgContent.includes('adam')) //if message contains baba and is not from bot
+	{
+		if(msgContent.includes("please") && !message.author.bot)
+		{
+			message.channel.send("Indeed, Adam Please!");
+		}
+		else
+		{
+			var num = Math.floor(Math.random() * 100); //pick a random one
+			if (num < 2)
+				message.channel.send("<:adam:995385148331802634>");
+			if (num < 25)
+				message.react("995385148331802634").catch(console.error);
+		}
+	}
+
+	if (msgContent.includes("frog") || msgContent.includes("🐸"))
+	{
+		message.react("🐸");
+	}
+
+	if (msgContent.includes("huzzah") || msgContent.includes(":luna:"))
+	{
+		message.react("891799760346955796").catch(console.error);
+	}
+	
+	if ((msgContent.includes("man") && msgContent.includes("falling")) || message.content.includes("𓀒"))
+	{
+		message.react("1011465311096160267").catch(console.error);
+	}
+}
+
 //const download = (url, path, callback) => { //download function //depricated with the request deprication
 //	request.head(url, (err, res, body) => {
 //	  request(url)
@@ -1242,5 +1292,6 @@ module.exports = {
 	EmbedHaikuGen,
 	GetSimilarName,
 	loadInDBFSV,
-	normalizeMSG
+	normalizeMSG,
+	preformEasterEggs
 };
