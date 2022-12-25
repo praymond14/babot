@@ -480,28 +480,28 @@ function SetHolidayChan(guild, name, resetid = -1)
 			switch(name)
 			{
 				case "spook": //Spooky
-					chanyu.setName("🎃💀 Real Spooktoper Days 🕸️👻")
+					chanyu.setName("🎃💀 ℌ𝔞𝔩𝔩𝔬𝔴𝔢𝔢𝔫 𝔬𝔣 𝔖𝔭𝔬𝔬𝔨𝔰 🕸️👻")
 						.then((newChannel) =>
 						console.log(`The channel's new name is ${newChannel.name}`),
 					)
 					.catch(console.error);
 					break;
 				case "thanks": //Thanks
-					chanyu.setName("🦃 Turkey Hours AKA Thanksgiving")
+					chanyu.setName("🦃 𝒯𝓊𝓇𝓀𝓎 𝒯𝒾𝓂𝑒 𝒮𝓉𝓇𝒾𝓀𝑒𝓈 𝒜𝑔𝒶𝒾𝓃! 🦃")
 						.then((newChannel) =>
 						console.log(`The channel's new name is ${newChannel.name}`),
 					)
 					.catch(console.error);
 					break;
 				case "crimbo": //Crimbo
-					chanyu.setName("🎄🎁 Crimbus 🎁🎄")
+					chanyu.setName("🎄 𓀒 𝙼𝚎𝚛𝚛𝚢 𝙼𝚊𝚗 𝙵𝚊𝚕𝚕𝚒𝚗𝚐-𝚖𝚊𝚜 𓀒🎄")
 						.then((newChannel) =>
 						console.log(`The channel's new name is ${newChannel.name}`),
 					)
 					.catch(console.error);
 					break;
 				case "defeat": //New Year
-					chanyu.setName("🎉 New Year, New Wednesday 🎉")
+					chanyu.setName("🎉 ʟᴀꜱᴛ ʏᴇᴀʀ++ 🎉")
 						.then((newChannel) =>
 						console.log(`The channel's new name is ${newChannel.name}`),
 					)
