@@ -493,11 +493,11 @@ function checkAndCreateUser(userID, userName, callback)
 			if (err) throw err;
 			if (result.length == 0)
 			{
-				console.log("Creating user: " + userID + " " + userName);
 				con.query(`INSERT INTO userval (DiscordID, PersonName) VALUES ("${userID}", "${userName}")`,
 					function (err, result)
 					{
-						if (err) throw err;
+						if (err && err.sqlMessage.includes("voiceactivity_ibfk_2"))
+							console.log("Repeat User Error: " + err.sqlMessage);
 						return callback();
 					}
 				);

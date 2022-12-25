@@ -1,4 +1,4 @@
-const { userJoinedVoice, userLeftVoice, checkUserVoiceCrash, endLeftUsersCrash } = require("./database");
+const { userJoinedVoice, userLeftVoice, checkUserVoiceCrash, endLeftUsersCrash, checkAndCreateUser, optIn } = require("./database");
 var babadata = require('./babotdata.json'); //baba configuration file
 const fs = require('fs');
 
@@ -39,6 +39,17 @@ function userOptOut(guild, userID, val)
         }
     }
     
+    guild.members.fetch(userID)
+    .then(user => checkAndCreateUser(userID, user.user.username, function() 
+    {
+        if (babadata.testing === undefined)
+            optIn(user, val, function(){});
+        else
+            optOut(user, val, function(){});
+    }))
+
+    return true;
+    /*
     guild.channels.fetch(babadata.botchan).then(channel => {
         channel.send("<@" + userID + "> would you like to opt in for baba voice activity data analysis?\n"
         + "Type `/optin` to opt in, or `/optout` to opt out (default).\n" + 
@@ -48,7 +59,7 @@ function userOptOut(guild, userID, val)
     .catch(console.error);
 
     // do the @ of person and add to opt out first
-    console.log("No In");
+    console.log("No In"); */
 }
 
 function startUpChecker(client)
