@@ -3,6 +3,24 @@ var babadata = require('./babotdata.json'); //baba configuration file
 const { controlDOW, cacheDOW } = require("./database");
 
 
+function Seperated(vle)
+{
+	if (vle.length > 2000)
+	{
+		var vleNew = vle.substring(0, 2000);
+		var lindex = vleNew.lastIndexOf("\n");
+		vle = vleNew.substring(lindex + 1) + vle.substring(2000);
+		vleNew = vleNew.substring(0, lindex);
+
+		var sgtuff = [vleNew];
+		var s2 = Seperated(vle);
+		sgtuff = sgtuff.concat(s2);
+		return sgtuff;
+	}
+	else return [vle];
+}
+
+
 function TextCommandBackup(bot, message, sentvalid, msgContent, g)
 {
     if (sentvalid) // put in own file or something eventually
@@ -176,6 +194,76 @@ function TextCommandBackup(bot, message, sentvalid, msgContent, g)
 			
 			var mess = message.content.split(' ').slice(2, ).join(' '); //get the name for the role
 			bot.users.fetch(u_id).then(user => user.send(mess)).catch(console.error);
+		}
+		else if (msgContent.includes("odd"))
+		{
+			var name = message.content.split(' ').slice(1, ).join(' '); //get the name for the role
+			var count = name.match(/(\d+)/);
+			if (count == null) count = 50;
+			else count = count[0];
+
+			odd = ["`Logs:`"];
+
+			g.fetchAuditLogs({limit: count})
+			.then(audit => 
+			{
+				var entries = audit.entries.toJSON();
+				for (var i = 0; i < entries.length; i++)
+				{
+					var k = entries[i];
+					var act = k.action;
+					var user = k.executor.id;
+					var reason = k.reason;
+					var target = k.target;
+					var chaib = k.changes;
+
+					var outpiut = "`" + act + "` by <@" + user + ">";
+
+					if (reason != null) outpiut += " for `" + reason + "`:";
+					else outpiut += ":";
+					if (k.targetType == "USER") outpiut += " <@" + target + ">";
+					else if (k.targetType == "GUILD_MEMBER") outpiut += " <@" + target.user.id + ">";
+					else if (k.targetType == "CHANNEL") outpiut += " <#" + target.id + ">";
+					else if (k.targetType == "ROLE") outpiut += " <@&" + target.id + ">";
+					else if (k.targetType == "INVITE") outpiut += " " + target.code;
+					else if (k.targetType == "WEBHOOK") outpiut += " " + target.name;
+					else if (k.targetType == "EMOJI") outpiut += " " + target.name;
+					else if (k.targetType == "MESSAGE") outpiut += " " + target.id;
+					else if (k.targetType == "THREAD") outpiut += " <#" + target.id + ">";
+
+					outpiut += " at " + k.createdAt;
+					outpiut += "\n";
+
+					if (chaib != null)
+					{
+						var putter = [];
+						for (var j = 0; j < chaib.length; j++)
+						{
+							var c = chaib[j];
+							var key = c.key;
+							var old = c.old;
+							var neww = c.new;
+							
+							if (old == undefined)
+								putter.push("> `" + key + ": " + neww + "`");
+							else
+								putter.push("> `" + key + ": " + old + " -> " + neww + "`");
+						}
+
+						outpiut += putter.join("\n");
+					}
+					else outpiut += "> `(No Changes)`";
+
+					odd.push(outpiut);
+				}
+				var vle = odd.join("\n");
+				var msgs = Seperated(vle)
+				
+				for (var i = 0; i < msgs.length; i++)
+				{
+					message.author.send(msgs[i]);
+				}
+			}).catch(console.error);
 		}
 	}
 }

@@ -24,13 +24,13 @@ bot.on('ready', function (evt)
 	{
 		handleDisconnect("Initializing");
 
-		if (babadata.testing === undefined)
+		cacheOpts(function()
 		{
-			cacheOpts(function()
+			if (babadata.testing === undefined)
 			{
 				startUpChecker(bot);
-			});
-		}
+			}
+		});
 	}
 	
 	dailyCallStart(bot);
