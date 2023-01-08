@@ -7,8 +7,8 @@ const { cacheDOW, ObtainDBHolidays } = require('./database');
 
 var adam = 
 {
-	"3" : ["It is Wednesday, My Dudes!", "Rejoice, For it is Wednesday", "WEDNESDAY FROG!", "Adam Please - It is Wednesday", "!baba wednesday next event"],
-	"5" : ["It is Friday, My Dudes!", "Rejoice, For it is Friday", "FRIDAY FROG!", "Adam Please - It is Friday", "Friday Moment", "!baba friday"],
+	"3" : ["It is Wednesday, My Dudes!", "Rejoice, For it is Wednesday", "WEDNESDAY FROG!", "Adam Please - It is Wednesday", "!baba wednesday next event", "Wikus Eikus Dikus Nikus Eikus Sikus Dikus Aikus Yikus"],
+	"5" : ["It is Friday, My Dudes!", "Rejoice, For it is Friday", "FRIDAY FROG!", "Adam Please - It is Friday", "Friday Moment", "!baba friday", "Fikus Rikus Iikus Dikus Aikus Yikus"],
 }
 
 var to = null;
