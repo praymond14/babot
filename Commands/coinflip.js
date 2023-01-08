@@ -11,7 +11,7 @@ module.exports = {
         var templocal = babadata.datalocation + "Extra/";
         var coinimg = Math.floor(Math.random() * 4);
         var newAttch = templocal + `/cf${coinimg}.gif`;
-		await interaction.editreply({ content: "Flipping Coin!", files: [newAttch] });
+		await interaction.editReply({ content: "Flipping Coin!", files: [newAttch] });
 
         var message = await interaction.fetchReply();
 

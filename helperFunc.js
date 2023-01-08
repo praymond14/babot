@@ -12,7 +12,7 @@ const persontype = ["friend", "enemy", "brother", "BROTHERRRRRR", "bungle bus", 
 const game = ["TF2", "Ultimate Admiral: Dreadnoughts", "Fishing Simulator", "Sea of Thieves", "Factorio", "Forza Horizon 5", "nothing", "Fallout: New Vegas", "Stabbing Simulator (IRL)"];
 const emotion2 = ["fun", "exciting", "monotonous", "speed run", "pretty eventful", "frog", "emotional", "devoid of all emotions"];
 const bye = ["bid you a morrow", "will see you soon", "want to eat your soul, so watch out", "am going to leave now", "hate everything, goodbye", "am monke, heee heee hoo hoo", "wish you good luck on your adventures", "am going to go to bed now", "want to sleep but enevitably will not get any as i will be gaming all night, good morrow", "am going to go to the morrow lands", "will sleep now", "am pleased to sleep"];
-const emoji = ["ඞ", "🐸", "🍆", "💄", "⛧", "🎄", "🐷", "🐎", "🐴", "🐍", "⚡", "🪙", "🖕", "🚊", "🏻", "🤔", "🌳", "🌲", "🌴", "🌵", "🐀", "🍝", "𓀒"];
+const emoji = ["ඞ", "🐸", "🍆", "💄", "⛧", "🎄", "🐷", "🐎", "🐴", "🐍", "⚡", "🪙", "🖕", "🚊", "🏻🏻", "🤔", "🌳", "🌲", "🌴", "🌵", "🐀", "🍝", "𓀒"];
 
 var lookuptable = {};
 
@@ -360,7 +360,7 @@ function getEaster(year) //Thanks to Jeremy's Link
 	return [month, day];
 }
 
-function FindDate(message) //Not Thanks to Jeremy's Link
+function FindDate(message, haiku = false) //Not Thanks to Jeremy's Link
 {
 	var outps = message.toLowerCase().replace("!baba", "") //there is no point to this, i did it because i wanted too
 		.replace("wednesday", "")
@@ -414,10 +414,13 @@ function FindDate(message) //Not Thanks to Jeremy's Link
 				day = iv;
 			}
 		}
-
-		if (year == 0) //set year to first year found
+		else if (year == 0) //set year to first year found
 		{
 			var iv = parseInt(item);
+			if (iv < 100)
+			{
+				year = iv + 2000;
+			}
 			if (iv >= 2018)
 			{
 				year = iv;
@@ -442,14 +445,13 @@ function FindDate(message) //Not Thanks to Jeremy's Link
 			}
 		}
 	}
-
-	if (month == 0)
+	if (month == 0 && !haiku)
 		return null;
 
-	if (day == 0)
+	if (day == 0 && !haiku)
 		return null;
 
-	if (year == 0)
+	if (year == 0 && !haiku)
 		year = new Date().getFullYear();
 
 	var item = {};
@@ -465,17 +467,24 @@ function FindDate(message) //Not Thanks to Jeremy's Link
 
 function SetHolidayChan(guild, name, resetid = -1)
 {
+	console.log("SetHolidayChan: " + name + " " + resetid);
+
 	let to = 0;
 	let rawdata = fs.readFileSync(__dirname + '/babotdata.json');
 	let baadata = JSON.parse(rawdata);
-	if (resetid > 0)
+
+	var rename = name.indexOf("-n") <= 0;
+
+	name = name.replace("-n", "");
+
+	if (resetid > 0 && resetid != 3)
 		baadata.holidaychan = resetid.toString();
 
 	if (guild != null && resetid < 0)
 	{
 		const chanyu = guild.channels.resolve(babadata.holidaychan);
 		
-		if (chanyu != null)
+		if (chanyu != null && rename)
 		{
 			switch(name)
 			{
@@ -501,7 +510,7 @@ function SetHolidayChan(guild, name, resetid = -1)
 					.catch(console.error);
 					break;
 				case "defeat": //New Year
-					chanyu.setName("🎉 ʟᴀꜱᴛ ʏᴇᴀʀ++ 🎉")
+					chanyu.setName("🎉 ʟᴀꜱᴛ ʏᴇᴀʀ➕➕ 🎉")
 						.then((newChannel) =>
 						console.log(`The channel's new name is ${newChannel.name}`),
 					)
@@ -529,6 +538,34 @@ function SetHolidayChan(guild, name, resetid = -1)
 								holidaychan.setParent(chan);
 								holidaychan.permissionOverwrites.edit(guild.roles.everyone, { SEND_MESSAGES: false });
 								baadata.holidaychan = "0";
+							}
+						}
+					});
+				})
+			}
+		});
+	}
+	
+	
+	if (guild != null && resetid == 3)
+	{
+		baadata.holidaychan = name;
+		name = "null";
+		to = 500
+		guild.channels.fetch(baadata.holidaychan).then(channels => {
+			var holidaychan = channels;
+
+			if (holidaychan != null)
+			{
+				guild.channels.fetch().then(channels => {
+					channels.each(chan => {
+						if (chan.type == "GUILD_CATEGORY")
+						{
+							if (chan.name.toLowerCase() === "text channels")
+							{
+								holidaychan.setParent(chan);
+								holidaychan.setPosition(3);
+								holidaychan.permissionOverwrites.edit(guild.roles.everyone, { SEND_MESSAGES: true });
 							}
 						}
 					});
@@ -1246,6 +1283,8 @@ function preformEasterEggs(message, msgContent)
 	{
 		message.react("1011465311096160267").catch(console.error);
 	}
+	
+	
 }
 
 //const download = (url, path, callback) => { //download function //depricated with the request deprication

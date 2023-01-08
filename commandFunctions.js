@@ -44,7 +44,7 @@ function babaPizza()
 function babaProgress()
 {    
     var date2 = new Date();
-    var date1 = new Date(date2.getFullYear() + "-01-01");
+    var date1 = new Date(date2.getFullYear(), 0, 1);
 
     var Difference_In_Time = date2.getTime() - date1.getTime();
     
@@ -665,6 +665,27 @@ function babaHurricane(hurricanename, callback)
     });
 }
 
+function babaCat(callback)
+{
+    var tempFilePath = babadata.temp + "hurricane.png";
+    const file = fs.createWriteStream(tempFilePath);
+    var url = "https://thiscatdoesnotexist.com/";
+
+    console.log(url);
+
+    const request = https.get(url, function(response) {
+       response.pipe(file);
+    
+       // after download completed close filestream
+       file.on("finish", () => {
+           file.close();
+           console.log("Download Completed");
+
+           callback({ content: "Baba Cat", files: [tempFilePath] });
+       });
+    });
+}
+
 module.exports = {
     babaFriday, 
     babaHelp, 
@@ -680,5 +701,6 @@ module.exports = {
     babaJeremy,
     babaRNG,
     babaWhomst,
-    babaHurricane
+    babaHurricane,
+    babaCat,
 };

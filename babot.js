@@ -7,13 +7,14 @@ var babadata = require('./babotdata.json'); //baba configuration file
 const txtCommands = require('./textCommands.js');
 //const { setCommandRoles } = require('./helperFunc');
 const { voiceChannelChange, startUpChecker } = require("./voice.js");
-const { cacheOpts, handleDisconnect } = require('./database');
+const { cacheOpts, handleDisconnect, eventDB } = require('./database');
 const { dailyCallStart } = require('./dailycall.js');
 
 global.dbAccess = [!process.argv.includes("-db"), process.argv.includes("-db") ? false : true];
+global.starttime = new Date();
 
 // Initialize Discord Bot
-const bot = new Client({ intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MESSAGES, Intents.FLAGS.DIRECT_MESSAGES, Intents.FLAGS.GUILD_VOICE_STATES], partials: ["CHANNEL"]});
+const bot = new Client({ intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MESSAGES, Intents.FLAGS.GUILD_MEMBERS, Intents.FLAGS.GUILD_PRESENCES, Intents.FLAGS.DIRECT_MESSAGES, Intents.FLAGS.GUILD_VOICE_STATES, Intents.FLAGS.GUILD_SCHEDULED_EVENTS], partials: ["CHANNEL"]});
 bot.login(babadata.token); //login
 
 bot.on('ready', function (evt) 
@@ -53,6 +54,13 @@ bot.on('voiceStateUpdate', (oldMember, newMember) =>
 		voiceChannelChange(newMember, oldMember);
 });
 
+bot.on('guildScheduledEventCreate', async event => {eventDB(event, "create")});
+bot.on('guildScheduledEventUpdate', async (eold, enew) => {eventDB(enew, "update")});
+bot.on('guildScheduledEventDelete', async event => {eventDB(event, "delete")});
+ 
+
+bot.on('guildScheduledEventUserAdd', async (event, user) => {eventDB(event, "useradd", user)});
+bot.on('guildScheduledEventUserRemove', async (event, user) => {eventDB(event, "userremove", user)});
 
 bot.on('interactionCreate', async interaction => {
 	if(!interaction.isCommand()) return;
