@@ -59,6 +59,9 @@ function DisplayBirthdays(guild)
 
 function dailyCall(bot, guild)
 {
+	let rawdataBB = fs.readFileSync(__dirname + '/babotdata.json');
+	babadata = JSON.parse(rawdataBB);
+
 	var dateoveride = [false, 1, 1]; //allows for overiding date manually (testing)
 
 	var yr = new Date().getFullYear(); //get this year
@@ -70,8 +73,8 @@ function dailyCall(bot, guild)
 	var now = new Date();
 	var midnight = new Date();
     midnight.setHours(24);
-    midnight.setMinutes(1);
-    midnight.setSeconds(0);
+    midnight.setMinutes(0);
+    midnight.setSeconds(20);
     midnight.setMilliseconds(0);
 	var timeToMidnight = midnight.getTime() - now.getTime();
 

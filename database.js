@@ -180,7 +180,7 @@ function searchChannel(msgContent)
 
 function searchDate(msgContent)
 {
-	return ` Lower("` + msgContent + `") LIKE CONCAT("%", Lower(date), "%")`;
+	return ` CONCAT("%", Lower(date), "%") REGEXP '` + msgContent + `'`;
 }
 
 function searchKeyword(msgContent)
@@ -245,13 +245,21 @@ function HaikuSelection(callback, by, msgContent)
 	}
 	else if (by == 3)
 	{
-		var IsDate = FindDate(msgContent);
+		var IsDate = FindDate(msgContent, true);
 		if (IsDate != null)
 		{
-			d1 = new Date(IsDate.year, IsDate.month - 1, IsDate.day);
-			var mpre = d1.getMonth() + 1 < 10 ? 0 : "";
-			var dpre = d1.getUTCDate() < 10 ? 0 : "";
-			query += " WHERE " + searchDate(`${d1.getFullYear()}-${mpre}${d1.getMonth() + 1}-${dpre}${d1.getUTCDate()}`);
+			var year = IsDate.year;
+			var month = IsDate.month;
+			var day = IsDate.day;
+			
+			var mpre = month < 10 ? 0 : "";
+			var dpre = day < 10 ? 0 : "";
+
+			var ys = year == 0 ? ".*" : year;
+			var ms = month == 0 ? ".*" : mpre + "" + month;
+			var ds = day == 0 ? ".*" : dpre + "" + day;
+
+			query += " WHERE " + searchDate(`${ys}-${ms}-${ds}`);
 		}
 		else return callback(null);
 	}
@@ -728,6 +736,95 @@ function cacheOpts(callback)
 	);
 }
 
+
+function eventDB(event, change, user)
+{
+	var eid = event.id;
+	if (!change.includes("user"))
+	{
+		var cid = event.creatorId;
+		var chanid = event.channelId;
+		var name = event.name;
+		var desc = event.description;
+		var d1 = new Date(event.scheduledStartTimestamp);
+		var d2 = new Date(event.scheduledEndTimestamp);
+		var status = event.status;
+		var loc = "Voice Channel";
+
+		var mpre1 = d1.getMonth() + 1 < 10 ? 0 : "";
+		var dpre1 = d1.getUTCDate() < 10 ? 0 : "";
+		var mpre2 = d2.getMonth() + 1 < 10 ? 0 : "";
+		var dpre2 = d2.getUTCDate() < 10 ? 0 : "";
+
+		var start = `${d1.getFullYear()}-${mpre1}${d1.getMonth() + 1}-${dpre1}${d1.getUTCDate()} ${d1.getHours()}:${d1.getMinutes()}:${d1.getSeconds()}`
+		var end = `${d2.getFullYear()}-${mpre2}${d2.getMonth() + 1}-${dpre2}${d2.getUTCDate()} ${d2.getHours()}:${d2.getMinutes()}:${d2.getSeconds()}`
+		
+		// add time leaving and joining
+		if (event.entityMetadata != null)
+		{
+			loc = event.entityMetadata.location;
+		}
+
+		if (change == "create")
+		{
+			con.query(`INSERT INTO scheduleevent (eventID, creatorID, name, channelID, description, StartTime, EndTime, status, Location) VALUES ("${eid}", "${cid}", "${name}", "${chanid}", "${desc}", "${start}", "${end}", "${status}", "${loc}")`,
+			function (err, result)
+			{
+				if (err) throw err;
+			});
+		}
+		else if (change == "delete")
+		{
+			con.query(`UPDATE scheduleevent Set status = "CANCELED" WHERE eventID = "${eid}"`,
+			function (err, result)
+			{
+				if (err) throw err;
+			});
+		}
+		else if (change == "update")
+		{
+			con.query(`UPDATE scheduleevent Set creatorID = "${cid}", name = "${name}", channelID = "${chanid}", description = "${desc}", StartTime = "${start}", EndTime = "${end}", status = "${status}", Location = "${loc}" WHERE eventID = "${eid}"`,
+			function (err, result)
+			{
+				if (err) throw err;
+			});
+		}
+	}
+	else 
+	{
+		var uid = user.id;
+		var time = new Date();
+		var mpre = time.getMonth() + 1 < 10 ? 0 : "";
+		var dpre = time.getUTCDate() < 10 ? 0 : "";
+		var jtime = `${time.getFullYear()}-${mpre}${time.getMonth() + 1}-${dpre}${time.getUTCDate()} ${time.getHours()}:${time.getMinutes()}:${time.getSeconds()}`
+		if (change == "useradd")
+		{
+			con.query(`UPDATE eventpurity SET flaked = 0, timesrejoined = timesrejoined + 1, joined = 1, latestjointime = "${jtime}", flaketime = null WHERE eventID = "${eid}" AND userID = "${uid}"`,
+			function (err, result)
+			{
+				if (err) throw err;
+
+				if (result.affectedRows == 0)
+				{
+					con.query(`INSERT INTO eventpurity (eventID, userID, flaked, timesrejoined, joined, latestjointime, initjointime) VALUES ("${eid}", "${uid}", 0, 1, 1, "${jtime}", "${jtime}")`,
+					function (err, result)
+					{
+						if (err) throw err;
+					});
+				}
+			});
+		}
+		else if (change == "userremove")
+		{
+			con.query(`UPDATE eventpurity SET flaked = 1, joined = 0, flaketime = "${jtime}", latestjointime = null WHERE eventID = "${eid}" AND userID = "${uid}"`,
+			function (err, result)
+			{
+				if (err) throw err;
+			});
+		}
+	}
+}
+
 process.on('SIGINT', cleanupFn);
 process.on('SIGTERM', cleanupFn);
 
@@ -753,5 +850,6 @@ module.exports = {
 	HPLGenD8,
 	handleDisconnect,
 	cacheDOW,
-	controlDOW
+	controlDOW,
+	eventDB
 }
