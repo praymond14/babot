@@ -154,7 +154,7 @@ function timedOutFrog(i, texts, message, templocal)
 
 function getD1()
 {
-	var dateoveride = [false, 3, 8]; //allows for overiding date manually (testing)
+	var dateoveride = [true, 3, 9]; //allows for overiding date manually (testing)
 	var yr = new Date().getFullYear(); //get this year
 	var dy = dateoveride[0] ? dateoveride[2] : new Date().getDate(); //get this day
 	var my = dateoveride[0] ? dateoveride[1] - 1 : new Date().getMonth(); //get this month
@@ -1284,7 +1284,7 @@ function preformEasterEggs(message, msgContent)
 		message.react("1011465311096160267").catch(console.error);
 	}
 	
-	
+
 }
 
 //const download = (url, path, callback) => { //download function //depricated with the request deprication

@@ -13,19 +13,34 @@ module.exports = {
             .addStringOption(opt => 
                 opt.setName("event")
                 .setDescription("The event that will get used.")
+                .setRequired(true)))
+    .addSubcommand(subcommand =>
+        subcommand
+            .setName('since')
+            .setDescription('Days since the specified event!')
+            .addStringOption(opt => 
+                opt.setName("event")
+                .setDescription("The event that will get used.")
                 .setRequired(true))),
 	async execute(interaction, bot) {
 		await interaction.deferReply();
         var event = interaction.options.getString("event");
         var message = await interaction.fetchReply();
 
-        if (`${event}`.toLowerCase() === "next wednesday") 
+        var subCommand = interaction.options.getSubcommand();
+
+        var nxt = "next";
+        if (subCommand === "since") nxt = "last";
+        var til = "until";
+        if (subCommand === "since") til = "since";
+
+        if (`${event}`.toLowerCase() === nxt + " wednesday") 
         {
-            await interaction.editReply(babaDayNextWed());
+            await interaction.editReply(babaDayNextWed(subCommand === "since" ? -1 : 1));
         } 
         else 
         {
-            babaWednesday(`${event} days until`, interaction.user, function(texts) 
+            babaWednesday(`${event} days ${til}`, interaction.user, function(texts) 
             {
                 if (texts.length > 1)
                 {
