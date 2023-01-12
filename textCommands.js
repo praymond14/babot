@@ -83,14 +83,19 @@ function babaMessage(bot, message)
 	var my = dateoveride[0] ? dateoveride[1] - 1 : new Date().getMonth(); //get this month
 	var d1 = new Date(yr, my, dy) //todayish
 
-	if (babadata.holidayval == "defeat")
+	if(msgContent.includes(yr - 1) && msgContent.includes("560231259842805770") && msgContent.includes("563063109422415872") && !message.author.bot) //if message contains baba and is not from bot
 	{
-		//560231259842805770  563063109422415872
-		if(msgContent.includes(yr - 1) && msgContent.includes("560231259842805770") && msgContent.includes("563063109422415872") && !message.author.bot) //if message contains baba and is not from bot
+		let rawdata = fs.readFileSync(__dirname + '/babotdata.json');
+		let baadata = JSON.parse(rawdata);
+
+		babadata = baadata;
+		if (babadata.holidayval == "defeat")
 		{
+			//560231259842805770  563063109422415872
 			SetHolidayChan(message.guild, "null", 0);
 		}
 	}
+	
 
 	/*
 	var streamies = {};

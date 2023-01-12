@@ -44,7 +44,7 @@ function babaPizza()
 function babaProgress()
 {    
     var date2 = new Date();
-    var date1 = new Date(date2.getFullYear() + "-01-01");
+    var date1 = new Date(date2.getFullYear(), 0, 1);
 
     var Difference_In_Time = date2.getTime() - date1.getTime();
     
@@ -333,17 +333,20 @@ function EmbedPurityGen(hpl, bonust, bonupr, pagestuff)
 }
 
 
-function babaDayNextWed()
+function babaDayNextWed(since = 1)
 {
+    var seven  = 7 * since;
     let d1 = getD1(); //get today
     var dow_d1 = (d1.getDay() + 4) % 7;//get day of week (making wed = 0)
 
     var dtnw = ""
-    var ct = 7 - dow_d1;
+    var ct = Math.abs(seven - dow_d1);
+    if (ct > 7) ct -= 7;
+    
     if (ct == 1)
-        dtnw = "\nIt is only " + ct + " day until the next Wednesday!"
+        dtnw = "\nIt is only " + ct + " day " + (since == 1 ? "until" : "since") + " the " + (since == 1 ? "next" : "last") + " Wednesday!"
     else
-        dtnw = "\nIt is only " + ct + " days until the next Wednesday!"
+        dtnw = "\nIt is only " + ct + " days " + (since == 1 ? "until" : "since") + " the " + (since == 1 ? "next" : "last") + " Wednesday!"
         
     return { content: dtnw };
 }
@@ -407,6 +410,7 @@ function babaWednesday(msgContent, author, callback)
                 if (holidayinfo.name != "date" && holidayinfo.year)
                     yr = holidayinfo.year;
     
+                console.log("holidayinfo: " + holidayinfo.name);
                 let d2 = GetDate(d1, yr, holidayinfo);
 
                 if (isNaN(d2))
@@ -463,6 +467,27 @@ function babaWednesday(msgContent, author, callback)
                         else
                             dutext = int + " Days until " + holidayinfo.safename + bonustext; //future text
                         
+                        additionaltext += dutext + "\n";
+                    }
+                    else
+                        showwed = true;
+                }
+
+                if (msgContent.includes('days since')) //custom days until text output - for joseph
+                {
+                    var int = dateDiffInDays(d1, d2); //convert to days difference
+                    var bonustext = holidayinfo.year != undefined ? " " + holidayinfo.year : "";
+                    
+                    int = 3;
+                    var dutext = "";
+                    if (int != 0)
+                    {
+                        if (int == 1)
+                            dutext = int + " Day until " + holidayinfo.safename; //future text
+                        else
+                            dutext = int + " Days until " + holidayinfo.safename + bonustext; //future text
+                        
+                        dutext = "Since for Events Coming Soon";
                         additionaltext += dutext + "\n";
                     }
                     else
@@ -665,6 +690,27 @@ function babaHurricane(hurricanename, callback)
     });
 }
 
+function babaCat(callback)
+{
+    var tempFilePath = babadata.temp + "hurricane.png";
+    const file = fs.createWriteStream(tempFilePath);
+    var url = "https://thiscatdoesnotexist.com/";
+
+    console.log(url);
+
+    const request = https.get(url, function(response) {
+       response.pipe(file);
+    
+       // after download completed close filestream
+       file.on("finish", () => {
+           file.close();
+           console.log("Download Completed");
+
+           callback({ content: "Baba Cat", files: [tempFilePath] });
+       });
+    });
+}
+
 module.exports = {
     babaFriday, 
     babaHelp, 
@@ -680,5 +726,6 @@ module.exports = {
     babaJeremy,
     babaRNG,
     babaWhomst,
-    babaHurricane
+    babaHurricane,
+    babaCat,
 };

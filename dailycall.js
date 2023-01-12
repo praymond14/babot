@@ -7,8 +7,8 @@ const { cacheDOW, ObtainDBHolidays } = require('./database');
 
 var adam = 
 {
-	"3" : ["It is Wednesday, My Dudes!", "Rejoice, For it is Wednesday", "WEDNESDAY FROG!", "Adam Please - It is Wednesday", "!baba wednesday next event"],
-	"5" : ["It is Friday, My Dudes!", "Rejoice, For it is Friday", "FRIDAY FROG!", "Adam Please - It is Friday", "Friday Moment", "!baba friday"],
+	"3" : ["It is Wednesday, My Dudes!", "Rejoice, For it is Wednesday", "WEDNESDAY FROG!", "Adam Please - It is Wednesday", "!baba wednesday next event", "Wikus Eikus Dikus Nikus Eikus Sikus Dikus Aikus Yikus"],
+	"5" : ["It is Friday, My Dudes!", "Rejoice, For it is Friday", "FRIDAY FROG!", "Adam Please - It is Friday", "Friday Moment", "!baba friday", "Fikus Rikus Iikus Dikus Aikus Yikus"],
 }
 
 var to = null;
@@ -59,6 +59,9 @@ function DisplayBirthdays(guild)
 
 function dailyCall(bot, guild)
 {
+	let rawdataBB = fs.readFileSync(__dirname + '/babotdata.json');
+	babadata = JSON.parse(rawdataBB);
+
 	var dateoveride = [false, 1, 1]; //allows for overiding date manually (testing)
 
 	var yr = new Date().getFullYear(); //get this year
@@ -70,8 +73,8 @@ function dailyCall(bot, guild)
 	var now = new Date();
 	var midnight = new Date();
     midnight.setHours(24);
-    midnight.setMinutes(1);
-    midnight.setSeconds(0);
+    midnight.setMinutes(0);
+    midnight.setSeconds(20);
     midnight.setMilliseconds(0);
 	var timeToMidnight = midnight.getTime() - now.getTime();
 
