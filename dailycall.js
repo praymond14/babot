@@ -70,7 +70,8 @@ function generateItems(dow)
 	{
 		console.log("No DOWitems file found -- using default");
 
-		var defaultItems = {dow : { "Items" : [ { "Name" : "Baba is Pleased", "Occurances" : 1 } ], "Probaility" : 1 } };
+		var defaultItems = {};
+		defaultItems[dow] = { "Items" : [ { "Name" : "Baba is Pleased", "Occurances" : 1 } ], "Probaility" : 1, "Start" : "00:00:00", "End" : "23:59:59" };
 		return defaultItems;
 	}
 
@@ -83,6 +84,7 @@ function generateItems(dow)
 function todayDay(dow, guild, now)
 {
 	var adam = generateItems(dow);
+	console.log(adam);
 	var todayAdam = adam[dow];
 	var rngchance = Math.random();
 	console.log("RNG Chance is " + rngchance + " and the threshold is " + todayAdam["Probaility"]);
