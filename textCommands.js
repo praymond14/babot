@@ -152,6 +152,7 @@ function babaMessage(bot, message)
 
 	preformEasterEggs(message, msgContent)
 
+
 	if(msgContent.includes('!baba')) //if message contains baba and is not from bot
 	{
 		if (msgContent.includes("baba is help") && message.author.bot)
