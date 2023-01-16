@@ -23,7 +23,9 @@ module.exports = {
                     {
                         fnd = true;
                         movetoChannel(message, chan, channel.id)
-                    }).catch(console.error); //try to get the message, if it exists call setVote, otherwise catch the error
+                    }).catch(function (err) {
+
+                    }); //try to get the message, if it exists call setVote, otherwise catch the error
                 }
             });
         });

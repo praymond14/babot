@@ -221,26 +221,60 @@ function TextCommandBackup(bot, message, sentvalid, msgContent, g)
 		else if (msgContent.includes("cmes"))
 		{
 			var message_id = message.content.split(' ')[1];
-			
 			var mess = message.content.split(' ').slice(2, ).join(' '); //get the name for the role
-			message_id = message_id.replace(/\D/g,''); //get message id
+
 			var hiddenChan = g.channels.cache.get(message_id); //gets the special archive channel
 			const guildUser = g.members.fetch(message.author);
 			const canSend = guildUser.communicationDisabledUntilTimestamp;
 
 			if(!canSend)
 			{
-				hiddenChan.send(mess).then(msg=>
+				if (msgContent.includes("i-u"))
 				{
-					if (msgContent.includes("🐸"))
+					var user_id = message.content.split(' ')[2];
+					var mess = message.content.split(' ').slice(3, ).join(' '); //get the name for the role
+
+					if (user_id == null || user_id.trim() == "") 
 					{
-						msg.react("🐸");
+						message.author.send("`Invalid User ID`");
+						return;
 					}
-					if (msgContent.includes("s-d"))
+
+					g.members.fetch(user_id).then(user => {
+						var nname = user.nickname;
+						if (nname == null) nname = user.user.username;
+
+						var avatarimg = user.user.avatarURL();
+
+						hiddenChan.createWebhook(nname,
+						{
+							avatar: avatarimg,
+							reason: 'Baba Plase'
+						})
+						.then(webhook =>
+						{
+							webhook.send(mess);
+
+							setTimeout(() => {
+								webhook.delete('Baba Plase');
+							}, 10000);
+						});
+					}).catch(console.error);
+				}
+				else
+				{
+					hiddenChan.send(mess).then(msg=>
 					{
-						setTimeout(function(){msg.delete();}, 8000);
-					}
-				});
+						if (msgContent.includes("🐸"))
+						{
+							msg.react("🐸");
+						}
+						if (msgContent.includes("s-d"))
+						{
+							setTimeout(function(){msg.delete();}, 8000);
+						}
+					});
+				}
 			}
 		}
 		else if (msgContent.includes("reee"))
@@ -355,12 +389,12 @@ function TextCommandBackup(bot, message, sentvalid, msgContent, g)
 				{
 					var k = entries[i];
 					var act = k.action;
-					var user = k.executor.id;
+					var user = k.executor ? k.executor.id : 0;
 					var reason = k.reason;
 					var target = k.target;
 					var chaib = k.changes;
 
-					var outpiut = "`" + act + "` by <@" + user + ">";
+					var outpiut = "`" + act + (user != 0 ? "` by <@" + user + ">" : "`");
 
 					if (reason != null) outpiut += " for `" + reason + "`:";
 					else outpiut += ":";
@@ -431,7 +465,10 @@ function TextCommandBackup(bot, message, sentvalid, msgContent, g)
 				{
 					message.author.send(msgs[i]);
 				}
-			}).catch(console.error);
+			}).catch((error) => {
+				console.error(error);
+				message.channel.send("Error: " + error);
+			});
 		}
 	}
 }

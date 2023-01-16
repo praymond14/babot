@@ -623,6 +623,42 @@ function cacheDOW()
 		}
   	});
 
+	con.query(`Select * from dow`,
+	function (err, result)
+		{
+			if (err) throw err;
+			var adam = {};
+			for (var i = 0; i < result.length; i++)
+			{
+				var res = result[i];
+				adam[res.date] = {};
+				adam[res.date].Probaility = res.probablilty;
+				adam[res.date].Items = [];
+				adam[res.date].Start = res.starttime;
+				adam[res.date].End = res.endtime;
+			}
+
+			con.query(`Select * from dowitems`,
+			function (err, result)
+				{
+					if (err) throw err;
+					for (var i = 0; i < result.length; i++)
+					{
+						var res = result[i];
+						var itm = {};
+						itm.Name = res.name;
+						itm.Occurances = res.occ;
+						
+						adam[res.dow].Items.push(itm);
+					}
+
+					var data = JSON.stringify(adam);
+					fs.writeFileSync(babadata.datalocation + "/DOWItems.json", data);
+				}
+			);
+		}
+	);
+
 	con.query(`Select * from dowfunny`,
 	function (err, result)
 		{

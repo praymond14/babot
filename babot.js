@@ -9,6 +9,7 @@ const txtCommands = require('./textCommands.js');
 const { voiceChannelChange, startUpChecker } = require("./voice.js");
 const { cacheOpts, handleDisconnect, eventDB } = require('./database');
 const { dailyCallStart } = require('./dailycall.js');
+const { contextInfo, modalInfo } = require('./contextMenu');
 
 global.dbAccess = [!process.argv.includes("-db"), process.argv.includes("-db") ? false : true];
 global.starttime = new Date();
@@ -63,6 +64,17 @@ bot.on('guildScheduledEventUserAdd', async (event, user) => {eventDB(event, "use
 bot.on('guildScheduledEventUserRemove', async (event, user) => {eventDB(event, "userremove", user)});
 
 bot.on('interactionCreate', async interaction => {
+	if (interaction.isMessageContextMenu()) 
+	{
+		contextInfo(interaction, bot);
+		return;
+	}
+	else if (interaction.isModalSubmit())
+	{
+		modalInfo(interaction, bot);
+		return;
+	}
+
 	if(!interaction.isCommand()) return;
 
 	const command = bot.commands.get(interaction.commandName);

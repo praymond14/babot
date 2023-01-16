@@ -4,13 +4,6 @@ const Discord = require('discord.js'); //discord module for interation with disc
 const { SetHolidayChan, CreateChannel, MonthsPlus, loadInDBFSV, FindNextHoliday, CheckHoliday, getD1 } = require('./helperFunc');
 const { cacheDOW, ObtainDBHolidays } = require('./database');
 
-
-var adam = 
-{
-	"3" : ["It is Wednesday, My Dudes!", "Rejoice, For it is Wednesday", "WEDNESDAY FROG!", "Adam Please - It is Wednesday", "!baba wednesday next event", "Wikus Eikus Dikus Nikus Eikus Sikus Dikus Aikus Yikus"],
-	"5" : ["It is Friday, My Dudes!", "Rejoice, For it is Friday", "FRIDAY FROG!", "Adam Please - It is Friday", "Friday Moment", "!baba friday", "Fikus Rikus Iikus Dikus Aikus Yikus"],
-}
-
 var to = null;
 var toWed = null;
 
@@ -56,6 +49,114 @@ function DisplayBirthdays(guild)
 	}
 }
 
+function genMessages(itemlist)
+{
+	var msgall = [];
+	for (var i = 0; i < itemlist.length; i++)
+	{
+		for (var j = 0; j < itemlist[i]["Occurances"]; j++)
+		{
+			msgall.push(itemlist[i]["Name"]);
+		}
+	}
+	return msgall;
+}
+
+function generateItems(dow)
+{
+	let path = babadata.datalocation + "/DOWitems.json";
+
+	if (!fs.existsSync(path)) 
+	{
+		console.log("No DOWitems file found -- using default");
+
+		var defaultItems = {dow : { "Items" : [ { "Name" : "Baba is Pleased", "Occurances" : 1 } ], "Probaility" : 1 } };
+		return defaultItems;
+	}
+
+    let rawdata = fs.readFileSync(babadata.datalocation + "/DOWitems.json");
+
+    var adam = JSON.parse(rawdata);
+	return adam;
+}
+
+function todayDay(dow, guild, now)
+{
+	var adam = generateItems(dow);
+	var todayAdam = adam[dow];
+	var rngchance = Math.random();
+	console.log("RNG Chance is " + rngchance + " and the threshold is " + todayAdam["Probaility"]);
+	if (rngchance < todayAdam["Probaility"])
+	{
+		console.log("Adam is happy today");
+		console.log("RNG Message Call ran for " + todayAdam["Items"][0]["Name"] + " with a " + (todayAdam["Probaility"] * 100) + "% chance");
+
+		var msgs = genMessages(todayAdam["Items"]);
+
+		var startDate = todayAdam["Start"];
+		var endDate = todayAdam["End"];
+		var start = new Date("1970-01-01T" + startDate);
+		var end = new Date("1970-01-01T" + endDate);
+
+		guild.channels.fetch()
+		.then(channels => 
+		{
+			console.log(`There are ${channels.size} channels.`)
+			bannedCats = [];
+			bannedKittens = ["826320007675641876", "917516043583361034"];
+			for (let current of channels) 
+			{
+				if (current[1].type == "GUILD_CATEGORY")
+				{
+					if (current[1].name.toLowerCase() == "the seat of the gods" || current[1].name.toLowerCase() == "archive")
+					{
+						bannedCats.push(current[1].id);
+					}
+				}
+			}
+			
+			coolCats = [];
+			for (let currenter of channels) 
+			{
+				if (currenter[1].type == "GUILD_TEXT" && !bannedKittens.includes(currenter[1].id))
+				{
+					if (!bannedCats.includes(currenter[1].parentId))
+						coolCats.push(currenter[1]);
+				}
+			}
+			
+			var coolestCat = coolCats[Math.floor(Math.random() * coolCats.length)];
+			
+			var eightAM = new Date();
+			eightAM.setHours(start.getHours());
+			eightAM.setMinutes(start.getMinutes());
+			eightAM.setSeconds(start.getSeconds());
+			eightAM.setMilliseconds(start.getMilliseconds());
+
+			var tenPM = new Date();
+			tenPM.setHours(end.getHours());
+			tenPM.setMinutes(end.getMinutes());
+			tenPM.setSeconds(end.getSeconds());
+			tenPM.setMilliseconds(end.getMilliseconds());
+
+			var timeToEightAM = Math.max(eightAM.getTime() - now.getTime(), 0);
+			var timeToTenPM = Math.max(tenPM.getTime() - now.getTime(), 0);
+
+			var rndTime = Math.floor(Math.random() * (timeToTenPM - timeToEightAM)) + timeToEightAM;
+			console.log("Sending to " + coolestCat.name + " at " + new Date(now.getTime() + rndTime).toTimeString());
+
+			var msg = msgs[Math.floor(Math.random() * msgs.length)];
+
+			toWed = setTimeout(function()
+			{
+				coolestCat.send(msg);
+				toWed = null;
+			}, rndTime);
+		})
+		.catch(console.error);
+	}
+}
+
 
 function dailyCall(bot, guild)
 {
@@ -95,68 +196,7 @@ function dailyCall(bot, guild)
 	if (d1.getDay() == 5)
 		console.log("FRIDAY!");
 	
-	if (d1.getDay() == 3 || d1.getDay() == 5)
-	{
-		var msgs = "";
-		if (d1.getDay() == 3)
-			msgs = adam["3"][Math.floor(Math.random() * adam["3"].length)];
-		else if (d1.getDay() == 5)
-			msgs = adam["5"][Math.floor(Math.random() * adam["5"].length)];
-
-		guild.channels.fetch()
-		.then(channels => 
-		{
-			console.log(`There are ${channels.size} channels.`)
-			bannedCats = [];
-			bannedKittens = ["826320007675641876", "917516043583361034"];
-			for (let current of channels) 
-			{
-				if (current[1].type == "GUILD_CATEGORY")
-				{
-					if (current[1].name.toLowerCase() == "the seat of the gods" || current[1].name.toLowerCase() == "archive")
-					{
-						bannedCats.push(current[1].id);
-					}
-				}
-			}
-			
-			coolCats = [];
-			for (let currenter of channels) 
-			{
-				if (currenter[1].type == "GUILD_TEXT" && !bannedKittens.includes(currenter[1].id))
-				{
-					if (!bannedCats.includes(currenter[1].parentId))
-						coolCats.push(currenter[1]);
-				}
-			}
-			
-			var coolestCat = coolCats[Math.floor(Math.random() * coolCats.length)];
-			
-			var eightAM = new Date();
-			eightAM.setHours(8);
-			eightAM.setMinutes(0);
-			eightAM.setSeconds(0);
-			eightAM.setMilliseconds(0);
-			var tenPM = new Date();
-			tenPM.setHours(22);
-			tenPM.setMinutes(0);
-			tenPM.setSeconds(0);
-			tenPM.setMilliseconds(0);
-
-			var timeToEightAM = Math.max(eightAM.getTime() - now.getTime(), 0);
-			var timeToTenPM = Math.max(tenPM.getTime() - now.getTime(), 0);
-
-			var rndTime = Math.floor(Math.random() * (timeToTenPM - timeToEightAM)) + timeToEightAM;
-			console.log("Sending to " + coolestCat.name + " at " + new Date(now.getTime() + rndTime).toTimeString());
-
-			toWed = setTimeout(function()
-			{
-				coolestCat.send(msgs);
-				toWed = null;
-			}, rndTime);
-		})
-		.catch(console.error);
-	}
+	todayDay(d1.getDay(), guild, now);
 
 	console.log("Calling next command in: " + timeToMidnight / 1000 / 60 + " minutes");
 	to = setTimeout(function()
