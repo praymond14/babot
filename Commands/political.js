@@ -20,7 +20,9 @@ module.exports = {
                     chan.messages.fetch(msgID).then(message => {
                         fnd = true;
                         movetoChannel(message, chan, babadata.politicschan);
-                    }).catch(console.error); //try to get the message, if it exists call setVote, otherwise catch the error
+                    }).catch(function (err) {
+
+                    }); //try to get the message, if it exists call setVote, otherwise catch the error
                 }
             });
         });
