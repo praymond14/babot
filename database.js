@@ -311,6 +311,25 @@ function HaikuSelection(callback, by, msgContent)
 				addquery.push("(" + searchDate(`${d1.getFullYear()}-${mpre1}${d1.getMonth() + 1}-${dpre1}${d1.getUTCDate()}`) + ")");
 			}
 		}
+		else if (sd != null)
+		{
+			startDate = FindDate(sd, true);
+			if (startDate != null)
+			{
+				var year = startDate.year;
+				var month = startDate.month;
+				var day = startDate.day;
+				
+				var mpre = month < 10 ? 0 : "";
+				var dpre = day < 10 ? 0 : "";
+	
+				var ys = year == 0 ? ".*" : year;
+				var ms = month == 0 ? ".*" : mpre + "" + month;
+				var ds = day == 0 ? ".*" : dpre + "" + day;
+	
+				query += " WHERE " + searchDate(`${ys}-${ms}-${ds}`);
+			}
+		}
 
 		if (chan != null)
 			addquery.push("(" + searchChannel(chan) + ")");

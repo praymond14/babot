@@ -476,3 +476,8 @@ function TextCommandBackup(bot, message, sentvalid, msgContent, g)
 module.exports = {
 	TextCommandBackup
 }
+
+// add function: "are you gonna" that will check if the day call command has happened and what channel if it already occured, else post "perchance"
+// call command after successful call -> say channel name and time
+// call command after time end -> say channel name/time or "nothing"
+// call command before end of time -> say "perchance"
