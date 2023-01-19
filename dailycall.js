@@ -84,7 +84,6 @@ function generateItems(dow)
 function todayDay(dow, guild, now)
 {
 	var adam = generateItems(dow);
-	console.log(adam);
 	var todayAdam = adam[dow];
 	var rngchance = Math.random();
 	console.log("RNG Chance is " + rngchance + " and the threshold is " + todayAdam["Probaility"]);
@@ -105,7 +104,7 @@ function todayDay(dow, guild, now)
 		{
 			console.log(`There are ${channels.size} channels.`)
 			bannedCats = [];
-			bannedKittens = ["826320007675641876", "917516043583361034"];
+			bannedKittens = ["826320007675641876", "917516043583361034", "1064319655872827432"];
 			for (let current of channels) 
 			{
 				if (current[1].type == "GUILD_CATEGORY")
