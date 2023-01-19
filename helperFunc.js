@@ -420,7 +420,8 @@ function FindDate(message, haiku = false) //Not Thanks to Jeremy's Link
 				day = iv;
 			}
 		}
-		else if (year == 0) //set year to first year found
+		
+		if (year == 0 && day == 0) //set year to first year found
 		{
 			var iv = parseInt(item);
 			if (iv < 100)
@@ -1289,8 +1290,6 @@ function preformEasterEggs(message, msgContent)
 	{
 		message.react("1011465311096160267").catch(console.error);
 	}
-	
-
 }
 
 //const download = (url, path, callback) => { //download function //depricated with the request deprication
