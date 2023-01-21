@@ -42,7 +42,7 @@ function userOptOut(guild, userID, val)
     guild.members.fetch(userID)
     .then(user => checkAndCreateUser(userID, user.user.username, function() 
     {
-        optIn(user, val, function(){});
+        optOut(user, val, function(){});
     }))
 
     return true;
