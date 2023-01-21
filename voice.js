@@ -1,4 +1,4 @@
-const { userJoinedVoice, userLeftVoice, checkUserVoiceCrash, endLeftUsersCrash, checkAndCreateUser, optIn } = require("./database");
+const { userJoinedVoice, userLeftVoice, checkUserVoiceCrash, endLeftUsersCrash, checkAndCreateUser, optIn, optOut } = require("./database");
 var babadata = require('./babotdata.json'); //baba configuration file
 const fs = require('fs');
 
