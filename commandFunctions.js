@@ -28,10 +28,12 @@ function babaPlease()
     var num = Math.floor(Math.random() * 100); //pick a random one
     if (num < 2)
         return { content: "AAAAAAAAAAA" }
-    else if (num < 20)
+    else if (num < 15)
         return { content: "BABA IS HAPPY!" };
-    else if (num < 60)
+    else if (num < 45)
         return { content: "BABA IS THANKS!" };
+    else if (num < 68)
+        return { content: "BABA IS PLEASED!" };
     else if (num == 69)
         return { content: "Nice!" };
 }
@@ -41,8 +43,10 @@ function babaPizza()
     return { content: "Baba Pizza Ordering Service™ coming soon!" };
 }
 
-function babaProgress()
+function babaProgress(n = 20)
 {    
+    var n1less = n - 1;
+
     var date2 = new Date();
     var date1 = new Date(date2.getFullYear(), 0, 1);
 
@@ -61,10 +65,10 @@ function babaProgress()
     var vdiff = 0;
     var valcount = 0;
 
-    for (var i = 1; i <= 19; i++)
+    for (var i = 1; i <= n1less; i++)
     {
-        valcount = endoyear * (i / 20);
-        v1plus = endoyear * ((i+1) / 20);
+        valcount = endoyear * (i / n);
+        v1plus = endoyear * ((i+1) / n);
 
         var vdiff = (v1plus - valcount) / 3;
 
@@ -74,8 +78,8 @@ function babaProgress()
             pb += "█";
     }
 
-    vdiff = (1/20 * endoyear) / 3;
-    valcount = endoyear * (19 / 20);
+    vdiff = (1/n * endoyear) / 3;
+    valcount = endoyear * (n1less / n);
 
     if (Difference_In_Days > endoyear - (1/12)) pb += "█";
     else pb += (valcount + vdiff > Difference_In_Days) ? "░" : ((valcount + (2 * vdiff) > Difference_In_Days) ? "▒" : "▓");

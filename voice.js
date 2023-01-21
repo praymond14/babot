@@ -39,16 +39,17 @@ function userOptOut(guild, userID, val)
         }
     }
     
+    var zopt = val
     guild.members.fetch(userID)
     .then(user => checkAndCreateUser(userID, user.user.username, function() 
     {
         if (babadata.testing != undefined)
-            optIn(user, val, function(){});
+            optIn(user, val, function(){zopt = true});
         else
-            optOut(user, val, function(){});
+            optOut(user, val, function(){zopt = false});
     }))
 
-    return true;
+    return zopt;
     /*
     guild.channels.fetch(babadata.botchan).then(channel => {
         channel.send("<@" + userID + "> would you like to opt in for baba voice activity data analysis?\n"
