@@ -42,7 +42,7 @@ function userOptOut(guild, userID, val)
     guild.members.fetch(userID)
     .then(user => checkAndCreateUser(userID, user.user.username, function() 
     {
-        if (babadata.testing === undefined)
+        if (babadata.testing != undefined)
             optIn(user, val, function(){});
         else
             optOut(user, val, function(){});
