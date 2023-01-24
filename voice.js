@@ -48,9 +48,7 @@ function userOptOut(guild, userID, val)
         else
             optOut(user, val, function(){zopt = false});
     }))
-
-    return zopt;
-    /*
+    
     guild.channels.fetch(babadata.botchan).then(channel => {
         channel.send("<@" + userID + "> would you like to opt in for baba voice activity data analysis?\n"
         + "Type `/optin` to opt in, or `/optout` to opt out (default).\n" + 
@@ -60,7 +58,9 @@ function userOptOut(guild, userID, val)
     .catch(console.error);
 
     // do the @ of person and add to opt out first
-    console.log("No In"); */
+    console.log("No In"); 
+
+    return zopt;
 }
 
 function startUpChecker(client)
