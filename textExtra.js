@@ -132,7 +132,8 @@ function parseItems(old, neww)
 		strg = old + " -> " + neww
 		if (typeof old === 'object' && old !== null)
 		{
-			strg = twoObjectParseCompare(old, neww, 1);
+			var am = Array.isArray(old);
+			strg = twoObjectParseCompare(old, neww, 1 - (am ? (old.length > 1 || neww.length > 1 ? 0 : 1) : 0), am);
 		}
 	}
 
