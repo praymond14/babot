@@ -89,7 +89,7 @@ function todayDay(dow, guild, now)
 	console.log("RNG Chance is " + rngchance + " and the threshold is " + todayAdam["Probaility"]);
 	if (rngchance < todayAdam["Probaility"])
 	{
-		console.log("Adam is happy today");
+		console.log("Adam is happy today"); // copilot why?
 		console.log("RNG Message Call ran for " + todayAdam["Items"][0]["Name"] + " with a " + (todayAdam["Probaility"] * 100) + "% chance");
 
 		var msgs = genMessages(todayAdam["Items"]);
@@ -103,20 +103,9 @@ function todayDay(dow, guild, now)
 		.then(channels => 
 		{
 			console.log(`There are ${channels.size} channels.`)
-			bannedCats = [];
-			bannedKittens = ["826320007675641876", "917516043583361034", "1064319655872827432", "882681066127777792"];
-			for (let current of channels) 
-			{
-				if (current[1].type == "GUILD_CATEGORY")
-				{
-					if (current[1].name.toLowerCase() == "the seat of the gods" || current[1].name.toLowerCase() == "archive")
-					{
-						bannedCats.push(current[1].id);
-					}
-				}
-			}
-			
-			coolCats = [];
+			bannedCats = ["955141276574035988", "955251220057047110", "587298042068074526"]; // categories to not post in
+			bannedKittens = ["826320007675641876", "917516043583361034", "1064319655872827432", "882681066127777792"]; // channels to not post in			
+			coolCats = ["915351407287222403"]; // allowed channels, add exceptions manually
 			for (let currenter of channels) 
 			{
 				if (currenter[1].type == "GUILD_TEXT" && !bannedKittens.includes(currenter[1].id))
