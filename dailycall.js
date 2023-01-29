@@ -104,7 +104,7 @@ function todayDay(dow, guild, now)
 		{
 			console.log(`There are ${channels.size} channels.`)
 			bannedCats = [];
-			bannedKittens = ["826320007675641876", "917516043583361034", "1064319655872827432"];
+			bannedKittens = ["826320007675641876", "917516043583361034", "1064319655872827432", "882681066127777792"];
 			for (let current of channels) 
 			{
 				if (current[1].type == "GUILD_CATEGORY")
