@@ -263,7 +263,7 @@ function TextCommandBackup(bot, message, sentvalid, msgContent, g)
 							}, 10000);
 						}).catch((error) => {
 							console.error(error);
-							message.channel.send("Error: " + error);
+							message.author.send("Error: " + error);
 						});
 					}).catch(console.error);
 				}
@@ -477,7 +477,7 @@ function TextCommandBackup(bot, message, sentvalid, msgContent, g)
 				}
 			}).catch((error) => {
 				console.error(error);
-				message.channel.send("Error: " + error);
+				message.author.send("Error: " + error);
 			});
 		}
 	}
