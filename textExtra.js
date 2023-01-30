@@ -183,18 +183,7 @@ function TextCommandBackup(bot, message, sentvalid, msgContent, g)
 				message.author.send("```HC: " + babadata.holidaychan + "\nHV: " + babadata.holidayval + "```");
 			}, 1000);
 		}
-		else if (msgContent.includes("clrre"))
-		{
-			var message_id = message.content.replace(/\D/g,''); //get message id
-			var chanMap = g.channels.fetch().then(channels => {
-				channels.each(chan => { //iterate through all the channels
-					if (chan.type == "GUILD_TEXT") //make sure the channel is a text channel
-					{
-						chan.messages.fetch(message_id).then(message => message.reactions.removeAll()).catch(console.error); //try to get the message, if it exists call setVote, otherwise catch the error
-					}
-				});
-			});
-		}
+		// moves a message to the banished lands
 		else if (msgContent.includes("funny silence"))
 		{
 			var message_id = message.content.replace(/\D/g,''); //get message id
@@ -202,23 +191,12 @@ function TextCommandBackup(bot, message, sentvalid, msgContent, g)
 				channels.each(chan => { //iterate through all the channels
 					if (chan.type == "GUILD_TEXT") //make sure the channel is a text channel
 					{
-						chan.messages.fetch(message_id).then(message => movetoChannel(message, chan, babadata.logchan)).catch(console.error); //try to get the message, if it exists call setVote, otherwise catch the error
+						chan.messages.fetch(message_id).then(message => movetoChannel(message, chan, babadata.logchan)).catch(console.error);
 					}
 				});
 			});
 		}
-		else if (msgContent.includes("silence"))
-		{
-			var message_id = message.content.replace(/\D/g,''); //get message id
-			var chanMap = g.channels.fetch().then(channels => {
-				channels.each(chan => { //iterate through all the channels
-					if (chan.type == "GUILD_TEXT") //make sure the channel is a text channel
-					{
-						chan.messages.fetch(message_id).then(message => message.delete()).catch(console.error); //try to get the message, if it exists call setVote, otherwise catch the error
-					}
-				});
-			});
-		}
+		// send a message to a channel
 		else if (msgContent.includes("cmes"))
 		{
 			var message_id = message.content.split(' ')[1];
@@ -278,6 +256,7 @@ function TextCommandBackup(bot, message, sentvalid, msgContent, g)
 				}
 			}
 		}
+		// react to a message with a custom emoji
 		else if (msgContent.includes("reee"))
 		{
 			var message_id = message.content.split(' ')[1]; //get the name for the role
@@ -305,21 +284,6 @@ function TextCommandBackup(bot, message, sentvalid, msgContent, g)
 					}
 				});
 			});
-		}
-		else if (msgContent.includes("tim"))
-		{
-			var u_id = message.content.split(' ').slice(1, 2).join(' ').replace(' ',''); //get the name for the role
-			
-			var mess = message.content.split(' ').slice(2, ).join(' '); //get the name for the role
-			u_id = u_id.replace(/\D/g,''); //get message id
-
-			var time = mess.match(/(\d+)/);
-			if (time != null) time = time[0] * 60 * 1000;
-
-			bot.users.fetch(u_id).then(user => {
-				g.members.fetch(user).then(member => member.timeout(time, 'Baba Plase')
-				.catch(console.error));
-			}).catch(console.error);
 		}
 		else if (msgContent.includes("refried beans")) //probably would break adams brain
 		{
@@ -356,6 +320,7 @@ function TextCommandBackup(bot, message, sentvalid, msgContent, g)
 				message.author.send("DOW control not updated");
 			}
 		}
+		// change babas nickname
 		else if (msgContent.includes("saintnick"))
 		{
 			var name = message.content.split(' ').slice(1, ).join(' '); //get the name for the role
@@ -364,6 +329,7 @@ function TextCommandBackup(bot, message, sentvalid, msgContent, g)
 				member.setNickname(name, "Baba Plase");
 			});
 		}
+		// dm a user via baba
 		else if (msgContent.includes("amhours"))
 		{
 			var u_id = message.content.split(' ').slice(1, 2).join(' ').replace(' ',''); //get the name for the role
@@ -372,6 +338,7 @@ function TextCommandBackup(bot, message, sentvalid, msgContent, g)
 			var mess = message.content.split(' ').slice(2, ).join(' '); //get the name for the role
 			bot.users.fetch(u_id).then(user => user.send(mess)).catch(console.error);
 		}
+		// read the audit log
 		else if (msgContent.includes("odd"))
 		{
 			var name = message.content.split(' ').slice(1, ).join(' '); //get the name for the role

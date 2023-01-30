@@ -13,8 +13,6 @@ const fs = require('fs'); //file stream used for del fuction
 /*
 	- Stop Calls to Funciton until images posted! - Sami
 	- Bruh Mode? - Ryan
-	- Memorial Day - Last Select Day of Month
-	- make a better to do list
 	- make if (message.content.includes("847324692288765993")) do somthing more interesting
 */
 
@@ -209,7 +207,7 @@ function babaMessage(bot, message)
 				message.channel.send("!shuffle");
 		}
 */
-		if(msgContent.includes('make yugo')) //reply with password file string if baba password
+		if(msgContent.includes('make yugo'))
 		{
 			message.channel.send(babaYugo());
 		}
@@ -274,7 +272,8 @@ function babaMessage(bot, message)
 			}); //get a map of the channelt in the guild
 		}
 	}
-	if(msgContent.includes('!political')) //code to del and move to log
+	// move messsage to politics channel
+	if(msgContent.includes('!political'))
 	{
 		if(message.channel.type != "DM" && message.member.roles.cache.has(babadata.adminId)) //check if admin
 		{
