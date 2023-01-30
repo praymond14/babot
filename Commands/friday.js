@@ -20,7 +20,7 @@ module.exports = {
 
 				setTimeout(function()
 				{
-					msgs = ["Haha, it's not Friday! Gottem!", "You thought it was Friday? Silly Buddy", "You got kerpranked, it aint Friday"]
+					msgs = ["Haha, it's not Friday! Gottem!", "You thought it was Friday? Silly Buddy", "You got Kerpranked, it aint Friday"]
 					message.channel.send({ content: msgs[Math.floor(Math.random() * msgs.length)] }).then(msg =>
 					{
 						interaction.deleteReply();
