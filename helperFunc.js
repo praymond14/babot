@@ -1245,12 +1245,13 @@ function GetSimilarName(names)
 
 function preformEasterEggs(message, msgContent)
 {
-	if (Math.random() * 100000 <= 1)
+	var ames = msgContent.replace(/\s+/g, '');
+	if (Math.random() * 333333 <= 1)
 	{
-		message.reply("The Equine Lunar God Empress demands a blood sacrifice.");
+		message.channel.send("The Equine Lunar God Empress demands a blood sacrifice.");
 	}
 
-	if(msgContent.includes('perchance') && !message.author.bot) //perchance update
+	if(ames.includes('perchance') && !message.author.bot) //perchance update
 	{
 		message.reply("You can't just say perchance");
 	}
@@ -1260,11 +1261,12 @@ function preformEasterEggs(message, msgContent)
 		message.reply("🎅🏻🎁 Christmas is GREAT! 🎄❄️");
 	}
 
-	if(msgContent.includes('adam')) //if message contains baba and is not from bot
+	if(ames.includes('adam')) //if message contains baba and is not from bot
 	{
-		if(msgContent.includes("please") && !message.author.bot)
+		if(ames.includes("please"))
 		{
-			message.channel.send("Indeed, Adam Please!");
+			if (!(message.author.bot && msgContent == "indeed, adam please!"))
+				message.channel.send("Indeed, Adam Please!");
 		}
 		else
 		{
@@ -1276,7 +1278,7 @@ function preformEasterEggs(message, msgContent)
 		}
 	}
 
-	if (msgContent.includes("frog") || msgContent.includes("🐸"))
+	if (ames.includes("frog") || msgContent.includes("🐸"))
 	{
 		message.react("🐸");
 	}
@@ -1286,7 +1288,7 @@ function preformEasterEggs(message, msgContent)
 		message.react("891799760346955796").catch(console.error);
 	}
 	
-	if ((msgContent.includes("man") && msgContent.includes("falling")) || message.content.includes("𓀒"))
+	if ((ames.includes("man") && ames.includes("falling")) || message.content.includes("𓀒"))
 	{
 		message.react("1011465311096160267").catch(console.error);
 	}

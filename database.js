@@ -861,7 +861,7 @@ function eventDB(event, change, user)
 
 				if (result.affectedRows == 0)
 				{
-					con.query(`INSERT INTO eventpurity (eventID, userID, flaked, timesrejoined, joined, latestjointime, initjointime) VALUES ("${eid}", "${uid}", 0, 1, 1, "${jtime}", "${jtime}")`,
+					con.query(`INSERT INTO eventpurity (eventID, userID, flaked, timesrejoined, joined, latestjointime, initjointime) VALUES ("${eid}", "${uid}", 0, 0, 1, "${jtime}", "${jtime}")`,
 					function (err, result)
 					{
 						if (err) throw err;
