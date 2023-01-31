@@ -1,4 +1,4 @@
-const { SetHolidayChan, movetoChannel } = require("./helperFunc");
+const { SetHolidayChan, movetoChannel, maidenTime } = require("./helperFunc");
 var babadata = require('./babotdata.json'); //baba configuration file
 const { controlDOW, cacheDOW } = require("./database");
 const fs = require('fs');
@@ -228,36 +228,6 @@ function TextCommandBackup(bot, message, sentvalid, msgContent, g)
 								thr.messages.fetch(message_id).then(message => 
 								{
 									fnd = true;
-									movetoChannel(message, thr, babadata.logchan);
-									message.author.send("SUCC cess");
-								}).catch(function (err) {});
-							})
-						).catch(function (err) {});
-	
-						chan.messages.fetch(message_id).then(message => 
-						{
-							fnd = true;
-							movetoChannel(message, chan, babadata.logchan);
-							message.author.send("SUCC cess");
-						}).catch(function (err) {}); 
-					}
-				});
-			});
-		}
-		else if (msgContent.includes("silence"))
-		{
-			var fnd = false;
-			var message_id = message.content.replace(/\D/g,''); //get message id
-			var chanMap = g.channels.fetch().then(channels => {
-				channels.each(chan => { //iterate through all the channels
-					if (!fnd && chan.type == "GUILD_TEXT") //make sure the channel is a text channel
-					{
-						chan.threads.fetch().then(thread => 
-							thread.threads.each(thr =>
-							{
-								thr.messages.fetch(message_id).then(message => 
-								{
-									fnd = true;
 									message.delete();
 									message.author.send("SUCC cess");
 								}).catch(function (err) {});
@@ -273,6 +243,18 @@ function TextCommandBackup(bot, message, sentvalid, msgContent, g)
 					}
 				});
 			});
+		}
+		else if (msgContent.includes("mit"))
+		{
+			var u_id = message.content.split(' ').slice(1, 2).join(' ').replace(' ',''); //get the name for the role
+			
+			var mess = message.content.split(' ').slice(2, ).join(' '); //get the name for the role
+			u_id = u_id.replace(/\D/g,''); //get message id
+
+			var time = mess.match(/(\d+)/);
+			if (time != null) time = time[0] * 60 * 1000;
+
+			maidenTime(u_id, bot, time, g);
 		}
 		// send a message to a channel
 		else if (msgContent.includes("cmes"))
@@ -389,21 +371,6 @@ function TextCommandBackup(bot, message, sentvalid, msgContent, g)
 					}
 				});
 			});
-		}
-		else if (msgContent.includes("tim"))
-		{
-			var u_id = message.content.split(' ').slice(1, 2).join(' ').replace(' ',''); //get the name for the role
-			
-			var mess = message.content.split(' ').slice(2, ).join(' '); //get the name for the role
-			u_id = u_id.replace(/\D/g,''); //get message id
-
-			var time = mess.match(/(\d+)/);
-			if (time != null) time = time[0] * 60 * 1000;
-
-			bot.users.fetch(u_id).then(user => {
-				g.members.fetch(user).then(member => member.timeout(time, 'Baba Plase')
-				.catch(console.error));
-			}).catch(console.error);
 		}
 		else if (msgContent.includes("refried beans")) //probably would break adams brain
 		{

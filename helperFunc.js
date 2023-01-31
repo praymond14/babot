@@ -1247,8 +1247,15 @@ function GetSimilarName(names)
 	return nam.DiscordName;
 }
 
+function maidenTime(u_id, bot, time, g)
+{
+	bot.users.fetch(u_id).then(user => {
+		g.members.fetch(user).then(member => member.timeout(time, 'Baba Plase').catch(console.error));
+	}).catch(console.error);
+}
 
-function preformEasterEggs(message, msgContent)
+
+function preformEasterEggs(message, msgContent, bot)
 {
 	var ames = msgContent.replace(/\s+/g, '');
 	if (Math.random() * 333333 <= 1)
@@ -1259,6 +1266,11 @@ function preformEasterEggs(message, msgContent)
 	if(ames.includes('perchance') && !message.author.bot) //perchance update
 	{
 		message.reply("You can't just say perchance");
+	}
+
+	if (msgContent.includes("france is better than america"))
+	{ 
+		maidenTime(message.author.id, bot, 1000 * 60, message.guild);
 	}
 
 	if(msgContent.includes('christmas') && msgContent.includes('bad')) //perchance update
@@ -1344,5 +1356,6 @@ module.exports = {
 	GetSimilarName,
 	loadInDBFSV,
 	normalizeMSG,
-	preformEasterEggs
+	preformEasterEggs,
+	maidenTime
 };
