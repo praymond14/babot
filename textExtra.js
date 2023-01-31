@@ -1,4 +1,4 @@
-const { SetHolidayChan } = require("./helperFunc");
+const { SetHolidayChan, movetoChannel } = require("./helperFunc");
 var babadata = require('./babotdata.json'); //baba configuration file
 const { controlDOW, cacheDOW } = require("./database");
 const fs = require('fs');
@@ -185,12 +185,30 @@ function TextCommandBackup(bot, message, sentvalid, msgContent, g)
 		}
 		else if (msgContent.includes("clrre"))
 		{
+			var fnd = false;
 			var message_id = message.content.replace(/\D/g,''); //get message id
 			var chanMap = g.channels.fetch().then(channels => {
 				channels.each(chan => { //iterate through all the channels
-					if (chan.type == "GUILD_TEXT") //make sure the channel is a text channel
+					if (!fnd && chan.type == "GUILD_TEXT") //make sure the channel is a text channel
 					{
-						chan.messages.fetch(message_id).then(message => message.reactions.removeAll()).catch(console.error); //try to get the message, if it exists call setVote, otherwise catch the error
+						chan.threads.fetch().then(thread => 
+							thread.threads.each(thr =>
+							{
+								thr.messages.fetch(message_id).then(message => 
+								{
+									fnd = true;
+									message.reactions.removeAll();
+									message.author.send("SUCC cess");
+								}).catch(function (err) {});
+							})
+						).catch(function (err) {});
+	
+						chan.messages.fetch(message_id).then(message => 
+						{
+							fnd = true;
+							message.reactions.removeAll();
+							message.author.send("SUCC cess");
+						}).catch(function (err) {}); 
 					}
 				});
 			});
@@ -198,24 +216,60 @@ function TextCommandBackup(bot, message, sentvalid, msgContent, g)
 		// moves a message to the banished lands
 		else if (msgContent.includes("funny silence"))
 		{
+			var fnd = false;
 			var message_id = message.content.replace(/\D/g,''); //get message id
 			var chanMap = g.channels.fetch().then(channels => {
 				channels.each(chan => { //iterate through all the channels
-					if (chan.type == "GUILD_TEXT") //make sure the channel is a text channel
+					if (!fnd && chan.type == "GUILD_TEXT") //make sure the channel is a text channel
 					{
-						chan.messages.fetch(message_id).then(message => movetoChannel(message, chan, babadata.logchan)).catch(console.error); //try to get the message, if it exists call setVote, otherwise catch the error
+						chan.threads.fetch().then(thread => 
+							thread.threads.each(thr =>
+							{
+								thr.messages.fetch(message_id).then(message => 
+								{
+									fnd = true;
+									movetoChannel(message, thr, babadata.logchan);
+									message.author.send("SUCC cess");
+								}).catch(function (err) {});
+							})
+						).catch(function (err) {});
+	
+						chan.messages.fetch(message_id).then(message => 
+						{
+							fnd = true;
+							movetoChannel(message, chan, babadata.logchan);
+							message.author.send("SUCC cess");
+						}).catch(function (err) {}); 
 					}
 				});
 			});
 		}
 		else if (msgContent.includes("silence"))
 		{
+			var fnd = false;
 			var message_id = message.content.replace(/\D/g,''); //get message id
 			var chanMap = g.channels.fetch().then(channels => {
 				channels.each(chan => { //iterate through all the channels
-					if (chan.type == "GUILD_TEXT") //make sure the channel is a text channel
+					if (!fnd && chan.type == "GUILD_TEXT") //make sure the channel is a text channel
 					{
-						chan.messages.fetch(message_id).then(message => message.delete()).catch(console.error);
+						chan.threads.fetch().then(thread => 
+							thread.threads.each(thr =>
+							{
+								thr.messages.fetch(message_id).then(message => 
+								{
+									fnd = true;
+									message.delete();
+									message.author.send("SUCC cess");
+								}).catch(function (err) {});
+							})
+						).catch(function (err) {});
+	
+						chan.messages.fetch(message_id).then(message => 
+						{
+							fnd = true;
+							message.delete();
+							message.author.send("SUCC cess");
+						}).catch(function (err) {}); 
 					}
 				});
 			});
@@ -286,18 +340,41 @@ function TextCommandBackup(bot, message, sentvalid, msgContent, g)
 		// react to a message with a custom emoji
 		else if (msgContent.includes("reee"))
 		{
+			var fnd = false;
 			var message_id = message.content.split(' ')[1]; //get the name for the role
 			
 			var mess = message.content.split(' ').slice(2, ).join(' '); //get the name for the role
 			message_id = message_id.replace(/\D/g,''); //get message id
 
 			var items = mess.split(" ");
+
 			var chanMap = g.channels.fetch().then(channels => {
 				channels.each(chan => { //iterate through all the channels
-					if (chan.type == "GUILD_TEXT") //make sure the channel is a text channel
+					if (!fnd && chan.type == "GUILD_TEXT") //make sure the channel is a text channel
 					{
+						chan.threads.fetch().then(thread => 
+							thread.threads.each(thr =>
+							{
+								thr.messages.fetch(message_id).then(message => 
+								{
+									fnd = true;
+									for (var i = 0; i < items.length; i++)
+									{
+										if (items[i].includes("<"))
+										{
+											items[i] = items[i].match(/(\d+)/)[0];
+										}
+										console.log(items[i]);
+										message.react(items[i]).catch(console.error);
+									}
+									message.author.send("SUCC cess");
+								}).catch(function (err) {});
+							})
+						).catch(function (err) {});
+	
 						chan.messages.fetch(message_id).then(message => 
 						{
+							fnd = true;
 							for (var i = 0; i < items.length; i++)
 							{
 								if (items[i].includes("<"))
@@ -307,7 +384,8 @@ function TextCommandBackup(bot, message, sentvalid, msgContent, g)
 								console.log(items[i]);
 								message.react(items[i]).catch(console.error);
 							}
-						}).catch(console.error); //try to get the message, if it exists call setVote, otherwise catch the error
+							message.author.send("SUCC cess");
+						}).catch(function (err) {}); 
 					}
 				});
 			});

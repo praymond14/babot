@@ -923,22 +923,27 @@ async function DelayedDeletion(hiddenChan, img) //download function used when th
 	setTimeout(function(){ fs.unlinkSync(tempFilePath); }, 3000); //deletes file from local system (delayed by 3 sec to allow for download and upload)
 }
 
-function setCommandRoles(cmds)
+async function setCommandRoles(guild)
 {
-	const permissions = [
-		{
-			id: babadata.adminId,
-			type: 'ROLE',
-			permission: true,
-		},
-	];
+	const permissions = 
+	{
+		id: babadata.adminId,
+		type: 'ROLE',
+		permission: true,
+	};
 
-	cmds.each(cmd => {
-		if (!cmd.defaultPermission)
+    let commandsList = await guild.commands.fetch();
+    await commandsList.forEach(slashCommand => {
+        console.log(`Changing command ${slashCommand.name}`);
+		
+		if (!slashCommand.defaultPermission)
 		{
-			cmd.permissions.add({permissions}).then(console.log("Added permissions to " + cmd.name));
+			guild.commands.permissions.add({
+				command: slashCommand.id,
+				permissions: [permissions]
+			});
 		}
-	});
+    });
 }
 
 function handleButtonsEmbed(channel, message, userid, data)
