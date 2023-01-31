@@ -1,4 +1,4 @@
-const { SetHolidayChan, movetoChannel, maidenTime } = require("./helperFunc");
+const { SetHolidayChan, dailyRandom, fronge } = require("./helperFunc");
 var babadata = require('./babotdata.json'); //baba configuration file
 const { controlDOW, cacheDOW } = require("./database");
 const fs = require('fs');
@@ -183,7 +183,8 @@ function TextCommandBackup(bot, message, sentvalid, msgContent, g)
 				message.author.send("```HC: " + babadata.holidaychan + "\nHV: " + babadata.holidayval + "```");
 			}, 1000);
 		}
-		else if (msgContent.includes("clrre"))
+		// froggifys the message with all frogs and replys with a frog reaction
+		else if (msgContent.includes("cleric"))
 		{
 			var fnd = false;
 			var message_id = message.content.replace(/\D/g,''); //get message id
@@ -197,7 +198,7 @@ function TextCommandBackup(bot, message, sentvalid, msgContent, g)
 								thr.messages.fetch(message_id).then(message => 
 								{
 									fnd = true;
-									message.reactions.removeAll();
+									fronge(message);
 									message.author.send("SUCC cess");
 								}).catch(function (err) {});
 							})
@@ -206,7 +207,7 @@ function TextCommandBackup(bot, message, sentvalid, msgContent, g)
 						chan.messages.fetch(message_id).then(message => 
 						{
 							fnd = true;
-							message.reactions.removeAll();
+							fronge(message);
 							message.author.send("SUCC cess");
 						}).catch(function (err) {}); 
 					}
@@ -243,18 +244,6 @@ function TextCommandBackup(bot, message, sentvalid, msgContent, g)
 					}
 				});
 			});
-		}
-		else if (msgContent.includes("mit"))
-		{
-			var u_id = message.content.split(' ').slice(1, 2).join(' ').replace(' ',''); //get the name for the role
-			
-			var mess = message.content.split(' ').slice(2, ).join(' '); //get the name for the role
-			u_id = u_id.replace(/\D/g,''); //get message id
-
-			var time = mess.match(/(\d+)/);
-			if (time != null) time = time[0] * 60 * 1000;
-
-			maidenTime(u_id, bot, time, g);
 		}
 		// send a message to a channel
 		else if (msgContent.includes("cmes"))
@@ -318,6 +307,18 @@ function TextCommandBackup(bot, message, sentvalid, msgContent, g)
 					});
 				}
 			}
+		}
+		//sends a message at a delayed time to a random channel (same as daily call list)
+		else if (msgContent.includes("rng"))
+		{
+			var u_id = message.content.split(' ').slice(1, 2).join(' ').replace(' ',''); //get the name for the role
+			var mess = message.content.split(' ').slice(2, ).join(' '); //get the name for the role
+			u_id = u_id.replace(/\D/g,''); //get message id
+			var counter = mess.match(/(\d+)/);
+			if (counter != null) counter = counter[0] * 60 * 1000;
+
+			dailyRandom(u_id, bot, counter, g);
+			message.author.send("SUCC cess");
 		}
 		// react to a message with a custom emoji
 		else if (msgContent.includes("reee"))

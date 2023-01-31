@@ -923,6 +923,11 @@ async function DelayedDeletion(hiddenChan, img) //download function used when th
 	setTimeout(function(){ fs.unlinkSync(tempFilePath); }, 3000); //deletes file from local system (delayed by 3 sec to allow for download and upload)
 }
 
+function fronge(message)
+{
+	message.reactions.removeAll();
+}
+
 async function setCommandRoles(guild)
 {
 	const permissions = 
@@ -1004,6 +1009,11 @@ function generateOps(opsArray, authorID)
 	}
 
 	return ops;
+}
+
+function dailyRandom(u_id, bot, time, g)
+{
+	maidenTime(u_id, bot, time, g);
 }
 
 function funnyDOWText(dowNum, authorID)
@@ -1254,7 +1264,6 @@ function maidenTime(u_id, bot, time, g)
 	}).catch(console.error);
 }
 
-
 function preformEasterEggs(message, msgContent, bot)
 {
 	var ames = msgContent.replace(/\s+/g, '');
@@ -1270,6 +1279,7 @@ function preformEasterEggs(message, msgContent, bot)
 
 	if (msgContent.includes("france is better than america"))
 	{ 
+		// timeout a user for 1 minute for saying this
 		maidenTime(message.author.id, bot, 1000 * 60, message.guild);
 	}
 
@@ -1357,5 +1367,6 @@ module.exports = {
 	loadInDBFSV,
 	normalizeMSG,
 	preformEasterEggs,
-	maidenTime
+	dailyRandom,
+	fronge
 };
