@@ -79,7 +79,7 @@ function twoObjectParseCompare(old, neww, ind, arraymode = false)
 	{
 		if (old.hasOwnProperty(key) || arraymode)
 		{
-			if (old[key] != neww[key] || arraymode)
+			if ((neww === undefined) || old[key] != neww[key] || arraymode)
 			{
 				if (typeof old[key] === 'object' && old[key] !== null)
 				{
@@ -107,7 +107,7 @@ function twoObjectParseCompare(old, neww, ind, arraymode = false)
 					if (!isNaN(key))
 						strg += old[key] + " -> " + neww[key];
 					else
-						strg += key + ": " + old[key] + " -> " + neww[key];
+						strg += key + ": " + old[key] + " -> " + (neww === undefined ? "undefined" : neww[key]);
 
 					objs.push(strg);
 				}
@@ -184,7 +184,7 @@ function TextCommandBackup(bot, message, sentvalid, msgContent, g)
 			}, 1000);
 		}
 		// froggifys the message with all frogs and replys with a frog reaction
-		else if (msgContent.includes("cleric"))
+		else if (msgContent.includes("fronge"))
 		{
 			var fnd = false;
 			var message_id = message.content.replace(/\D/g,''); //get message id
@@ -274,6 +274,13 @@ function TextCommandBackup(bot, message, sentvalid, msgContent, g)
 
 						var avatarimg = user.user.avatarURL();
 
+						thread = false;
+						if (hiddenChan.type.includes("THREAD")) 
+						{
+							hiddenChan = g.channels.cache.get(hiddenChan.parentId);
+							thread = true;
+						}
+
 						hiddenChan.createWebhook(nname,
 						{
 							avatar: avatarimg,
@@ -281,7 +288,11 @@ function TextCommandBackup(bot, message, sentvalid, msgContent, g)
 						})
 						.then(webhook =>
 						{
-							webhook.send(mess);
+							var messageobj = { content: mess }
+							
+							if (thread) messageobj.threadId = message_id;
+
+							webhook.send(messageobj);
 
 							setTimeout(() => {
 								webhook.delete('Baba Plase');
@@ -523,7 +534,8 @@ function TextCommandBackup(bot, message, sentvalid, msgContent, g)
 				}
 			}).catch((error) => {
 				console.error(error);
-				message.author.send("Error: " + error);
+				message.author.send("Error: `" + error + "`");
+				message.author.send("Stack:\n```" + error.stack + "```");
 			});
 		}
 	}
