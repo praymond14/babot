@@ -1319,6 +1319,12 @@ function preformEasterEggs(message, msgContent, bot)
 	{
 		message.react("1011465311096160267").catch(console.error);
 	}
+
+	if (ames.includes("i request an oven at this moment"))
+	{
+		var ovenitems = ["https://tenor.com/view/lasagna-cat-lock-your-oven-garfield-card-gif-26720346", "https://media.discordapp.net/attachments/561209488724459531/1062888125073989742/091.png"]
+		message.reply(ovenitems[Math.floor(Math.random() * ovenitems.length)]);
+	}
 }
 
 //const download = (url, path, callback) => { //download function //depricated with the request deprication

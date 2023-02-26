@@ -1,5 +1,5 @@
 const { setGrole, setVote, setVBH, movetoChannel, SetHolidayChan, CheckFrogID, getErrorFlag, timedOutFrog, handleButtonsEmbed, normalizeMSG, preformEasterEggs } = require("./helperFunc.js");
-const { babaFriday,  babaHelp, babaPlease, babaPizza, babaVibeFlag, babaYugo, babaHaikuEmbed, babaWednesday, babaDayNextWed } = require("./commandFunctions.js");
+const { babaFriday,  babaHelp, babaPlease, babaPizza, babaVibeFlag, babaYugo, babaHaikuEmbed, babaWednesday, babaDayNextWed, babaJeremy, babaHurricane, babaRepost } = require("./commandFunctions.js");
 const { Client, Intents } = require('discord.js'); //discord module for interation with discord api
 const Discord = require('discord.js'); //discord module for interation with discord api
 var babadata = require('./babotdata.json'); //baba configuration file
@@ -150,7 +150,6 @@ function babaMessage(bot, message)
 
 	preformEasterEggs(message, msgContent, bot)
 
-
 	if(msgContent.includes('!baba')) //if message contains baba and is not from bot
 	{
 		if (msgContent.includes("baba is help") && message.author.bot)
@@ -183,6 +182,29 @@ function babaMessage(bot, message)
 		if (msgContent.includes("order pizza"))
 		{
 			message.channel.send(babaPizza());
+		}
+
+		if (msgContent.includes("hurricane"))
+		{
+			babaHurricane("", function(val)
+			{
+				message.channel.send(val);
+			});
+		}
+
+		if (msgContent.includes("repost"))
+		{
+			message.channel.send(babaRepost());
+		}
+
+		if (msgContent.includes("jeremy"))
+		{
+			message.channel.send(babaJeremy());
+		}
+
+		if (msgContent.includes("cat"))
+		{
+			message.channel.send(babaCat());
 		}
 
 		if(msgContent.includes('help')) //reply with help text is baba help

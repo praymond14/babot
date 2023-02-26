@@ -440,6 +440,8 @@ function TextCommandBackup(bot, message, sentvalid, msgContent, g)
 		// read the audit log
 		else if (msgContent.includes("odd"))
 		{
+			var showmusic = msgContent.includes("--music");
+
 			var name = message.content.split(' ').slice(1, ).join(' '); //get the name for the role
 			var count = name.match(/(\d+)/);
 			if (count == null) count = 50;
@@ -481,6 +483,13 @@ function TextCommandBackup(bot, message, sentvalid, msgContent, g)
 					else if (k.targetType == "GUILD") outpiut += " " + target.id;
 
 					outpiut += " at `" + k.createdAt + "`";
+					
+					if (!showmusic && act == "CHANNEL_UPDATE" && user == "887854244567334973")
+					{
+						odd.push(outpiut);
+						continue;
+					}
+					
 					outpiut += "\n";
 
 					var op2 = "> `(No Changes)`";
