@@ -1288,9 +1288,9 @@ function preformEasterEggs(message, msgContent, bot)
 		message.reply("🎅🏻🎁 Christmas is GREAT! 🎄❄️");
 	}
 
-	if(ames.includes('adam')) //if message contains baba and is not from bot
+	if(ames.includes('adam') || ames.includes("aikus")) //if message contains baba and is not from bot
 	{
-		if(ames.includes("please"))
+		if(ames.includes("please") || ames.includes("pikus"))
 		{
 			if (!(message.author.bot && msgContent == "indeed, adam please!"))
 				message.channel.send("Indeed, Adam Please!");
