@@ -715,6 +715,28 @@ function babaCat(callback)
     });
 }
 
+function babaWeather(city, callback)
+{
+    var tempFilePath = babadata.temp + "weather.png";
+    const file = fs.createWriteStream(tempFilePath);
+    var cityUnderscore = city.replace(" ", "%20");
+    var url = "https://wttr.in/" + cityUnderscore + ".png?u";
+
+    console.log(url);
+
+    const request = https.get(url, function(response) {
+       response.pipe(file);
+    
+       // after download completed close filestream
+       file.on("finish", () => {
+           file.close();
+           console.log("Download Completed");
+
+           callback({ content: "Baba Weather", files: [tempFilePath] });
+       });
+    });
+}
+
 module.exports = {
     babaFriday, 
     babaHelp, 
@@ -732,4 +754,5 @@ module.exports = {
     babaWhomst,
     babaHurricane,
     babaCat,
+    babaWeather
 };
