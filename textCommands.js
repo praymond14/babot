@@ -207,6 +207,11 @@ function babaMessage(bot, message)
 			message.channel.send(babaCat());
 		}
 
+		if (msgContent.includes("weather"))
+		{
+			message.channel.send(babaWeather());
+		}
+
 		if(msgContent.includes('help')) //reply with help text is baba help
 		{
 			message.channel.send(babaHelp());
