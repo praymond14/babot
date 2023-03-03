@@ -9,6 +9,7 @@ module.exports = {
 	async execute(interaction, bot) {
 		var length = interaction.options.getInteger('length');
 		if (length == null) length = 20;
+		if (length > 1900) length = 1900;
 		await interaction.deferReply();
         await interaction.editReply(babaProgress(length));
 	},
