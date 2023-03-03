@@ -715,12 +715,17 @@ function babaCat(callback)
     });
 }
 
-function babaWeather(city, callback)
+function babaWeather(mode, city, callback)
 {
     var tempFilePath = babadata.temp + "weather.png";
     const file = fs.createWriteStream(tempFilePath);
     var cityUnderscore = city.replace(" ", "%20");
     var url = "https://wttr.in/" + cityUnderscore + ".png?u";
+
+    if (mode == "four")
+        url = "https://wttr.in/" + cityUnderscore + ".png?u";
+    else if (mode == "deets")
+        url = "https://v2.wttr.in/" + cityUnderscore + ".png?u";
 
     console.log(url);
 
