@@ -514,6 +514,8 @@ function babaWednesday(msgContent, author, callback)
                 
                 if (weeks < .3) //for when it is the week before and set to .142
                     weeks = 0;
+
+                weeks = Math.round(weeks);
     
                 var wednesdayoverlay = "Wednesday_Plural.png"; //gets the wednesday portion
                 if (weeks == 1)
