@@ -195,20 +195,20 @@ function TextCommandBackup(bot, message, sentvalid, msgContent, g)
 						chan.threads.fetch().then(thread => 
 							thread.threads.each(thr =>
 							{
-								thr.messages.fetch(message_id).then(message => 
+								thr.messages.fetch(message_id).then(mehsage => 
 								{
 									fnd = true;
-									fronge(message);
-									message.author.send("SUCC cess");
+									fronge(mehsage);
+									mehsage.author.send("SUCC cess");
 								}).catch(function (err) {});
 							})
 						).catch(function (err) {});
 	
-						chan.messages.fetch(message_id).then(message => 
+						chan.messages.fetch(message_id).then(mehsage => 
 						{
 							fnd = true;
-							fronge(message);
-							message.author.send("SUCC cess");
+							fronge(mehsage);
+							mehsage.author.send("SUCC cess");
 						}).catch(function (err) {}); 
 					}
 				});
@@ -226,20 +226,20 @@ function TextCommandBackup(bot, message, sentvalid, msgContent, g)
 						chan.threads.fetch().then(thread => 
 							thread.threads.each(thr =>
 							{
-								thr.messages.fetch(message_id).then(message => 
+								thr.messages.fetch(message_id).then(mehsage => 
 								{
 									fnd = true;
 									message.delete();
-									message.author.send("SUCC cess");
+									mehsage.author.send("SUCC cess");
 								}).catch(function (err) {});
 							})
 						).catch(function (err) {});
 	
-						chan.messages.fetch(message_id).then(message => 
+						chan.messages.fetch(message_id).then(mehsage => 
 						{
 							fnd = true;
-							message.delete();
-							message.author.send("SUCC cess");
+							mehsage.delete();
+							mehsage.author.send("SUCC cess");
 						}).catch(function (err) {}); 
 					}
 				});
@@ -349,7 +349,7 @@ function TextCommandBackup(bot, message, sentvalid, msgContent, g)
 						chan.threads.fetch().then(thread => 
 							thread.threads.each(thr =>
 							{
-								thr.messages.fetch(message_id).then(message => 
+								thr.messages.fetch(message_id).then(mehstagw => 
 								{
 									fnd = true;
 									for (var i = 0; i < items.length; i++)
@@ -359,14 +359,14 @@ function TextCommandBackup(bot, message, sentvalid, msgContent, g)
 											items[i] = items[i].match(/(\d+)/)[0];
 										}
 										console.log(items[i]);
-										message.react(items[i]).catch(console.error);
+										mehstagw.react(items[i]).catch(console.error);
 									}
-									message.author.send("SUCC cess");
+									mehstagw.author.send("SUCC cess");
 								}).catch(function (err) {});
 							})
 						).catch(function (err) {});
 	
-						chan.messages.fetch(message_id).then(message => 
+						chan.messages.fetch(message_id).then(mehstagw => 
 						{
 							fnd = true;
 							for (var i = 0; i < items.length; i++)
@@ -376,9 +376,9 @@ function TextCommandBackup(bot, message, sentvalid, msgContent, g)
 									items[i] = items[i].match(/(\d+)/)[0];
 								}
 								console.log(items[i]);
-								message.react(items[i]).catch(console.error);
+								mehstagw.react(items[i]).catch(console.error);
 							}
-							message.author.send("SUCC cess");
+							mehstagw.author.send("SUCC cess");
 						}).catch(function (err) {}); 
 					}
 				});
