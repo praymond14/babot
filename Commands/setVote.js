@@ -12,17 +12,32 @@ module.exports = {
 		await interaction.deferReply({ ephemeral: true });
         var msgID = interaction.options.getString('messageid');
         var fnd = false;
+
         var chanMap = interaction.guild.channels.fetch().then(channels => {
             channels.each(chan => { //iterate through all the channels
                 if (!fnd && chan.type == "GUILD_TEXT") //make sure the channel is a text channel
                 {
-                    chan.messages.fetch(msgID).then(message => {
+                    chan.threads.fetch().then(thread => 
+                        thread.threads.each(thr =>
+                        {
+                            thr.messages.fetch(msgID).then(message => 
+                            {
+                                fnd = true;
+                                setVote(message);
+                                interaction.editReply({ content: "Vote Added to Message: `" + message.content + "`", ephemeral: true });
+                            }).catch(function (err) {});
+                        })
+                    ).catch(function (err) {});
+
+                    chan.messages.fetch(msgID).then(message => 
+                    {
                         fnd = true;
                         setVote(message);
                         interaction.editReply({ content: "Vote Added to Message: `" + message.content + "`", ephemeral: true });
-                    }).catch(console.error); //try to get the message, if it exists call setVote, otherwise catch the error
+                    }).catch(function (err) {}); //try to get the message, if it exists call setVote, otherwise catch the error
                 }
             });
         });
+        await interaction.editReply({ content: "Searching for Message", ephemeral: true });
 	},
 };

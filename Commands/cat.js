@@ -6,10 +6,11 @@ module.exports = {
 		.setName('cat')
 		.setDescription('Gives Cat!'),
 	async execute(interaction, bot) {
-		await interaction.deferReply();
-		babaCat(function(val)
-		{
-			interaction.editReply(val);
-		});
+		var cats = ["😺", "😸", "😹", "😻", "😼", "😽", "🙀", "😿", "😾", "🐈", "🐱", "CAT!"];
+		await interaction.reply(cats[Math.floor(Math.random() * cats.length)]);
+		// babaCat(function(val)
+		// {
+		// 	interaction.editReply("CAT!");
+		// });
 	},
 };

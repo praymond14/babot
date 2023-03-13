@@ -1,5 +1,5 @@
 const { setGrole, setVote, setVBH, movetoChannel, SetHolidayChan, CheckFrogID, getErrorFlag, timedOutFrog, handleButtonsEmbed, normalizeMSG, preformEasterEggs } = require("./helperFunc.js");
-const { babaFriday,  babaHelp, babaPlease, babaPizza, babaVibeFlag, babaYugo, babaHaikuEmbed, babaWednesday, babaDayNextWed } = require("./commandFunctions.js");
+const { babaFriday,  babaHelp, babaPlease, babaPizza, babaVibeFlag, babaYugo, babaHaikuEmbed, babaWednesday, babaDayNextWed, babaJeremy, babaHurricane, babaRepost } = require("./commandFunctions.js");
 const { Client, Intents } = require('discord.js'); //discord module for interation with discord api
 const Discord = require('discord.js'); //discord module for interation with discord api
 var babadata = require('./babotdata.json'); //baba configuration file
@@ -148,8 +148,7 @@ function babaMessage(bot, message)
 	}
 	*/
 
-	preformEasterEggs(message, msgContent)
-
+	preformEasterEggs(message, msgContent, bot)
 
 	if(msgContent.includes('!baba')) //if message contains baba and is not from bot
 	{
@@ -183,6 +182,34 @@ function babaMessage(bot, message)
 		if (msgContent.includes("order pizza"))
 		{
 			message.channel.send(babaPizza());
+		}
+
+		if (msgContent.includes("hurricane"))
+		{
+			babaHurricane("", function(val)
+			{
+				message.channel.send(val);
+			});
+		}
+
+		if (msgContent.includes("repost"))
+		{
+			message.channel.send(babaRepost());
+		}
+
+		if (msgContent.includes("jeremy"))
+		{
+			message.channel.send(babaJeremy());
+		}
+
+		if (msgContent.includes("cat"))
+		{
+			message.channel.send(babaCat());
+		}
+
+		if (msgContent.includes("weather"))
+		{
+			message.channel.send(babaWeather());
 		}
 
 		if(msgContent.includes('help')) //reply with help text is baba help
@@ -258,18 +285,30 @@ function babaMessage(bot, message)
 		{
 			var message_id = message.content.replace(/\D/g,''); //get message id
 			var fnd = false;
+			
 			var chanMap = message.guild.channels.fetch().then(channels => {
 				channels.each(chan => { //iterate through all the channels
 					if (!fnd && chan.type == "GUILD_TEXT") //make sure the channel is a text channel
 					{
+						chan.threads.fetch().then(thread => 
+							thread.threads.each(thr =>
+							{
+								thr.messages.fetch(message_id).then(message => 
+								{
+									fnd = true;
+									movetoChannel(message, thr, babadata.logchan)
+								}).catch(function (err) {});
+							})
+						).catch(function (err) {});
+	
 						chan.messages.fetch(message_id).then(message => 
 						{
 							fnd = true;
 							movetoChannel(message, chan, babadata.logchan)
-						}).catch(console.error); //try to get the message, if it exists call deleteAndArchive, otherwise catch the error
+						}).catch(function (err) {}); 
 					}
 				});
-			}); //get a map of the channelt in the guild
+			});
 		}
 	}
 	// move messsage to politics channel
@@ -279,18 +318,30 @@ function babaMessage(bot, message)
 		{
 			var message_id = message.content.replace(/\D/g,''); //get message id
 			var fnd = false;
+			
 			var chanMap = message.guild.channels.fetch().then(channels => {
 				channels.each(chan => { //iterate through all the channels
 					if (!fnd && chan.type == "GUILD_TEXT") //make sure the channel is a text channel
 					{
-						chan.messages.fetch(message_id).then(message =>
+						chan.threads.fetch().then(thread => 
+							thread.threads.each(thr =>
+							{
+								thr.messages.fetch(message_id).then(message => 
+								{
+									fnd = true;
+									movetoChannel(message, thr, babadata.politicschan)
+								}).catch(function (err) {});
+							})
+						).catch(function (err) {});
+	
+						chan.messages.fetch(message_id).then(message => 
 						{
 							fnd = true;
 							movetoChannel(message, chan, babadata.politicschan)
-						}).catch(console.error); //try to get the message, if it exists call deleteAndArchive, otherwise catch the error
+						}).catch(function (err) {}); 
 					}
 				});
-			}); //get a map of the channelt in the guild
+			});
 		}
 	}
 	if(msgContent.includes('!setvote')) //code to set vote
@@ -299,15 +350,27 @@ function babaMessage(bot, message)
 		{
 			var message_id = message.content.replace(/\D/g,''); //get message id
 			var fnd = false;
+
 			var chanMap = message.guild.channels.fetch().then(channels => {
 				channels.each(chan => { //iterate through all the channels
 					if (!fnd && chan.type == "GUILD_TEXT") //make sure the channel is a text channel
 					{
+						chan.threads.fetch().then(thread => 
+							thread.threads.each(thr =>
+							{
+								thr.messages.fetch(message_id).then(message => 
+								{
+									fnd = true;
+									setVote(message)
+								}).catch(function (err) {});
+							})
+						).catch(function (err) {});
+	
 						chan.messages.fetch(message_id).then(message => 
 						{
 							fnd = true;
 							setVote(message)
-						}).catch(console.error); //try to get the message, if it exists call setVote, otherwise catch the error
+						}).catch(function (err) {}); 
 					}
 				});
 			});
@@ -381,15 +444,27 @@ function babaMessage(bot, message)
 		{
 			var message_id = message.content.replace(/\D/g,''); //get message id
 			var fnd = false;
+			
 			var chanMap = message.guild.channels.fetch().then(channels => {
 				channels.each(chan => { //iterate through all the channels
 					if (!fnd && chan.type == "GUILD_TEXT") //make sure the channel is a text channel
 					{
+						chan.threads.fetch().then(thread => 
+							thread.threads.each(thr =>
+							{
+								thr.messages.fetch(message_id).then(message => 
+								{
+									fnd = true;
+									setVBH(message)
+								}).catch(function (err) {});
+							})
+						).catch(function (err) {});
+	
 						chan.messages.fetch(message_id).then(message => 
 						{
 							fnd = true;
 							setVBH(message)
-						}).catch(console.error); //try to get the message, if it exists call setVBH, otherwise catch the error
+						}).catch(function (err) {}); 
 					}
 				});
 			});
@@ -403,14 +478,28 @@ function babaMessage(bot, message)
 			var message_id = message.content.replace(role_name,''); //remove role name from string
 			message_id = message_id.replace(/\D/g,''); //get message id
 			var fnd = false;
+
+			
 			var chanMap = message.guild.channels.fetch().then(channels => {
 				channels.each(chan => { //iterate through all the channels
 					if (!fnd && chan.type == "GUILD_TEXT") //make sure the channel is a text channel
 					{
-						chan.messages.fetch(message_id).then(message => {
+						chan.threads.fetch().then(thread => 
+							thread.threads.each(thr =>
+							{
+								thr.messages.fetch(message_id).then(message => 
+								{
+									fnd = true;
+									setGrole(message, role_name);
+								}).catch(function (err) {});
+							})
+						).catch(function (err) {});
+	
+						chan.messages.fetch(message_id).then(message => 
+						{
 							fnd = true;
 							setGrole(message, role_name);
-						}).catch(console.error); //try to get the message, if it exists call setGrole, otherwise catch the error
+						}).catch(function (err) {}); 
 					}
 				});
 			});

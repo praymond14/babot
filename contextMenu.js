@@ -3,28 +3,42 @@ const {  MessageActionRow, Modal, TextInputComponent  } = require('discord.js');
 
 const { movetoChannel } = require("./helperFunc");
 
-function contextInfo(interaction, bot)
+async function contextInfo(interaction, bot)
 {
     var commandName = interaction.commandName;
 
     if (commandName === "Delete")
     {
+		await interaction.deferReply({ ephemeral: true });
         var fnd = false;
         var msgID = interaction.targetId;
-        var channelId = interaction.channelId;
-        var chanMap = interaction.guild.channels.fetch(channelId).then(channel => {
-            if (!fnd && channel.type == "GUILD_TEXT") //make sure the channel is a text channel
-            {
-                console.log("Checking: " + channel.name);
-                channel.messages.fetch(msgID).then(message => 
-                {
-                    fnd = true;
-                    movetoChannel(message, channel, babadata.logchan);
-                }).catch(function (err) {}); //try to get the message, if it exists call setVote, otherwise catch the error
-            };
-        });
 
-        interaction.reply({ content: "Message Moved", ephemeral: true });
+        var chanMap = interaction.guild.channels.fetch().then(channels => {
+            channels.each(chan => { //iterate through all the channels
+                if (!fnd && chan.type == "GUILD_TEXT") //make sure the channel is a text channel
+                {
+                    chan.threads.fetch().then(thread => 
+                        thread.threads.each(thr =>
+                        {
+                            thr.messages.fetch(msgID).then(message => 
+                            {
+                                fnd = true;
+                                movetoChannel(message, thr, babadata.logchan);
+                                interaction.editReply({ content: "Message Moved", ephemeral: true });
+                            }).catch(function (err) {});
+                        })
+                    ).catch(function (err) {});
+
+                    chan.messages.fetch(msgID).then(message => 
+                    {
+                        fnd = true;
+                        movetoChannel(message, chan, babadata.logchan);
+                        interaction.editReply({ content: "Message Moved", ephemeral: true });
+                    }).catch(function (err) {}); //try to get the message, if it exists call setVote, otherwise catch the error
+                }
+            });
+        });
+        await interaction.editReply({ content: "Searching for Message", ephemeral: true });
     }
     else if (commandName === "Move To")
     {
@@ -44,14 +58,6 @@ function contextInfo(interaction, bot)
             .setPlaceholder(msgID)
             .setValue(msgID);
         
-        const channelIDShow = new TextInputComponent()
-            .setCustomId('chanID')
-            .setLabel("The ID of the Message's Channel - Autofilled")
-            .setStyle('SHORT')
-            .setRequired(true)
-            .setPlaceholder(channelId)
-            .setValue(channelId);
-        
         const channelIDInput = new TextInputComponent()
             .setCustomId('chanIDInput')
             .setLabel("The ID of the Channel to Move to")
@@ -62,37 +68,51 @@ function contextInfo(interaction, bot)
 		// An action row only holds one text input,
 		// so you need one action row per text input.
 		const firstActionRow = new MessageActionRow().addComponents(messageIDShow);
-		const secondActionRow = new MessageActionRow().addComponents(channelIDShow);
 		const thtrdActionRow = new MessageActionRow().addComponents(channelIDInput);
 		// Add inputs to the modal
-		modal.addComponents(firstActionRow, secondActionRow, thtrdActionRow);
+		modal.addComponents(firstActionRow, thtrdActionRow);
 
         interaction.showModal(modal);
     }
 }
 
-function modalInfo(interaction, bot)
+async function modalInfo(interaction, bot)
 {
+    await interaction.deferReply({ ephemeral: true });
     var cid = interaction.customId;
     if (cid === "movetoModal")
     {
         var msgID = interaction.fields.getTextInputValue("msgID");
-        var channelId = interaction.fields.getTextInputValue("chanID");
         var chansend = interaction.fields.getTextInputValue("chanIDInput");
 
         var fnd = false;
-        var chanMap = interaction.guild.channels.fetch(channelId).then(channel => {
-            if (!fnd && channel.type == "GUILD_TEXT") //make sure the channel is a text channel
-            {
-                console.log("Checking: " + channel.name);
-                channel.messages.fetch(msgID).then(message => {
-                    fnd = true;
-                    movetoChannel(message, channel, chansend);
-                }).catch(function (err) {}); //try to get the message, if it exists call setVote, otherwise catch the error
-            };
-        });
 
-        interaction.reply({ content: "Message Moved", ephemeral: true });
+        var chanMap = interaction.guild.channels.fetch().then(channels => {
+            channels.each(chan => { //iterate through all the channels
+                if (!fnd && chan.type == "GUILD_TEXT") //make sure the channel is a text channel
+                {
+                    chan.threads.fetch().then(thread => 
+                        thread.threads.each(thr =>
+                        {
+                            thr.messages.fetch(msgID).then(message => 
+                            {
+                                fnd = true;
+                                movetoChannel(message, thr, chansend)
+                                interaction.editReply({ content: "Message Moved", ephemeral: true });
+                            }).catch(function (err) {});
+                        })
+                    ).catch(function (err) {});
+
+                    chan.messages.fetch(msgID).then(message => 
+                    {
+                        fnd = true;
+                        movetoChannel(message, chan, chansend)
+                        interaction.editReply({ content: "Message Moved", ephemeral: true });
+                    }).catch(function (err) {}); //try to get the message, if it exists call setVote, otherwise catch the error
+                }
+            });
+        });
+        await interaction.editReply({ content: "Searching for Message", ephemeral: true });
     }
 }
 

@@ -154,7 +154,7 @@ function timedOutFrog(i, texts, message, templocal)
 
 function getD1()
 {
-	var dateoveride = [false, 3, 9]; //allows for overiding date manually (testing)
+	var dateoveride = [false, 3, 4]; //allows for overiding date manually (testing)
 	var yr = new Date().getFullYear(); //get this year
 	var dy = dateoveride[0] ? dateoveride[2] : new Date().getDate(); //get this day
 	var my = dateoveride[0] ? dateoveride[1] - 1 : new Date().getMonth(); //get this month
@@ -923,22 +923,32 @@ async function DelayedDeletion(hiddenChan, img) //download function used when th
 	setTimeout(function(){ fs.unlinkSync(tempFilePath); }, 3000); //deletes file from local system (delayed by 3 sec to allow for download and upload)
 }
 
-function setCommandRoles(cmds)
+function fronge(message)
 {
-	const permissions = [
-		{
-			id: babadata.adminId,
-			type: 'ROLE',
-			permission: true,
-		},
-	];
+	message.reactions.removeAll();
+}
 
-	cmds.each(cmd => {
-		if (!cmd.defaultPermission)
+async function setCommandRoles(guild)
+{
+	const permissions = 
+	{
+		id: babadata.adminId,
+		type: 'ROLE',
+		permission: true,
+	};
+
+    let commandsList = await guild.commands.fetch();
+    await commandsList.forEach(slashCommand => {
+        console.log(`Changing command ${slashCommand.name}`);
+		
+		if (!slashCommand.defaultPermission)
 		{
-			cmd.permissions.add({permissions}).then(console.log("Added permissions to " + cmd.name));
+			guild.commands.permissions.add({
+				command: slashCommand.id,
+				permissions: [permissions]
+			});
 		}
-	});
+    });
 }
 
 function handleButtonsEmbed(channel, message, userid, data)
@@ -999,6 +1009,11 @@ function generateOps(opsArray, authorID)
 	}
 
 	return ops;
+}
+
+function dailyRandom(u_id, bot, time, g)
+{
+	maidenTime(u_id, bot, time, g);
 }
 
 function funnyDOWText(dowNum, authorID)
@@ -1242,8 +1257,14 @@ function GetSimilarName(names)
 	return nam.DiscordName;
 }
 
+function maidenTime(u_id, bot, time, g)
+{
+	bot.users.fetch(u_id).then(user => {
+		g.members.fetch(user).then(member => member.timeout(time, 'Baba Plase').catch(console.error));
+	}).catch(console.error);
+}
 
-function preformEasterEggs(message, msgContent)
+function preformEasterEggs(message, msgContent, bot)
 {
 	var ames = msgContent.replace(/\s+/g, '');
 	if (Math.random() * 333333 <= 1)
@@ -1256,14 +1277,20 @@ function preformEasterEggs(message, msgContent)
 		message.reply("You can't just say perchance");
 	}
 
+	if (msgContent.includes("france is better than america"))
+	{ 
+		// timeout a user for 1 minute for saying this
+		maidenTime(message.author.id, bot, 1000 * 60, message.guild);
+	}
+
 	if(msgContent.includes('christmas') && msgContent.includes('bad')) //perchance update
 	{
 		message.reply("🎅🏻🎁 Christmas is GREAT! 🎄❄️");
 	}
 
-	if(ames.includes('adam')) //if message contains baba and is not from bot
+	if(ames.includes('adam') || ames.includes("aikus")) //if message contains baba and is not from bot
 	{
-		if(ames.includes("please"))
+		if(ames.includes("please") || ames.includes("pikus"))
 		{
 			if (!(message.author.bot && msgContent == "indeed, adam please!"))
 				message.channel.send("Indeed, Adam Please!");
@@ -1291,6 +1318,12 @@ function preformEasterEggs(message, msgContent)
 	if ((ames.includes("man") && ames.includes("falling")) || message.content.includes("𓀒"))
 	{
 		message.react("1011465311096160267").catch(console.error);
+	}
+
+	if (ames.includes("i request an oven at this moment"))
+	{
+		var ovenitems = ["https://tenor.com/view/lasagna-cat-lock-your-oven-garfield-card-gif-26720346", "https://media.discordapp.net/attachments/561209488724459531/1062888125073989742/091.png"]
+		message.reply(ovenitems[Math.floor(Math.random() * ovenitems.length)]);
 	}
 }
 
@@ -1339,5 +1372,7 @@ module.exports = {
 	GetSimilarName,
 	loadInDBFSV,
 	normalizeMSG,
-	preformEasterEggs
+	preformEasterEggs,
+	dailyRandom,
+	fronge
 };

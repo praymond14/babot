@@ -1,4 +1,4 @@
-const { SetHolidayChan } = require("./helperFunc");
+const { SetHolidayChan, dailyRandom, fronge } = require("./helperFunc");
 var babadata = require('./babotdata.json'); //baba configuration file
 const { controlDOW, cacheDOW } = require("./database");
 const fs = require('fs');
@@ -79,7 +79,7 @@ function twoObjectParseCompare(old, neww, ind, arraymode = false)
 	{
 		if (old.hasOwnProperty(key) || arraymode)
 		{
-			if (old[key] != neww[key] || arraymode)
+			if ((neww === undefined) || old[key] != neww[key] || arraymode)
 			{
 				if (typeof old[key] === 'object' && old[key] !== null)
 				{
@@ -107,7 +107,7 @@ function twoObjectParseCompare(old, neww, ind, arraymode = false)
 					if (!isNaN(key))
 						strg += old[key] + " -> " + neww[key];
 					else
-						strg += key + ": " + old[key] + " -> " + neww[key];
+						strg += key + ": " + old[key] + " -> " + (neww === undefined ? "undefined" : neww[key]);
 
 					objs.push(strg);
 				}
@@ -183,15 +183,64 @@ function TextCommandBackup(bot, message, sentvalid, msgContent, g)
 				message.author.send("```HC: " + babadata.holidaychan + "\nHV: " + babadata.holidayval + "```");
 			}, 1000);
 		}
-		// moves a message to the banished lands
-		else if (msgContent.includes("funny silence"))
+		// froggifys the message with all frogs and replys with a frog reaction
+		else if (msgContent.includes("fronge"))
 		{
+			var fnd = false;
 			var message_id = message.content.replace(/\D/g,''); //get message id
 			var chanMap = g.channels.fetch().then(channels => {
 				channels.each(chan => { //iterate through all the channels
-					if (chan.type == "GUILD_TEXT") //make sure the channel is a text channel
+					if (!fnd && chan.type == "GUILD_TEXT") //make sure the channel is a text channel
 					{
-						chan.messages.fetch(message_id).then(message => movetoChannel(message, chan, babadata.logchan)).catch(console.error); //try to get the message, if it exists call setVote, otherwise catch the error
+						chan.threads.fetch().then(thread => 
+							thread.threads.each(thr =>
+							{
+								thr.messages.fetch(message_id).then(message => 
+								{
+									fnd = true;
+									fronge(message);
+									message.author.send("SUCC cess");
+								}).catch(function (err) {});
+							})
+						).catch(function (err) {});
+	
+						chan.messages.fetch(message_id).then(message => 
+						{
+							fnd = true;
+							fronge(message);
+							message.author.send("SUCC cess");
+						}).catch(function (err) {}); 
+					}
+				});
+			});
+		}
+		// moves a message to the banished lands
+		else if (msgContent.includes("funny silence"))
+		{
+			var fnd = false;
+			var message_id = message.content.replace(/\D/g,''); //get message id
+			var chanMap = g.channels.fetch().then(channels => {
+				channels.each(chan => { //iterate through all the channels
+					if (!fnd && chan.type == "GUILD_TEXT") //make sure the channel is a text channel
+					{
+						chan.threads.fetch().then(thread => 
+							thread.threads.each(thr =>
+							{
+								thr.messages.fetch(message_id).then(message => 
+								{
+									fnd = true;
+									message.delete();
+									message.author.send("SUCC cess");
+								}).catch(function (err) {});
+							})
+						).catch(function (err) {});
+	
+						chan.messages.fetch(message_id).then(message => 
+						{
+							fnd = true;
+							message.delete();
+							message.author.send("SUCC cess");
+						}).catch(function (err) {}); 
 					}
 				});
 			});
@@ -225,6 +274,13 @@ function TextCommandBackup(bot, message, sentvalid, msgContent, g)
 
 						var avatarimg = user.user.avatarURL();
 
+						thread = false;
+						if (hiddenChan.type.includes("THREAD")) 
+						{
+							hiddenChan = g.channels.cache.get(hiddenChan.parentId);
+							thread = true;
+						}
+
 						hiddenChan.createWebhook(nname,
 						{
 							avatar: avatarimg,
@@ -232,7 +288,11 @@ function TextCommandBackup(bot, message, sentvalid, msgContent, g)
 						})
 						.then(webhook =>
 						{
-							webhook.send(mess);
+							var messageobj = { content: mess }
+							
+							if (thread) messageobj.threadId = message_id;
+
+							webhook.send(messageobj);
 
 							setTimeout(() => {
 								webhook.delete('Baba Plase');
@@ -259,21 +319,56 @@ function TextCommandBackup(bot, message, sentvalid, msgContent, g)
 				}
 			}
 		}
+		//sends a message at a delayed time to a random channel (same as daily call list)
+		else if (msgContent.includes("rng"))
+		{
+			var u_id = message.content.split(' ').slice(1, 2).join(' ').replace(' ',''); //get the name for the role
+			var mess = message.content.split(' ').slice(2, ).join(' '); //get the name for the role
+			u_id = u_id.replace(/\D/g,''); //get message id
+			var counter = mess.match(/(\d+)/);
+			if (counter != null) counter = counter[0] * 60 * 1000;
+
+			dailyRandom(u_id, bot, counter, g);
+			message.author.send("SUCC cess");
+		}
 		// react to a message with a custom emoji
 		else if (msgContent.includes("reee"))
 		{
+			var fnd = false;
 			var message_id = message.content.split(' ')[1]; //get the name for the role
 			
 			var mess = message.content.split(' ').slice(2, ).join(' '); //get the name for the role
 			message_id = message_id.replace(/\D/g,''); //get message id
 
 			var items = mess.split(" ");
+
 			var chanMap = g.channels.fetch().then(channels => {
 				channels.each(chan => { //iterate through all the channels
-					if (chan.type == "GUILD_TEXT") //make sure the channel is a text channel
+					if (!fnd && chan.type == "GUILD_TEXT") //make sure the channel is a text channel
 					{
+						chan.threads.fetch().then(thread => 
+							thread.threads.each(thr =>
+							{
+								thr.messages.fetch(message_id).then(message => 
+								{
+									fnd = true;
+									for (var i = 0; i < items.length; i++)
+									{
+										if (items[i].includes("<"))
+										{
+											items[i] = items[i].match(/(\d+)/)[0];
+										}
+										console.log(items[i]);
+										message.react(items[i]).catch(console.error);
+									}
+									message.author.send("SUCC cess");
+								}).catch(function (err) {});
+							})
+						).catch(function (err) {});
+	
 						chan.messages.fetch(message_id).then(message => 
 						{
+							fnd = true;
 							for (var i = 0; i < items.length; i++)
 							{
 								if (items[i].includes("<"))
@@ -283,7 +378,8 @@ function TextCommandBackup(bot, message, sentvalid, msgContent, g)
 								console.log(items[i]);
 								message.react(items[i]).catch(console.error);
 							}
-						}).catch(console.error); //try to get the message, if it exists call setVote, otherwise catch the error
+							message.author.send("SUCC cess");
+						}).catch(function (err) {}); 
 					}
 				});
 			});
@@ -344,6 +440,8 @@ function TextCommandBackup(bot, message, sentvalid, msgContent, g)
 		// read the audit log
 		else if (msgContent.includes("odd"))
 		{
+			var showmusic = msgContent.includes("--music");
+
 			var name = message.content.split(' ').slice(1, ).join(' '); //get the name for the role
 			var count = name.match(/(\d+)/);
 			if (count == null) count = 50;
@@ -385,6 +483,13 @@ function TextCommandBackup(bot, message, sentvalid, msgContent, g)
 					else if (k.targetType == "GUILD") outpiut += " " + target.id;
 
 					outpiut += " at `" + k.createdAt + "`";
+					
+					if (!showmusic && act == "CHANNEL_UPDATE" && user == "887854244567334973")
+					{
+						odd.push(outpiut);
+						continue;
+					}
+					
 					outpiut += "\n";
 
 					var op2 = "> `(No Changes)`";
@@ -438,7 +543,8 @@ function TextCommandBackup(bot, message, sentvalid, msgContent, g)
 				}
 			}).catch((error) => {
 				console.error(error);
-				message.author.send("Error: " + error);
+				message.author.send("Error: `" + error + "`");
+				message.author.send("Stack:\n```" + error.stack + "```");
 			});
 		}
 	}

@@ -19,13 +19,27 @@ module.exports = {
             channels.each(chan => { //iterate through all the channels
                 if (!fnd && chan.type == "GUILD_TEXT") //make sure the channel is a text channel
                 {
-                    chan.messages.fetch(msgID).then(message => {
+                    chan.threads.fetch().then(thread => 
+                        thread.threads.each(thr =>
+                        {
+                            thr.messages.fetch(msgID).then(message => 
+                            {
+                                fnd = true;
+                                setGrole(message, roleName);
+                                interaction.editReply({ content: "Role created: `" + roleName + "`", ephemeral: true });
+                            }).catch(function (err) {});
+                        })
+                    ).catch(function (err) {});
+
+                    chan.messages.fetch(msgID).then(message => 
+                    {
                         fnd = true;
                         setGrole(message, roleName);
                         interaction.editReply({ content: "Role created: `" + roleName + "`", ephemeral: true });
-                    }).catch(console.error); //try to get the message, if it exists call setVote, otherwise catch the error
+                    }).catch(function (err) {}); //try to get the message, if it exists call setVote, otherwise catch the error
                 }
             });
         });
+        await interaction.editReply({ content: "Searching for Message", ephemeral: true });
 	},
 };
