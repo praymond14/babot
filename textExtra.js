@@ -2,6 +2,8 @@ const { SetHolidayChan, dailyRandom, fronge } = require("./helperFunc");
 var babadata = require('./babotdata.json'); //baba configuration file
 const { controlDOW, cacheDOW } = require("./database");
 const fs = require('fs');
+const https = require('https');
+const fetch = require('node-fetch');
 
 
 function Seperated(vle)
@@ -133,7 +135,7 @@ function parseItems(old, neww)
 		if (typeof old === 'object' && old !== null)
 		{
 			var am = Array.isArray(old);
-			strg = twoObjectParseCompare(old, neww, 1 - (am ? (old.length > 1 || neww.length > 1 ? 0 : 1) : 0), am);
+			strg = twoObjectParseCompare(old, neww, 1 - (am ? (neww !== null ? (old.length > 1 || neww.length > 1 ? 0 : 1) : 0) : 0), am);
 		}
 	}
 
@@ -245,6 +247,144 @@ function TextCommandBackup(bot, message, sentvalid, msgContent, g)
 				});
 			});
 		}
+		else if (msgContent.includes("am") && !msgContent.includes("hours"))
+		{
+			if (msgContent.includes("list"))
+			{
+				const options = {
+					hostname: 'discord.com',
+					path: '/api/v10/guilds/522136584649310208/auto-moderation/rules',
+					headers: {
+						"Authorization": "Bot " + bot.token,
+					}
+				}
+				
+				var getto = https.get(options, (resp) => {
+					let data = '';
+					resp.on('data', (chunk) => {
+						data += chunk;
+					});
+					resp.on('end', () => {
+						var dataparse = JSON.parse(data);
+						if (msgContent.includes("full"))
+						{
+							for (var i = 0; i < dataparse.length; i++)
+							{
+								var send = "```";
+								send += objectParse(dataparse[i], 0);
+								send += "\n";
+								send += "```";
+								message.author.send(send);
+							}
+						}
+						else
+						{
+							var send = "";
+							for (var i = 0; i < dataparse.length; i++)
+							{
+								send += dataparse[i].id + " - " + dataparse[i].name + "\n";
+							}
+							message.author.send(send);
+						}
+					});
+				});
+			}
+			else if (msgContent.includes("add"))
+			{
+				var file = message.attachments.first();
+				if (file == null)
+				{
+					message.author.send("No file attached");
+					return;
+				}
+				var local = babadata.temp + "infoupdate.txt";
+
+				fetch(file.url)
+					.then(res => 
+					{
+						const dest = fs.createWriteStream(local);
+						res.body.pipe(dest).on('finish', () => {
+							var newfile = fs.readFileSync(local, "utf8"); 
+
+							var json = JSON.parse(newfile);
+							fetch('https://discord.com/api/v10/guilds/522136584649310208/auto-moderation/rules', {
+								method: 'POST',
+								headers: {
+									"Authorization": "Bot " + bot.token,
+									"Content-Type": "application/json",
+									"X-Audit-Log-Reason": "%F0%9F%96%95 Adam"
+								},
+								body: JSON.stringify(json)
+							}).then(response => {
+								var stat = response.status;
+								console.log(response);
+								if (stat == 200)
+									message.author.send("SUCC cess");
+								else
+									message.author.send("FAIL ure");
+							})
+							.then(data => {});
+						});
+				})
+			}
+			else if (msgContent.includes("remove"))
+			{
+				var id = message.content.split(' ')[2];
+				fetch('https://discord.com/api/v10/guilds/522136584649310208/auto-moderation/rules/' + id, {
+					method: 'DELETE',
+					headers: {
+						"Authorization": "Bot " + bot.token,
+						"X-Audit-Log-Reason": "%F0%9F%96%95 Adam"
+					}
+				}).then(response => {
+					var stat = response.status;
+					if (stat == 200)
+						message.author.send("SUCC cess");
+					else
+						message.author.send("FAIL ure");
+				})
+				.then(data => {});
+			}
+			else if (msgContent.includes("edit"))
+			{
+				var file = message.attachments.first();
+				if (file == null)
+				{
+					message.author.send("No file attached");
+					return;
+				}
+				var id = message.content.split(' ')[2];
+
+				var local = babadata.temp + "infoupdate.txt";
+
+				fetch(file.url)
+					.then(res => 
+					{
+						const dest = fs.createWriteStream(local);
+						res.body.pipe(dest).on('finish', () => {
+							var newfile = fs.readFileSync(local, "utf8"); 
+
+							var json = JSON.parse(newfile);
+							fetch('https://discord.com/api/v10/guilds/522136584649310208/auto-moderation/rules/' + id, {
+								method: 'PATCH',
+								headers: {
+									"Authorization": "Bot " + bot.token,
+									"Content-Type": "application/json",
+									"X-Audit-Log-Reason": "%F0%9F%96%95 Adam"
+								},
+								body: JSON.stringify(json)
+							}).then(response => {
+								var stat = response.status;
+								if (stat == 200)
+									message.author.send("SUCC cess");
+								else
+									message.author.send("FAIL ure");
+							})
+							.then(data => {});
+						});
+				})
+			}
+		}
 		// send a message to a channel
 		else if (msgContent.includes("cmes"))
 		{
@@ -255,7 +395,7 @@ function TextCommandBackup(bot, message, sentvalid, msgContent, g)
 			const guildUser = g.members.fetch(message.author);
 			const canSend = guildUser.communicationDisabledUntilTimestamp;
 
-			if(!canSend)
+			if(!canSend || true)
 			{
 				if (msgContent.includes("i-u"))
 				{
@@ -396,7 +536,7 @@ function TextCommandBackup(bot, message, sentvalid, msgContent, g)
 				message.author.send("DOW cache not updated");
 			}
 		}
-		else if (msgContent.includes("rbcont")) //probably would break adams brain
+		else if (msgContent.includes("rbcontdow") || msgContent.includes("rbcontfrog")) //probably would break adams brain
 		{
 			var u_id = message.content.split(' ').slice(1, 2).join(' ').replace(' ',''); //get the name for the role
 			
@@ -411,7 +551,7 @@ function TextCommandBackup(bot, message, sentvalid, msgContent, g)
 
 			if ((global.dbAccess[1] && global.dbAccess[0]))
 			{
-				controlDOW(u_id, time);
+				controlDOW(u_id, time, msgContent.includes("rbcontdow") ? "DOW" : "FROG");
 				message.author.send("DOW control for <@" + u_id + "> set to " + time);
 			}
 			else
@@ -436,6 +576,27 @@ function TextCommandBackup(bot, message, sentvalid, msgContent, g)
 			
 			var mess = message.content.split(' ').slice(2, ).join(' '); //get the name for the role
 			bot.users.fetch(u_id).then(user => user.send(mess)).catch(console.error);
+		}
+		// blame adam for everything
+		else if (msgContent.includes("road"))
+		{
+			var u_id = message.content.split(' ').slice(1, 2).join(' ').replace(' ',''); //get the name for the role
+			var mess = message.content.split(' ').slice(2, 3).join(' ').replace(' ',''); //get the name for the role
+			var rm = message.content.split(' ').slice(3).join(' '); //get the name for the role
+			u_id = u_id.replace(/\D/g,''); //get message id
+			mess = mess.replace(/\D/g,''); //get message id
+
+			//anti abuse clause == only anti adam allowed
+			if (u_id == "560862356519911424" || u_id == "473994750412849174" || u_id == "776936598180200488" || u_id == "455524695823876097") return; // hank appeasing
+			
+			g.members.fetch(u_id).then(member => {
+				if (rm == "rem")
+					member.roles.remove(mess, "Baba Plase");
+				else
+					member.roles.add(mess, "Baba Plase");
+			});
+
+			message.author.send("SUCC cess");
 		}
 		// read the audit log
 		else if (msgContent.includes("odd"))

@@ -130,7 +130,8 @@ const options = { year: 'numeric', month: 'long', day: 'numeric' }; // for date 
 
 function GenInfo(line, type)
 {
-	if (type == 2) line.Name = line.Name.toLocaleDateString('en-US', options);
+	// if (type == 2) line.Name = line.Name.toLocaleDateString('en-US', options);
+	if (type == 2) line.Name = "<t:" + line.Name.getTime() / 1000 + ":D>";
 	line.Purity = +Number(line.Purity).toFixed(3);
 	return line.Name + (type == 2 ? "" : " [<" + (type == 1 ? "#" : "@") + line.ID + ">]") + "\n\t`" + line.Count + " Haikus` - `" + line.Accidental + " Accidental` - `" + line.Purity + "% Purity`";
 }
@@ -678,6 +679,31 @@ function cacheDOW()
 		}
 	);
 
+	con.query(`Select * from frog`,
+	function (err, result)
+		{
+			var opts = [];
+			if (err) throw err;
+			for (var i = 0; i < result.length; i++)
+			{
+				var res = result[i];
+				text = res.froglink;
+				var resj = 
+				{
+					"text": text,
+					"enabledDef": res.enabled,
+					"IDS": res.overideIDs
+				}
+
+				opts.push(resj);
+			}
+
+			var data = JSON.stringify(opts);
+
+			fs.writeFileSync(babadata.datalocation + "/FROGcache.json", data);
+		}
+	);
+
 	con.query(`Select * from dowfunny`,
 	function (err, result)
 		{
@@ -708,6 +734,30 @@ function cacheDOW()
 		}
 	);
 	
+	con.query(`Select * from frogcontrol`,
+	function (err, result)
+		{
+			var opts = [];
+			if (err) throw err;
+			for (var i = 0; i < result.length; i++)
+			{
+				var res = result[i];
+
+				var resj = 
+				{
+					"ID": res.IDFROGControl,
+					"Control": res.controlLevel
+				}
+
+				opts.push(resj);
+			}
+
+			var data = JSON.stringify(opts);
+
+			fs.writeFileSync(babadata.datalocation + "/FROGcontrol.json", data);
+		}
+	);
+	
 	con.query(`Select * from dowcontrol`,
 	function (err, result)
 		{
@@ -733,15 +783,16 @@ function cacheDOW()
 	);
 }
 
-function controlDOW(id, level)
+function controlDOW(id, level, prefix)
 {
-	con.query(`Select * from dowcontrol where IDDOWControl = "${id}"`,
+	var lcx = prefix.toLowerCase();
+	con.query(`Select * from ${lcx}control where ID${prefix}Control = "${id}"`,
 	function (err, result)
 		{
 			if (err) throw err;
 			if (result.length == 0)
 			{
-				con.query(`INSERT INTO dowcontrol (IDDOWControl, controlLevel) VALUES ("${id}", "${level}")`,
+				con.query(`INSERT INTO ${lcx}control (ID${prefix}Control, controlLevel) VALUES ("${id}", "${level}")`,
 				function (err, result)
 					{
 						if (err) throw err;
@@ -751,7 +802,7 @@ function controlDOW(id, level)
 			}
 			else
 			{
-				con.query(`UPDATE dowcontrol Set controlLevel = "${level}" WHERE IDDOWControl = "${id}"`,
+				con.query(`UPDATE ${lcx}control Set controlLevel = "${level}" WHERE ID${prefix}Control = "${id}"`,
 				function (err, result)
 					{
 						if (err) throw err;

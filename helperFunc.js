@@ -8,9 +8,9 @@ const Jimp = require('jimp');
 const options = { year: 'numeric', month: 'long', day: 'numeric' }; // for date parsing to string
 
 const emotions = ["splendid", "exciting", "sad", "boring", "fun", "exquisite", "happy", "pretty eventful", "slow to start but it picked up later in the day", "not so good", "very good", "legal", "spungungulsumplus", "fish"];
-const persontype = ["friend", "enemy", "brother", "BROTHERRRRRR", "bungle bus", "uncle", "second cousin twice removed", "uncles dogs sisters boyfriends moms second cousins cat", "leg", "adam"];
+const persontype = ["madam", "friend", "enemy", "brother", "brother man", "BROTHERRRRRR", "bungle bus", "uncle", "second cousin twice removed", "uncles dogs sisters boyfriends moms second cousins cat", "leg", "adam"];
 const game = ["TF2", "Ultimate Admiral: Dreadnoughts", "Fishing Simulator", "Sea of Thieves", "Factorio", "Forza Horizon 5", "nothing", "Fallout: New Vegas", "Stabbing Simulator (IRL)"];
-const emotion2 = ["fun", "exciting", "monotonous", "speed run", "pretty eventful", "frog", "emotional", "devoid of all emotions"];
+const emotion2 = ["fun", "exciting", "monotonous", "speed run", "pretty eventful", "frog", "emotional", "devoid of all emotions", "mike"];
 const bye = ["bid you a morrow", "will see you soon", "want to eat your soul, so watch out", "am going to leave now", "hate everything, goodbye", "am monke, heee heee hoo hoo", "wish you good luck on your adventures", "am going to go to bed now", "want to sleep but enevitably will not get any as i will be gaming all night, good morrow", "am going to go to the morrow lands", "will sleep now", "am pleased to sleep"];
 const emoji = ["ඞ", "🐸", "🍆", "💄", "⛧", "🎄", "🐷", "🐎", "🐴", "🐍", "⚡", "🪙", "🖕", "🚊", "🏻🏻", "🤔", "🌳", "🌲", "🌴", "🌵", "🐀", "🍝", "𓀒"];
 
@@ -974,9 +974,9 @@ function handleButtonsEmbed(channel, message, userid, data)
 	collector.on('end', collected => message.edit({components: []}));
 }
 
-function generateOps(opsArray, authorID)
+function generateOps(opsArray, authorID, prefix)
 {
-    let rawdata = fs.readFileSync(babadata.datalocation + "/DOWcontrol.json");
+    let rawdata = fs.readFileSync(babadata.datalocation + "/" + prefix + "control.json");
     var controlList = JSON.parse(rawdata);
 	var cLevel = 0;
 
@@ -1016,6 +1016,36 @@ function dailyRandom(u_id, bot, time, g)
 	maidenTime(u_id, bot, time, g);
 }
 
+function funnyFrogText(authorID)
+{
+	let path = babadata.datalocation + "/FROGcache.json";
+
+	if (!fs.existsSync(path)) 
+	{
+		console.log("No FROGcache file found -- creating with local data");
+
+		var opttemp = ["https://tenor.com/view/frog-funny-funny-frog-picmix-blingee-gif-25200067"]
+		opttemp.push(opts2);
+		
+		var data = JSON.stringify(opttemp);
+		
+		fs.writeFileSync(babadata.datalocation + "/FROGcache.json", data);
+	}
+
+    let rawdata = fs.readFileSync(babadata.datalocation + "/FROGcache.json");
+
+	var optionsFROG = JSON.parse(rawdata);
+
+	if (typeof optionsFROG[0] != "string")
+	{
+		optionsFROG = generateOps(optionsFROG, authorID, "FROG");
+	}
+
+	var text = optionsFROG[Math.floor(Math.random() * optionsFROG.length)];
+
+	return text;
+}
+
 function funnyDOWText(dowNum, authorID)
 {
 	let path = babadata.datalocation + "/DOWcache.json";
@@ -1043,7 +1073,7 @@ function funnyDOWText(dowNum, authorID)
 
 	if (typeof optionsDOW[0] != "string")
 	{
-		optionsDOW = generateOps(optionsDOW, authorID);
+		optionsDOW = generateOps(optionsDOW, authorID, "DOW");
 	}
 
 	var tod = new Date();
@@ -1063,13 +1093,27 @@ function funnyDOWText(dowNum, authorID)
 		"Saturday"
 	]
 
+	prevActualDOW = new Date(tod.getFullYear(), tod.getMonth(), tod.getDate() - (7 - num));
+	nextActualDOW = new Date(tod.getFullYear(), tod.getMonth(), tod.getDate() + num);
+
 	if (text == null) text = "You are not allowed to enjoy [DAY], you are a bad person!";
 
-	text = text.replace("[dow]", dow[tod.getDay()]);
-	text = text.replace("[dow]", dow[tod.getDay()]);
-	text = text.replace("[d]", num);
-	text = text.replace("[month]", tod.getMonth());
-	text = text.replace("[todaylong]", tod.toDateString());
+	text = text.replaceAll("[d]", num);
+	text = text.replaceAll("[month]", tod.getMonth());
+	text = text.replaceAll("[todaylong]", tod.toDateString());
+	text = text.replaceAll("[dow]", dow[tod.getDay()]);
+	text = text.replaceAll("[DAY]", dow[dowNum]);
+	text = text.replaceAll("[ACY]", dowACY[dowNum]);
+
+	text = text.replaceAll("[TS-R<-]", "<t:" + Math.floor(prevActualDOW.getTime() / 1000) + ":R>");
+	text = text.replaceAll("[TS-R->]", "<t:" + Math.floor(nextActualDOW.getTime() / 1000) + ":R>");
+	text = text.replaceAll("[TS-D<-]", "<t:" + Math.floor(prevActualDOW.getTime() / 1000) + ":D>");
+	text = text.replaceAll("[TS-D->]", "<t:" + Math.floor(nextActualDOW.getTime() / 1000) + ":D>");
+	text = text.replaceAll("[TS-F]", "<t:" + Math.floor(nextActualDOW.getTime() / 1000) + ":F>");
+	text = text.replaceAll("[td TS-D]", "<t:" + Math.floor(tod.getTime() / 1000) + ":D>");
+	text = text.replaceAll("[td TS-R]", "<t:" + Math.floor(tod.getTime() / 1000) + ":R>");
+	text = text.replaceAll("[td TS-F]", "<t:" + Math.floor(tod.getTime() / 1000) + ":F>");
+	
 	text = text.replace("[emotion]", emotions[Math.floor(Math.random() * emotions.length)]);
 	text = text.replace("[emotion]", emotions[Math.floor(Math.random() * emotions.length)]);
 	text = text.replace("[game]", game[Math.floor(Math.random() * game.length)]);
@@ -1078,8 +1122,6 @@ function funnyDOWText(dowNum, authorID)
 	text = text.replace("[goodbye]", bye[Math.floor(Math.random() * bye.length)]);
 	text = text.replace("[emoji]", emoji[Math.floor(Math.random() * emoji.length)]);
 
-	text = text.replaceAll("[DAY]", dow[dowNum]);
-	text = text.replace("[ACY]", dowACY[dowNum]);
 	text = text.replaceAll("\\n", "\n");
 
 	return text;
@@ -1320,7 +1362,7 @@ function preformEasterEggs(message, msgContent, bot)
 		message.react("1011465311096160267").catch(console.error);
 	}
 
-	if (ames.includes("i request an oven at this moment"))
+	if (msgContent.includes("i request an oven at this moment"))
 	{
 		var ovenitems = ["https://tenor.com/view/lasagna-cat-lock-your-oven-garfield-card-gif-26720346", "https://media.discordapp.net/attachments/561209488724459531/1062888125073989742/091.png"]
 		message.reply(ovenitems[Math.floor(Math.random() * ovenitems.length)]);
@@ -1374,5 +1416,6 @@ module.exports = {
 	normalizeMSG,
 	preformEasterEggs,
 	dailyRandom,
-	fronge
+	fronge,
+	funnyFrogText
 };

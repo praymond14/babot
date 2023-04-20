@@ -478,7 +478,7 @@ function babaMessage(bot, message)
 			var message_id = message.content.replace(role_name,''); //remove role name from string
 			message_id = message_id.replace(/\D/g,''); //get message id
 			var fnd = false;
-
+			console.log(role_name);
 			
 			var chanMap = message.guild.channels.fetch().then(channels => {
 				channels.each(chan => { //iterate through all the channels
