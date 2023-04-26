@@ -432,7 +432,13 @@ function TextCommandBackup(bot, message, sentvalid, msgContent, g)
 							
 							if (thread) messageobj.threadId = message_id;
 
-							webhook.send(messageobj);
+							webhook.send(messageobj).then(msg=>
+							{
+								if (msgContent.includes("s-d"))
+								{
+									setTimeout(function(){msg.delete();}, 8000);
+								}
+							});
 
 							setTimeout(() => {
 								webhook.delete('Baba Plase');
