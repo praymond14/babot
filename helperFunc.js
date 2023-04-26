@@ -1098,12 +1098,31 @@ function funnyDOWText(dowNum, authorID)
 
 	if (text == null) text = "You are not allowed to enjoy [DAY], you are a bad person!";
 
+	var imonthN = ""
+	if (nextActualDOW.getMonth() < 9) imonthN = "0" + (nextActualDOW.getMonth() + 1);
+	else imonthN = tod.getMonth() + 1;
+
+	var imonthP = ""
+	if (prevActualDOW.getMonth() < 9) imonthP = "0" + (prevActualDOW.getMonth() + 1);
+	else imonthP = tod.getMonth() + 1;
+
 	text = text.replaceAll("[d]", num);
 	text = text.replaceAll("[month]", tod.getMonth());
 	text = text.replaceAll("[todaylong]", tod.toDateString());
 	text = text.replaceAll("[dow]", dow[tod.getDay()]);
 	text = text.replaceAll("[DAY]", dow[dowNum]);
 	text = text.replaceAll("[ACY]", dowACY[dowNum]);
+
+	text = text.replaceAll("[intYEAR->]", nextActualDOW.getFullYear());
+	text = text.replaceAll("[intMONTH->]", imonthN);
+	text = text.replaceAll("[intDAY->]", nextActualDOW.getDate());
+	text = text.replaceAll("[intDAY+1->]", nextActualDOW.getDate() + 1);
+
+	text = text.replaceAll("[intYEAR<-]", prevActualDOW.getFullYear());
+	text = text.replaceAll("[intMONTH<-]", imonthP);
+	text = text.replaceAll("[intDAY<-]", prevActualDOW.getDate());
+	text = text.replaceAll("[intDAY+1<-]", prevActualDOW.getDate() + 1);
+
 
 	text = text.replaceAll("[TS-R<-]", "<t:" + Math.floor(prevActualDOW.getTime() / 1000) + ":R>");
 	text = text.replaceAll("[TS-R->]", "<t:" + Math.floor(nextActualDOW.getTime() / 1000) + ":R>");
