@@ -1,4 +1,4 @@
-const { SetHolidayChan, dailyRandom, fronge } = require("./helperFunc");
+const { SetHolidayChan, dailyRandom, fronge, reverseDelay } = require("./helperFunc");
 var babadata = require('./babotdata.json'); //baba configuration file
 const { controlDOW, cacheDOW } = require("./database");
 const fs = require('fs');
@@ -253,7 +253,7 @@ function TextCommandBackup(bot, message, sentvalid, msgContent, g)
 			{
 				const options = {
 					hostname: 'discord.com',
-					path: '/api/v10/guilds/522136584649310208/auto-moderation/rules',
+					path: '/api/v10/guilds/454457880825823252/auto-moderation/rules',
 					headers: {
 						"Authorization": "Bot " + bot.token,
 					}
@@ -353,6 +353,19 @@ function TextCommandBackup(bot, message, sentvalid, msgContent, g)
 							message.author.send("Error: " + error);
 						});
 					}).catch(console.error);
+				}
+				else if (msgContent.includes("d-lay"))
+				{
+					var delay = message.content.split(' ')[2];
+					var mess = message.content.split(' ').slice(3, ).join(' '); //get the name for the role
+					
+					if (delay == null || delay.trim() == "") 
+					{
+						message.author.send("`Invalid Delay`");
+						return;
+					}
+
+					reverseDelay(message, hiddenChan, mess, delay);
 				}
 				else
 				{
