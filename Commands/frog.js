@@ -7,8 +7,9 @@ module.exports = {
 		.setName('frog')
 		.setDescription('FROG!'),
 	async execute(interaction, bot) {
+		await interaction.deferReply();
         var text = funnyFrogText(interaction.user.id);
 
-		await interaction.reply(text);
+		await interaction.editReply(text);
 	},
 };
