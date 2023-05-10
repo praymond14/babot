@@ -197,20 +197,20 @@ function TextCommandBackup(bot, message, sentvalid, msgContent, g)
 						chan.threads.fetch().then(thread => 
 							thread.threads.each(thr =>
 							{
-								thr.messages.fetch(message_id).then(mehsage => 
+								thr.messages.fetch(message_id).then(responseMessage => 
 								{
 									fnd = true;
-									fronge(mehsage);
-									mehsage.author.send("SUCC cess");
+									fronge(responseMessage);
+									responseMessage.author.send("SUCC cess");
 								}).catch(function (err) {});
 							})
 						).catch(function (err) {});
 	
-						chan.messages.fetch(message_id).then(mehsage => 
+						chan.messages.fetch(message_id).then(responseMessage => 
 						{
 							fnd = true;
-							fronge(mehsage);
-							mehsage.author.send("SUCC cess");
+							fronge(responseMessage);
+							responseMessage.author.send("SUCC cess");
 						}).catch(function (err) {}); 
 					}
 				});
@@ -288,101 +288,6 @@ function TextCommandBackup(bot, message, sentvalid, msgContent, g)
 						}
 					});
 				});
-			}
-			else if (msgContent.includes("add"))
-			{
-				var file = message.attachments.first();
-				if (file == null)
-				{
-					message.author.send("No file attached");
-					return;
-				}
-				var local = babadata.temp + "infoupdate.txt";
-
-				fetch(file.url)
-					.then(res => 
-					{
-						const dest = fs.createWriteStream(local);
-						res.body.pipe(dest).on('finish', () => {
-							var newfile = fs.readFileSync(local, "utf8"); 
-
-							var json = JSON.parse(newfile);
-							fetch('https://discord.com/api/v10/guilds/522136584649310208/auto-moderation/rules', {
-								method: 'POST',
-								headers: {
-									"Authorization": "Bot " + bot.token,
-									"Content-Type": "application/json",
-									"X-Audit-Log-Reason": "Jarme Why"
-								},
-								body: JSON.stringify(json)
-							}).then(response => {
-								var stat = response.status;
-								console.log(response);
-								if (stat == 200)
-									message.author.send("SUCC cess");
-								else
-									message.author.send("FAIL ure");
-							})
-							.then(data => {});
-						});
-				})
-			}
-			else if (msgContent.includes("remove"))
-			{
-				var id = message.content.split(' ')[2];
-				fetch('https://discord.com/api/v10/guilds/522136584649310208/auto-moderation/rules/' + id, {
-					method: 'DELETE',
-					headers: {
-						"Authorization": "Bot " + bot.token,
-						"X-Audit-Log-Reason": "Jarme Why"
-					}
-				}).then(response => {
-					var stat = response.status;
-					if (stat == 200)
-						message.author.send("SUCC cess");
-					else
-						message.author.send("FAIL ure");
-				})
-				.then(data => {});
-			}
-			else if (msgContent.includes("edit"))
-			{
-				var file = message.attachments.first();
-				if (file == null)
-				{
-					message.author.send("No file attached");
-					return;
-				}
-				var id = message.content.split(' ')[2];
-
-				var local = babadata.temp + "infoupdate.txt";
-
-				fetch(file.url)
-					.then(res => 
-					{
-						const dest = fs.createWriteStream(local);
-						res.body.pipe(dest).on('finish', () => {
-							var newfile = fs.readFileSync(local, "utf8"); 
-
-							var json = JSON.parse(newfile);
-							fetch('https://discord.com/api/v10/guilds/522136584649310208/auto-moderation/rules/' + id, {
-								method: 'PATCH',
-								headers: {
-									"Authorization": "Bot " + bot.token,
-									"Content-Type": "application/json",
-									"X-Audit-Log-Reason": "Jarme Why"
-								},
-								body: JSON.stringify(json)
-							}).then(response => {
-								var stat = response.status;
-								if (stat == 200)
-									message.author.send("SUCC cess");
-								else
-									message.author.send("FAIL ure");
-							})
-							.then(data => {});
-						});
-				})
 			}
 		}
 		// send a message to a channel
@@ -583,27 +488,6 @@ function TextCommandBackup(bot, message, sentvalid, msgContent, g)
 			var mess = message.content.split(' ').slice(2, ).join(' '); //get the name for the role
 			bot.users.fetch(u_id).then(user => user.send(mess)).catch(console.error);
 		}
-		// blame adam for everything
-		else if (msgContent.includes("road"))
-		{
-			var u_id = message.content.split(' ').slice(1, 2).join(' ').replace(' ',''); //get the name for the role
-			var mess = message.content.split(' ').slice(2, 3).join(' ').replace(' ',''); //get the name for the role
-			var rm = message.content.split(' ').slice(3).join(' '); //get the name for the role
-			u_id = u_id.replace(/\D/g,''); //get message id
-			mess = mess.replace(/\D/g,''); //get message id
-
-			//anti abuse clause == only anti adam allowed
-			if (u_id == "560862356519911424" || u_id == "473994750412849174" || u_id == "776936598180200488" || u_id == "455524695823876097") return; // hank appeasing
-			
-			g.members.fetch(u_id).then(member => {
-				if (rm == "rem")
-					member.roles.remove(mess, "Baba Plase");
-				else
-					member.roles.add(mess, "Baba Plase");
-			});
-
-			message.author.send("SUCC cess");
-		}
 		// read the audit log
 		else if (msgContent.includes("odd"))
 		{
@@ -634,20 +518,51 @@ function TextCommandBackup(bot, message, sentvalid, msgContent, g)
 
 					if (reason != null) outpiut += " for `" + reason + "`:";
 					else outpiut += ":";
-					if (k.targetType == "USER") outpiut += " <@" + target + ">";
-					else if (k.targetType == "GUILD_MEMBER") outpiut += " <@" + target.user.id + ">";
-					else if (k.targetType == "MEMBER") outpiut += " <@" + target.user.id + ">";
-					else if (k.targetType == "CHANNEL") outpiut += " <#" + target.id + ">";
-					else if (k.targetType == "ROLE") outpiut += " <@&" + target.id + ">";
-					else if (k.targetType == "INVITE") outpiut += " " + target.code;
-					else if (k.targetType == "WEBHOOK") outpiut += " " + target.name;
-					else if (k.targetType == "EMOJI") outpiut += " " + target.name;
-					else if (k.targetType == "MESSAGE") outpiut += " " + target.id;
-					else if (k.targetType == "THREAD") outpiut += " <#" + target.id + ">";
-					else if (k.targetType == "INTEGRATION") outpiut += " " + target.name;
-					else if (k.targetType == "STAGE_INSTANCE") outpiut += " " + target.id;
-					else if (k.targetType == "STICKER") outpiut += " " + target.name;
-					else if (k.targetType == "GUILD") outpiut += " " + target.id;
+					// if (k.targetType == "USER") outpiut += " <@" + target + ">";
+					// else if (k.targetType == "GUILD_MEMBER") outpiut += " <@" + target.user.id + ">";
+					// else if (k.targetType == "MEMBER") outpiut += " <@" + target.user.id + ">";
+					// else if (k.targetType == "CHANNEL") outpiut += " <#" + target.id + ">";
+					// else if (k.targetType == "ROLE") outpiut += " <@&" + target.id + ">";
+					// else if (k.targetType == "INVITE") outpiut += " " + target.code;
+					// else if (k.targetType == "WEBHOOK") outpiut += " " + target.name;
+					// else if (k.targetType == "EMOJI") outpiut += " " + target.name;
+					// else if (k.targetType == "MESSAGE") outpiut += " " + target.id;
+					// else if (k.targetType == "THREAD") outpiut += " <#" + target.id + ">";
+					// else if (k.targetType == "INTEGRATION") outpiut += " " + target.name;
+					// else if (k.targetType == "STAGE_INSTANCE") outpiut += " " + target.id;
+					// else if (k.targetType == "STICKER") outpiut += " " + target.name;
+					// else if (k.targetType == "GUILD") outpiut += " " + target.id;
+					switch (k.targetType) {
+						case "USER":
+							outpiut += " <@" + target + ">";
+							break;
+						case "GUILD_MEMBER":
+						case "MEMBER":
+							outpiut += " <@" + target.user.id + ">";
+							break;
+						case "THREAD":
+						case "CHANNEL":
+							outpiut += " <#" + target.id + ">";
+							break;
+						case "ROLE":
+							outpiut += " <@&" + target.id + ">";
+							break;
+						case "INVITE":
+							outpiut += " " + target.code;
+							break;
+						case "WEBHOOK":
+						case "INTEGRATION":
+						case "STICKER":
+						case "EMOJI":
+							outpiut += " " + target.name;
+							break;
+						case "MESSAGE":
+						case "STAGE_INSTANCE":
+						case "GUILD":
+							outpiut += " " + target.id;
+							break;
+					}
+					  
 
 					outpiut += " at `" + k.createdAt + "`";
 					

@@ -1349,7 +1349,7 @@ function preformEasterEggs(message, msgContent, bot)
 		message.reply("🎅🏻🎁 Christmas is GREAT! 🎄❄️");
 	}
 
-	if(ames.includes('adam') || ames.includes("aikus")) //if message contains baba and is not from bot
+	if(ames.includes('adam') || ames.includes("aikus"))
 	{
 		if(ames.includes("please") || ames.includes("pikus"))
 		{
@@ -1363,6 +1363,23 @@ function preformEasterEggs(message, msgContent, bot)
 				message.channel.send("<:adam:995385148331802634>");
 			if (num < 25)
 				message.react("995385148331802634").catch(console.error);
+		}
+	}
+
+	if(ames.includes('sami'))
+	{
+		if(ames.includes("please"))
+		{
+			if (!(message.author.bot && msgContent == "indeed, sami please!"))
+				message.channel.send("Indeed, Sami Please!");
+		}
+		else
+		{
+			var num = Math.floor(Math.random() * 100);
+			if (num < 2)
+				message.channel.send("<:sami:1105524011854729237>");
+			if (num < 25)
+				message.react("1105524011854729237").catch(console.error);
 		}
 	}
 
