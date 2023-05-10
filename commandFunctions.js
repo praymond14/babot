@@ -440,10 +440,13 @@ function babaWednesday(msgContent, author, callback)
                     else
                     {
                         if (holidayinfo.year != undefined)
-                        whenistext += "\n" + holidayinfo.safename + bonustext + " is on " + d2.toLocaleDateString('en-US', options);
+                            // whenistext += "\n" + holidayinfo.safename + bonustext + " is on " + d2.toLocaleDateString('en-US', options);
+                            whenistext += "\n" + holidayinfo.safename + bonustext + " is on <t:" + d2.getTime() / 1000 + ":D>";
                         else
                         {
-                            whenistext += "\nThe next occurance of " + holidayinfo.safename + " is on " + d2.toLocaleDateString('en-US', options);
+                            //whenistext += "\nThe next occurance of " + holidayinfo.safename + " is on " + d2.toLocaleDateString('en-US', options);
+                            whenistext += "\nThe next occurance of " + holidayinfo.safename + " is on <t:" + d2.getTime() / 1000 + ":D>";
+                            
                         }
                     }
                     
@@ -466,11 +469,13 @@ function babaWednesday(msgContent, author, callback)
                     var dutext = "";
                     if (int != 0)
                     {
-                        if (int == 1)
-                            dutext = int + " Day until " + holidayinfo.safename; //future text
-                        else
-                            dutext = int + " Days until " + holidayinfo.safename + bonustext; //future text
+                        // if (int == 1)
+                        //     dutext = int + " Day until " + holidayinfo.safename; //future text
+                        // else
+                        //     dutext = int + " Days until " + holidayinfo.safename + bonustext; //future text
                         
+                        dutext = holidayinfo.safename + bonustext + " is <t:" + d2.getTime() / 1000 + ":R>" + (int > 31 ? " which is in " + int + " day" + (int == 1 ? "" : "s") : "");
+
                         additionaltext += dutext + "\n";
                     }
                     else
@@ -719,6 +724,7 @@ function babaCat(callback)
 
 function babaWeather(mode, city, callback)
 {
+    //TODO: add check if site down
     var tempFilePath = babadata.temp + "weather.png";
     const file = fs.createWriteStream(tempFilePath);
     var cityUnderscore = city.replace(" ", "%20");
@@ -740,7 +746,9 @@ function babaWeather(mode, city, callback)
            console.log("Download Completed");
 
            callback({ content: "Baba Weather", files: [tempFilePath] });
-       });
+        }).on('error', () => {
+            callback({ content: "Baba Weather Error" });
+        });
     });
 }
 

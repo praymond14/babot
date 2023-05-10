@@ -2,6 +2,8 @@ const { SetHolidayChan, dailyRandom, fronge } = require("./helperFunc");
 var babadata = require('./babotdata.json'); //baba configuration file
 const { controlDOW, cacheDOW } = require("./database");
 const fs = require('fs');
+const https = require('https');
+const fetch = require('node-fetch');
 
 
 function Seperated(vle)
@@ -133,7 +135,7 @@ function parseItems(old, neww)
 		if (typeof old === 'object' && old !== null)
 		{
 			var am = Array.isArray(old);
-			strg = twoObjectParseCompare(old, neww, 1 - (am ? (old.length > 1 || neww.length > 1 ? 0 : 1) : 0), am);
+			strg = twoObjectParseCompare(old, neww, 1 - (am ? (neww !== null ? (old.length > 1 || neww.length > 1 ? 0 : 1) : 0) : 0), am);
 		}
 	}
 
@@ -195,20 +197,20 @@ function TextCommandBackup(bot, message, sentvalid, msgContent, g)
 						chan.threads.fetch().then(thread => 
 							thread.threads.each(thr =>
 							{
-								thr.messages.fetch(message_id).then(message => 
+								thr.messages.fetch(message_id).then(responseMessage => 
 								{
 									fnd = true;
-									fronge(message);
-									message.author.send("SUCC cess");
+									fronge(responseMessage);
+									responseMessage.author.send("SUCC cess");
 								}).catch(function (err) {});
 							})
 						).catch(function (err) {});
 	
-						chan.messages.fetch(message_id).then(message => 
+						chan.messages.fetch(message_id).then(responseMessage => 
 						{
 							fnd = true;
-							fronge(message);
-							message.author.send("SUCC cess");
+							fronge(responseMessage);
+							responseMessage.author.send("SUCC cess");
 						}).catch(function (err) {}); 
 					}
 				});
@@ -226,24 +228,67 @@ function TextCommandBackup(bot, message, sentvalid, msgContent, g)
 						chan.threads.fetch().then(thread => 
 							thread.threads.each(thr =>
 							{
-								thr.messages.fetch(message_id).then(message => 
+								thr.messages.fetch(message_id).then(mehsage => 
 								{
 									fnd = true;
 									message.delete();
-									message.author.send("SUCC cess");
+									mehsage.author.send("SUCC cess");
 								}).catch(function (err) {});
 							})
 						).catch(function (err) {});
 	
-						chan.messages.fetch(message_id).then(message => 
+						chan.messages.fetch(message_id).then(mehsage => 
 						{
 							fnd = true;
-							message.delete();
-							message.author.send("SUCC cess");
+							mehsage.delete();
+							mehsage.author.send("SUCC cess");
 						}).catch(function (err) {}); 
 					}
 				});
 			});
+		}
+		else if (msgContent.includes("am") && !msgContent.includes("hours"))
+		{
+			if (msgContent.includes("list"))
+			{
+				const options = {
+					hostname: 'discord.com',
+					path: '/api/v10/guilds/522136584649310208/auto-moderation/rules',
+					headers: {
+						"Authorization": "Bot " + bot.token,
+					}
+				}
+				
+				var getto = https.get(options, (resp) => {
+					let data = '';
+					resp.on('data', (chunk) => {
+						data += chunk;
+					});
+					resp.on('end', () => {
+						var dataparse = JSON.parse(data);
+						if (msgContent.includes("full"))
+						{
+							for (var i = 0; i < dataparse.length; i++)
+							{
+								var send = "```";
+								send += objectParse(dataparse[i], 0);
+								send += "\n";
+								send += "```";
+								message.author.send(send);
+							}
+						}
+						else
+						{
+							var send = "";
+							for (var i = 0; i < dataparse.length; i++)
+							{
+								send += dataparse[i].id + " - " + dataparse[i].name + "\n";
+							}
+							message.author.send(send);
+						}
+					});
+				});
+			}
 		}
 		// send a message to a channel
 		else if (msgContent.includes("cmes"))
@@ -255,7 +300,7 @@ function TextCommandBackup(bot, message, sentvalid, msgContent, g)
 			const guildUser = g.members.fetch(message.author);
 			const canSend = guildUser.communicationDisabledUntilTimestamp;
 
-			if(!canSend)
+			if(!canSend || true)
 			{
 				if (msgContent.includes("i-u"))
 				{
@@ -292,7 +337,13 @@ function TextCommandBackup(bot, message, sentvalid, msgContent, g)
 							
 							if (thread) messageobj.threadId = message_id;
 
-							webhook.send(messageobj);
+							webhook.send(messageobj).then(msg=>
+							{
+								if (msgContent.includes("s-d"))
+								{
+									setTimeout(function(){msg.delete();}, 8000);
+								}
+							});
 
 							setTimeout(() => {
 								webhook.delete('Baba Plase');
@@ -349,7 +400,7 @@ function TextCommandBackup(bot, message, sentvalid, msgContent, g)
 						chan.threads.fetch().then(thread => 
 							thread.threads.each(thr =>
 							{
-								thr.messages.fetch(message_id).then(message => 
+								thr.messages.fetch(message_id).then(mehstagw => 
 								{
 									fnd = true;
 									for (var i = 0; i < items.length; i++)
@@ -359,14 +410,14 @@ function TextCommandBackup(bot, message, sentvalid, msgContent, g)
 											items[i] = items[i].match(/(\d+)/)[0];
 										}
 										console.log(items[i]);
-										message.react(items[i]).catch(console.error);
+										mehstagw.react(items[i]).catch(console.error);
 									}
-									message.author.send("SUCC cess");
+									mehstagw.author.send("SUCC cess");
 								}).catch(function (err) {});
 							})
 						).catch(function (err) {});
 	
-						chan.messages.fetch(message_id).then(message => 
+						chan.messages.fetch(message_id).then(mehstagw => 
 						{
 							fnd = true;
 							for (var i = 0; i < items.length; i++)
@@ -376,9 +427,9 @@ function TextCommandBackup(bot, message, sentvalid, msgContent, g)
 									items[i] = items[i].match(/(\d+)/)[0];
 								}
 								console.log(items[i]);
-								message.react(items[i]).catch(console.error);
+								mehstagw.react(items[i]).catch(console.error);
 							}
-							message.author.send("SUCC cess");
+							mehstagw.author.send("SUCC cess");
 						}).catch(function (err) {}); 
 					}
 				});
@@ -396,7 +447,7 @@ function TextCommandBackup(bot, message, sentvalid, msgContent, g)
 				message.author.send("DOW cache not updated");
 			}
 		}
-		else if (msgContent.includes("rbcont")) //probably would break adams brain
+		else if (msgContent.includes("rbcontdow") || msgContent.includes("rbcontfrog")) //probably would break adams brain
 		{
 			var u_id = message.content.split(' ').slice(1, 2).join(' ').replace(' ',''); //get the name for the role
 			
@@ -411,7 +462,7 @@ function TextCommandBackup(bot, message, sentvalid, msgContent, g)
 
 			if ((global.dbAccess[1] && global.dbAccess[0]))
 			{
-				controlDOW(u_id, time);
+				controlDOW(u_id, time, msgContent.includes("rbcontdow") ? "DOW" : "FROG");
 				message.author.send("DOW control for <@" + u_id + "> set to " + time);
 			}
 			else
@@ -467,20 +518,51 @@ function TextCommandBackup(bot, message, sentvalid, msgContent, g)
 
 					if (reason != null) outpiut += " for `" + reason + "`:";
 					else outpiut += ":";
-					if (k.targetType == "USER") outpiut += " <@" + target + ">";
-					else if (k.targetType == "GUILD_MEMBER") outpiut += " <@" + target.user.id + ">";
-					else if (k.targetType == "MEMBER") outpiut += " <@" + target.user.id + ">";
-					else if (k.targetType == "CHANNEL") outpiut += " <#" + target.id + ">";
-					else if (k.targetType == "ROLE") outpiut += " <@&" + target.id + ">";
-					else if (k.targetType == "INVITE") outpiut += " " + target.code;
-					else if (k.targetType == "WEBHOOK") outpiut += " " + target.name;
-					else if (k.targetType == "EMOJI") outpiut += " " + target.name;
-					else if (k.targetType == "MESSAGE") outpiut += " " + target.id;
-					else if (k.targetType == "THREAD") outpiut += " <#" + target.id + ">";
-					else if (k.targetType == "INTEGRATION") outpiut += " " + target.name;
-					else if (k.targetType == "STAGE_INSTANCE") outpiut += " " + target.id;
-					else if (k.targetType == "STICKER") outpiut += " " + target.name;
-					else if (k.targetType == "GUILD") outpiut += " " + target.id;
+					// if (k.targetType == "USER") outpiut += " <@" + target + ">";
+					// else if (k.targetType == "GUILD_MEMBER") outpiut += " <@" + target.user.id + ">";
+					// else if (k.targetType == "MEMBER") outpiut += " <@" + target.user.id + ">";
+					// else if (k.targetType == "CHANNEL") outpiut += " <#" + target.id + ">";
+					// else if (k.targetType == "ROLE") outpiut += " <@&" + target.id + ">";
+					// else if (k.targetType == "INVITE") outpiut += " " + target.code;
+					// else if (k.targetType == "WEBHOOK") outpiut += " " + target.name;
+					// else if (k.targetType == "EMOJI") outpiut += " " + target.name;
+					// else if (k.targetType == "MESSAGE") outpiut += " " + target.id;
+					// else if (k.targetType == "THREAD") outpiut += " <#" + target.id + ">";
+					// else if (k.targetType == "INTEGRATION") outpiut += " " + target.name;
+					// else if (k.targetType == "STAGE_INSTANCE") outpiut += " " + target.id;
+					// else if (k.targetType == "STICKER") outpiut += " " + target.name;
+					// else if (k.targetType == "GUILD") outpiut += " " + target.id;
+					switch (k.targetType) {
+						case "USER":
+							outpiut += " <@" + target + ">";
+							break;
+						case "GUILD_MEMBER":
+						case "MEMBER":
+							outpiut += " <@" + target.user.id + ">";
+							break;
+						case "THREAD":
+						case "CHANNEL":
+							outpiut += " <#" + target.id + ">";
+							break;
+						case "ROLE":
+							outpiut += " <@&" + target.id + ">";
+							break;
+						case "INVITE":
+							outpiut += " " + target.code;
+							break;
+						case "WEBHOOK":
+						case "INTEGRATION":
+						case "STICKER":
+						case "EMOJI":
+							outpiut += " " + target.name;
+							break;
+						case "MESSAGE":
+						case "STAGE_INSTANCE":
+						case "GUILD":
+							outpiut += " " + target.id;
+							break;
+					}
+					  
 
 					outpiut += " at `" + k.createdAt + "`";
 					

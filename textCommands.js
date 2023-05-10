@@ -19,7 +19,7 @@ const fs = require('fs'); //file stream used for del fuction
 
 const { Console } = require('console');
 const { SSL_OP_SSLEAY_080_CLIENT_DH_BUG } = require('constants');
-const { TextCommandBackup } = require("./textextra.js");
+const { TextCommandBackup } = require("./textExtra.js");
 //const { spawn } = require("child_process");
 /* [ 	["christmas", 12, 25, 0, 0], 
 	["thanksgiving", 11, 0, 4, 4], 
@@ -202,10 +202,10 @@ function babaMessage(bot, message)
 			message.channel.send(babaJeremy());
 		}
 
-		if (msgContent.includes("cat"))
-		{
-			message.channel.send(babaCat());
-		}
+		// if (msgContent.includes("cat"))
+		// {
+		// 	message.channel.send(babaCat());
+		// }
 
 		if (msgContent.includes("weather"))
 		{
@@ -478,7 +478,6 @@ function babaMessage(bot, message)
 			var message_id = message.content.replace(role_name,''); //remove role name from string
 			message_id = message_id.replace(/\D/g,''); //get message id
 			var fnd = false;
-
 			
 			var chanMap = message.guild.channels.fetch().then(channels => {
 				channels.each(chan => { //iterate through all the channels

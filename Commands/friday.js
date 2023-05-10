@@ -2,8 +2,6 @@ const { babaFriday } = require("../commandFunctions.js");
 const { SlashCommandBuilder } = require('@discordjs/builders');
 const { funnyDOWText } = require("../helperFunc.js");
 
-
-
 module.exports = {
 	data: new SlashCommandBuilder()
 		.setName('friday')

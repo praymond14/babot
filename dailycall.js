@@ -108,7 +108,7 @@ function todayDay(dow, guild, now)
 			coolCats = ["915351407287222403"]; // allowed channels, add exceptions manually
 			for (let currenter of channels) 
 			{
-				if (currenter[1].type == "GUILD_TEXT" && !bannedKittens.includes(currenter[1].id))
+				if (currenter[1] != null && currenter[1].type == "GUILD_TEXT" && !bannedKittens.includes(currenter[1].id))
 				{
 					if (!bannedCats.includes(currenter[1].parentId))
 						coolCats.push(currenter[1]);
