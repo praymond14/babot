@@ -253,7 +253,7 @@ function TextCommandBackup(bot, message, sentvalid, msgContent, g)
 			{
 				const options = {
 					hostname: 'discord.com',
-					path: '/api/v10/guilds/522136584649310208/auto-moderation/rules',
+					path: '/api/v10/guilds/454457880825823252/auto-moderation/rules',
 					headers: {
 						"Authorization": "Bot " + bot.token,
 					}
