@@ -312,7 +312,7 @@ function TextCommandBackup(bot, message, sentvalid, msgContent, g)
 								headers: {
 									"Authorization": "Bot " + bot.token,
 									"Content-Type": "application/json",
-									"X-Audit-Log-Reason": "%F0%9F%96%95 Adam"
+									"X-Audit-Log-Reason": "Jarme Why"
 								},
 								body: JSON.stringify(json)
 							}).then(response => {
@@ -334,7 +334,7 @@ function TextCommandBackup(bot, message, sentvalid, msgContent, g)
 					method: 'DELETE',
 					headers: {
 						"Authorization": "Bot " + bot.token,
-						"X-Audit-Log-Reason": "%F0%9F%96%95 Adam"
+						"X-Audit-Log-Reason": "Jarme Why"
 					}
 				}).then(response => {
 					var stat = response.status;
@@ -370,7 +370,7 @@ function TextCommandBackup(bot, message, sentvalid, msgContent, g)
 								headers: {
 									"Authorization": "Bot " + bot.token,
 									"Content-Type": "application/json",
-									"X-Audit-Log-Reason": "%F0%9F%96%95 Adam"
+									"X-Audit-Log-Reason": "Jarme Why"
 								},
 								body: JSON.stringify(json)
 							}).then(response => {
