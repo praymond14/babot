@@ -1160,6 +1160,8 @@ function funnyDOWText(dowNum, authorID)
 
 	if (text == null) text = "You are not allowed to enjoy [DAY], you are a bad person!";
 
+	var todOnlyDate = new Date(tod.getFullYear(), tod.getMonth(), tod.getDate());
+
 	var imonthN = ""
 	if (nextActualDOW.getMonth() < 9) imonthN = "0" + (nextActualDOW.getMonth() + 1);
 	else imonthN = tod.getMonth() + 1;
@@ -1167,6 +1169,24 @@ function funnyDOWText(dowNum, authorID)
 	var imonthP = ""
 	if (prevActualDOW.getMonth() < 9) imonthP = "0" + (prevActualDOW.getMonth() + 1);
 	else imonthP = tod.getMonth() + 1;
+
+	var idayN = ""
+	if (nextActualDOW.getDate() < 10) idayN = "0" + nextActualDOW.getDate();
+	else idayN = nextActualDOW.getDate();
+
+	var idayNplus1 = ""
+	if (nextActualDOW.getDate() + 1 < 10) idayNplus1 = "0" + (nextActualDOW.getDate() + 1);
+	else idayNplus1 = nextActualDOW.getDate() + 1;
+
+	var idayP = ""
+	if (prevActualDOW.getDate() < 10) idayP = "0" + prevActualDOW.getDate();
+	else idayP = prevActualDOW.getDate();
+
+	var idayPplus1 = ""
+	if (prevActualDOW.getDate() + 1 < 10) idayPplus1 = "0" + (prevActualDOW.getDate() + 1);
+	else idayPplus1 = prevActualDOW.getDate() + 1;
+
+	// fix: today stated x ago is not correct (displays current time not midnight)
 
 	text = text.replaceAll("[d]", num);
 	text = text.replaceAll("[month]", tod.getMonth());
@@ -1177,13 +1197,13 @@ function funnyDOWText(dowNum, authorID)
 
 	text = text.replaceAll("[intYEAR->]", nextActualDOW.getFullYear());
 	text = text.replaceAll("[intMONTH->]", imonthN);
-	text = text.replaceAll("[intDAY->]", nextActualDOW.getDate());
-	text = text.replaceAll("[intDAY+1->]", nextActualDOW.getDate() + 1);
+	text = text.replaceAll("[intDAY->]", idayN);
+	text = text.replaceAll("[intDAY+1->]", idayNplus1);
 
 	text = text.replaceAll("[intYEAR<-]", prevActualDOW.getFullYear());
 	text = text.replaceAll("[intMONTH<-]", imonthP);
-	text = text.replaceAll("[intDAY<-]", prevActualDOW.getDate());
-	text = text.replaceAll("[intDAY+1<-]", prevActualDOW.getDate() + 1);
+	text = text.replaceAll("[intDAY<-]", idayN);
+	text = text.replaceAll("[intDAY+1<-]", idayPplus1);
 
 
 	text = text.replaceAll("[TS-R<-]", "<t:" + Math.floor(prevActualDOW.getTime() / 1000) + ":R>");
@@ -1409,7 +1429,7 @@ function preformEasterEggs(message, msgContent, bot)
 
 	if(ames.includes('perchance') && !message.author.bot) //perchance update
 	{
-		message.reply("You can't just say perchance");
+		message.reply("# You can't just say perchance");
 	}
 
 	if (msgContent.includes("france is better than america"))
@@ -1420,7 +1440,7 @@ function preformEasterEggs(message, msgContent, bot)
 
 	if(msgContent.includes('christmas') && msgContent.includes('bad')) //perchance update
 	{
-		message.reply("🎅🏻🎁 Christmas is GREAT! 🎄❄️");
+		message.reply("# 🎅🏻🎁 Christmas is GREAT! 🎄❄️");
 	}
 
 	if(ames.includes('adam') || ames.includes("aikus"))
@@ -1428,7 +1448,7 @@ function preformEasterEggs(message, msgContent, bot)
 		if(ames.includes("please") || ames.includes("pikus"))
 		{
 			if (!(message.author.bot && msgContent == "indeed, adam please!"))
-				message.channel.send("Indeed, Adam Please!");
+				message.channel.send("# Indeed, Adam Please!");
 		}
 		else
 		{
