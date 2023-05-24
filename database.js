@@ -1,7 +1,7 @@
 const fs = require('fs');
 var babadata = require('./babotdata.json'); //baba configuration file
 var mysql = require('mysql2');
-const { FindDate } = require('./helperFunc');
+const { FindDate } = require('./HelperFunctions/genericHelpers.js');
 
 var con;
 

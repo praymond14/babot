@@ -1,5 +1,9 @@
 const { FormatPurityList, HPLGenChannel, HPLGenUsers, HPLSelectChannel, HPLSelectUser, HPLSelectDate, HaikuSelection, ObtainDBHolidays, NameFromUserID, HPLGenD8 } = require("./database.js");
-const { getD1, FindDate, CheckHoliday, FindNextHoliday, GetDate, dateDiffInDays, MakeImage, funnyDOWText, EmbedHaikuGen, normalizeMSG } = require("./helperFunc.js");
+const { getD1, FindDate, GetDate, dateDiffInDays } = require("./HelperFunctions/genericHelpers.js");
+const { CheckHoliday, FindNextHoliday, MakeImage, EmbedHaikuGen } = require("./HelperFunctions/commandHelpers.js");
+const { normalizeMSG } = require("./HelperFunctions/dbHelpers.js");
+const { funnyDOWText } = require("./HelperFunctions/slashFridayHelpers.js");
+
 var babadata = require('./babotdata.json'); //baba configuration file
 var data = require(babadata.datalocation + 'data.json'); //extra data
 const Discord = require('discord.js'); //discord module for interation with discord api

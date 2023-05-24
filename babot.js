@@ -6,6 +6,7 @@ const { Routes } = require('discord-api-types/v9');
 var babadata = require('./babotdata.json'); //baba configuration file
 const txtCommands = require('./textCommands.js');
 //const { setCommandRoles } = require('./helperFunc');
+
 const { voiceChannelChange, startUpChecker } = require("./voice.js");
 const { cacheOpts, handleDisconnect, eventDB } = require('./database');
 const { dailyCallStart } = require('./dailycall.js');

@@ -1,7 +1,7 @@
 const { babaWednesday } = require("../commandFunctions.js");
 const { SlashCommandBuilder } = require('@discordjs/builders');
 const Discord = require('discord.js'); //discord module for interation with discord api
-const { FrogButtons } = require("../helperFunc.js");
+const { FrogButtons } = require("../HelperFunctions/genericHelpers.js");
 
 module.exports = {
 	data: new SlashCommandBuilder()

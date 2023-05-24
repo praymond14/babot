@@ -1,7 +1,7 @@
 const { Client, Intents, Collection } = require('discord.js'); //discord module for interation with discord api
 const Discord = require('discord.js'); //discord module for interation with discord api
 var babadata = require('./babotdata.json'); //baba configuration file
-const { setCommandRoles } = require('./helperFunc');
+const { setCommandRoles } = require('./HelperFunctions/adminHelpers.js');
 
 const bot = new Client({ intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MESSAGES, Intents.FLAGS.DIRECT_MESSAGES], partials: ["CHANNEL"]});
 bot.login(babadata.token); //login

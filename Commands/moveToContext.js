@@ -1,4 +1,4 @@
-const { movetoChannel } = require("../helperFunc.js");
+const { movetoChannel } = require('../HelperFunctions/adminHelpers.js');
 const { ContextMenuCommandBuilder } = require('@discordjs/builders');
 const { ApplicationCommandType } = require('discord-api-types/v9');
 var babadata = require('../babotdata.json'); //baba configuration file

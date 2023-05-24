@@ -1,9 +1,12 @@
-const { SetHolidayChan, dailyRandom, fronge, reverseDelay } = require("./helperFunc");
 var babadata = require('./babotdata.json'); //baba configuration file
 const { controlDOW, cacheDOW } = require("./database");
 const fs = require('fs');
 const https = require('https');
 const fetch = require('node-fetch');
+
+const { SetHolidayChan, dailyRandom, fronge } = require("./HelperFunctions/genericHelpers.js");
+const { reverseDelay } = require("./HelperFunctions/commandHelpers.js");
+
 
 
 function Seperated(vle)
