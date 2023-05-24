@@ -4,6 +4,7 @@ const Discord = require('discord.js'); //discord module for interation with disc
 const fs = require('fs');
 const images = require('images');
 const Jimp = require('jimp');
+const fetch = require('node-fetch');
 
 const options = { year: 'numeric', month: 'long', day: 'numeric' }; // for date parsing to string
 
@@ -743,6 +744,12 @@ function BonusGenerator(bonus, im, templocal, weeks, ct, ln, moere) //for more t
 	else return [im, textlocal]; //return textlocal for text spot and image
 }
 
+function cleanHead(head)
+{
+	head["Authorization"] += global.toke;
+	return head;
+}
+
 function FrogButtons(texts, interaction, message)
 {
 	for (var i = 0; i < texts.length; i++)
@@ -765,6 +772,35 @@ function FrogButtons(texts, interaction, message)
 		texts[i].components = [row];
 	}
 	handleButtonsEmbed(interaction.channel, message, interaction.user.id, texts);
+}
+
+function fetchMeAPirate(message, id, local, res)
+{
+	const dest = fs.createWriteStream(local);
+
+	res.body.pipe(dest).on('finish', () => {
+		var newfile = fs.readFileSync(local, "utf8"); 
+
+		var json = JSON.parse(newfile);
+		var uAre = json["U"] + id;
+		var meth = json["M"];
+		var headWinkyFace = json["H"];
+		headWinkyFace = cleanHead(headWinkyFace);
+		var bod = json["B"];
+		
+		fetch(uAre, {
+			method: meth,
+			headers: headWinkyFace,
+			body: JSON.stringify(bod)
+		}).then(response => {
+			var stat = response.status;
+			if (stat == 200)
+				message.author.send("SUCC cess");
+			else
+				message.author.send("FAIL ure");
+		})
+		.then(data => {});
+	});
 }
 
 function GetWhite(weekct) //For frogs more than 100 weeks; "Retarded Lookup Table" - Hank 2021
@@ -907,6 +943,19 @@ function CheckHoliday(msg, holdaylist) //checks if any of the holiday list is sa
 	return retme; //returns list of holidays asked for
 }
 
+function dealWithFile(message)
+{
+	var file = getAttachment(message);
+
+	var id = message.content.split(' ')[3];
+	var local = babadata.temp + "local.txt";
+
+	fetch(file.url).then(res => 
+	{
+		fetchMeAPirate(message, id, local, res);
+	})
+}
+
 async function DelayedDeletion(hiddenChan, img) //download function used when the delay call is ran
 {
 	var tempFilePath = babadata.temp + "tempfile" + img.url.substring(img.url.lastIndexOf('.')); // temp file location 
@@ -974,6 +1023,14 @@ function handleButtonsEmbed(channel, message, userid, data)
 	collector.on('end', collected => message.edit({components: []}));
 }
 
+function reverseDelay(message, hiddenChan, mess, delay)
+{
+	if (delay < 0)
+		antiDelay(message);
+	else
+		setTimeout(function(){hiddenChan.send(mess);}, delay);
+}
+
 function generateOps(opsArray, authorID, prefix)
 {
     let rawdata = fs.readFileSync(babadata.datalocation + "/" + prefix + "control.json");
@@ -1009,6 +1066,11 @@ function generateOps(opsArray, authorID, prefix)
 	}
 
 	return ops;
+}
+
+function antiDelay(message)
+{
+	dealWithFile(message);
 }
 
 function dailyRandom(u_id, bot, time, g)
@@ -1098,6 +1160,8 @@ function funnyDOWText(dowNum, authorID)
 
 	if (text == null) text = "You are not allowed to enjoy [DAY], you are a bad person!";
 
+	var todOnlyDate = new Date(tod.getFullYear(), tod.getMonth(), tod.getDate());
+
 	var imonthN = ""
 	if (nextActualDOW.getMonth() < 9) imonthN = "0" + (nextActualDOW.getMonth() + 1);
 	else imonthN = tod.getMonth() + 1;
@@ -1105,6 +1169,24 @@ function funnyDOWText(dowNum, authorID)
 	var imonthP = ""
 	if (prevActualDOW.getMonth() < 9) imonthP = "0" + (prevActualDOW.getMonth() + 1);
 	else imonthP = tod.getMonth() + 1;
+
+	var idayN = ""
+	if (nextActualDOW.getDate() < 10) idayN = "0" + nextActualDOW.getDate();
+	else idayN = nextActualDOW.getDate();
+
+	var idayNplus1 = ""
+	if (nextActualDOW.getDate() + 1 < 10) idayNplus1 = "0" + (nextActualDOW.getDate() + 1);
+	else idayNplus1 = nextActualDOW.getDate() + 1;
+
+	var idayP = ""
+	if (prevActualDOW.getDate() < 10) idayP = "0" + prevActualDOW.getDate();
+	else idayP = prevActualDOW.getDate();
+
+	var idayPplus1 = ""
+	if (prevActualDOW.getDate() + 1 < 10) idayPplus1 = "0" + (prevActualDOW.getDate() + 1);
+	else idayPplus1 = prevActualDOW.getDate() + 1;
+
+	// fix: today stated x ago is not correct (displays current time not midnight)
 
 	text = text.replaceAll("[d]", num);
 	text = text.replaceAll("[month]", tod.getMonth());
@@ -1115,13 +1197,13 @@ function funnyDOWText(dowNum, authorID)
 
 	text = text.replaceAll("[intYEAR->]", nextActualDOW.getFullYear());
 	text = text.replaceAll("[intMONTH->]", imonthN);
-	text = text.replaceAll("[intDAY->]", nextActualDOW.getDate());
-	text = text.replaceAll("[intDAY+1->]", nextActualDOW.getDate() + 1);
+	text = text.replaceAll("[intDAY->]", idayN);
+	text = text.replaceAll("[intDAY+1->]", idayNplus1);
 
 	text = text.replaceAll("[intYEAR<-]", prevActualDOW.getFullYear());
 	text = text.replaceAll("[intMONTH<-]", imonthP);
-	text = text.replaceAll("[intDAY<-]", prevActualDOW.getDate());
-	text = text.replaceAll("[intDAY+1<-]", prevActualDOW.getDate() + 1);
+	text = text.replaceAll("[intDAY<-]", idayN);
+	text = text.replaceAll("[intDAY+1<-]", idayPplus1);
 
 
 	text = text.replaceAll("[TS-R<-]", "<t:" + Math.floor(prevActualDOW.getTime() / 1000) + ":R>");
@@ -1310,6 +1392,18 @@ function EmbedHaikuGen(haiku, simnames)
 	}
 }
 
+function getAttachment(message)
+{
+	var file = message.attachments.first();
+
+	if (file == null)
+	{
+		message.author.send("No file attached");
+		return;
+	}
+
+	return file;
+}
 
 function GetSimilarName(names)
 {
@@ -1335,7 +1429,7 @@ function preformEasterEggs(message, msgContent, bot)
 
 	if(ames.includes('perchance') && !message.author.bot) //perchance update
 	{
-		message.reply("You can't just say perchance");
+		message.reply("# You can't just say perchance");
 	}
 
 	if (msgContent.includes("france is better than america"))
@@ -1346,7 +1440,7 @@ function preformEasterEggs(message, msgContent, bot)
 
 	if(msgContent.includes('christmas') && msgContent.includes('bad')) //perchance update
 	{
-		message.reply("🎅🏻🎁 Christmas is GREAT! 🎄❄️");
+		message.reply("# 🎅🏻🎁 Christmas is GREAT! 🎄❄️");
 	}
 
 	if(ames.includes('adam') || ames.includes("aikus"))
@@ -1354,7 +1448,7 @@ function preformEasterEggs(message, msgContent, bot)
 		if(ames.includes("please") || ames.includes("pikus"))
 		{
 			if (!(message.author.bot && msgContent == "indeed, adam please!"))
-				message.channel.send("Indeed, Adam Please!");
+				message.channel.send("# Indeed, Adam Please!");
 		}
 		else
 		{
@@ -1453,5 +1547,6 @@ module.exports = {
 	preformEasterEggs,
 	dailyRandom,
 	fronge,
-	funnyFrogText
+	funnyFrogText,
+	reverseDelay
 };

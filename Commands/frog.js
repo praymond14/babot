@@ -9,7 +9,6 @@ module.exports = {
 	async execute(interaction, bot) {
 		await interaction.deferReply();
         var text = funnyFrogText(interaction.user.id);
-
 		await interaction.editReply(text);
 	},
 };
