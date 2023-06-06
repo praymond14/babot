@@ -205,7 +205,15 @@ function generateOps(opsArray, authorID, prefix)
 	return ops;
 }
 
+function removeCountRuin(uid, g)
+{
+	g.members.fetch(uid).then(member => {
+		member.roles.remove(babadata.countrole, "you are free to count!");
+	});
+}
+
 module.exports = {
     funnyDOWText,
-    funnyFrogText
+    funnyFrogText,
+	removeCountRuin
 };
