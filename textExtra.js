@@ -148,7 +148,7 @@ function parseItems(old, neww)
 
 function TextCommandBackup(bot, message, sentvalid, msgContent, g)
 {
-    if (sentvalid) // put in own file or something eventually
+	if (sentvalid) // put in own file or something eventually
 	{
 		if (msgContent.includes("🐸 debug")) //0 null, 1 spook, 2 thanks, 3 crimbo, 4 defeat
 		{
@@ -249,49 +249,6 @@ function TextCommandBackup(bot, message, sentvalid, msgContent, g)
 					}
 				});
 			});
-		}
-		else if (msgContent.includes("am") && !msgContent.includes("hours"))
-		{
-			if (msgContent.includes("list"))
-			{
-				const options = {
-					hostname: 'discord.com',
-					path: '/api/v10/guilds/454457880825823252/auto-moderation/rules',
-					headers: {
-						"Authorization": "Bot " + bot.token,
-					}
-				}
-				
-				var getto = https.get(options, (resp) => {
-					let data = '';
-					resp.on('data', (chunk) => {
-						data += chunk;
-					});
-					resp.on('end', () => {
-						var dataparse = JSON.parse(data);
-						if (msgContent.includes("full"))
-						{
-							for (var i = 0; i < dataparse.length; i++)
-							{
-								var send = "```";
-								send += objectParse(dataparse[i], 0);
-								send += "\n";
-								send += "```";
-								message.author.send(send);
-							}
-						}
-						else
-						{
-							var send = "";
-							for (var i = 0; i < dataparse.length; i++)
-							{
-								send += dataparse[i].id + " - " + dataparse[i].name + "\n";
-							}
-							message.author.send(send);
-						}
-					});
-				});
-			}
 		}
 		// send a message to a channel
 		else if (msgContent.includes("cmes"))
@@ -644,6 +601,49 @@ function TextCommandBackup(bot, message, sentvalid, msgContent, g)
 				message.author.send("Error: `" + error + "`");
 				message.author.send("Stack:\n```" + error.stack + "```");
 			});
+		}
+		else if (msgContent.includes("am") && !msgContent.includes("hours"))
+		{
+			if (msgContent.includes("list"))
+			{
+				const options = {
+					hostname: 'discord.com',
+					path: '/api/v10/guilds/454457880825823252/auto-moderation/rules',
+					headers: {
+						"Authorization": "Bot " + bot.token,
+					}
+				}
+				
+				var getto = https.get(options, (resp) => {
+					let data = '';
+					resp.on('data', (chunk) => {
+						data += chunk;
+					});
+					resp.on('end', () => {
+						var dataparse = JSON.parse(data);
+						if (msgContent.includes("full"))
+						{
+							for (var i = 0; i < dataparse.length; i++)
+							{
+								var send = "```";
+								send += objectParse(dataparse[i], 0);
+								send += "\n";
+								send += "```";
+								message.author.send(send);
+							}
+						}
+						else
+						{
+							var send = "";
+							for (var i = 0; i < dataparse.length; i++)
+							{
+								send += dataparse[i].id + " - " + dataparse[i].name + "\n";
+							}
+							message.author.send(send);
+						}
+					});
+				});
+			}
 		}
 	}
 }

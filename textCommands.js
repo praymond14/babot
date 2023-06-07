@@ -66,7 +66,7 @@ function babaMessage(bot, message)
 	}
 	
 	TextCommandBackup(bot, message, sentvalid, msgContent, g)
-
+	
 	if (babadata.holidaychan == null)
 	{
 		let rawdata = fs.readFileSync(__dirname + '/babotdata.json');

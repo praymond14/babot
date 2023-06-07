@@ -54,16 +54,18 @@ function FindDate(message, haiku = false) //Not Thanks to Jeremy's Link
 				month = 12;
 		}
 
+		var isDay = false;
 		if (day == 0) //set year to first day
 		{
 			var iv = parseInt(item);
 			if (iv <= 31)
 			{
 				day = iv;
+				isDay = true;
 			}
 		}
 		
-		if (year == 0 && day == 0) //set year to first year found
+		if (year == 0 && !isDay) //set year to first year found
 		{
 			var iv = parseInt(item);
 			if (iv < 100)

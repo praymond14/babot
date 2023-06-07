@@ -386,7 +386,7 @@ function babaWednesday(msgContent, author, callback)
     
         var IsHoliday = CheckHoliday(msgContent, holidays); //get the holidays that are reqested
         var IsDate = FindDate(msgContent);
-    
+
         if (IsDate != null)
             IsHoliday.push(IsDate);
     
