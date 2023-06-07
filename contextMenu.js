@@ -1,7 +1,7 @@
 var babadata = require('./babotdata.json'); //baba configuration file
 const {  MessageActionRow, Modal, TextInputComponent  } = require('discord.js');
 
-const { movetoChannel } = require("./helperFunc");
+const { movetoChannel } = require('./HelperFunctions/adminHelpers.js');
 
 async function contextInfo(interaction, bot)
 {

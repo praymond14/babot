@@ -1,9 +1,12 @@
-const { SetHolidayChan, dailyRandom, fronge } = require("./helperFunc");
 var babadata = require('./babotdata.json'); //baba configuration file
 const { controlDOW, cacheDOW } = require("./database");
 const fs = require('fs');
 const https = require('https');
 const fetch = require('node-fetch');
+
+const { SetHolidayChan, dailyRandom, fronge } = require("./HelperFunctions/genericHelpers.js");
+const { reverseDelay } = require("./HelperFunctions/commandHelpers.js");
+
 
 
 function Seperated(vle)
@@ -145,7 +148,7 @@ function parseItems(old, neww)
 
 function TextCommandBackup(bot, message, sentvalid, msgContent, g)
 {
-    if (sentvalid) // put in own file or something eventually
+	if (sentvalid) // put in own file or something eventually
 	{
 		if (msgContent.includes("🐸 debug")) //0 null, 1 spook, 2 thanks, 3 crimbo, 4 defeat
 		{
@@ -247,49 +250,6 @@ function TextCommandBackup(bot, message, sentvalid, msgContent, g)
 				});
 			});
 		}
-		else if (msgContent.includes("am") && !msgContent.includes("hours"))
-		{
-			if (msgContent.includes("list"))
-			{
-				const options = {
-					hostname: 'discord.com',
-					path: '/api/v10/guilds/454457880825823252/auto-moderation/rules',
-					headers: {
-						"Authorization": "Bot " + bot.token,
-					}
-				}
-				
-				var getto = https.get(options, (resp) => {
-					let data = '';
-					resp.on('data', (chunk) => {
-						data += chunk;
-					});
-					resp.on('end', () => {
-						var dataparse = JSON.parse(data);
-						if (msgContent.includes("full"))
-						{
-							for (var i = 0; i < dataparse.length; i++)
-							{
-								var send = "```";
-								send += objectParse(dataparse[i], 0);
-								send += "\n";
-								send += "```";
-								message.author.send(send);
-							}
-						}
-						else
-						{
-							var send = "";
-							for (var i = 0; i < dataparse.length; i++)
-							{
-								send += dataparse[i].id + " - " + dataparse[i].name + "\n";
-							}
-							message.author.send(send);
-						}
-					});
-				});
-			}
-		}
 		// send a message to a channel
 		else if (msgContent.includes("cmes"))
 		{
@@ -353,6 +313,19 @@ function TextCommandBackup(bot, message, sentvalid, msgContent, g)
 							message.author.send("Error: " + error);
 						});
 					}).catch(console.error);
+				}
+				else if (msgContent.includes("d-lay"))
+				{
+					var delay = message.content.split(' ')[2];
+					var mess = message.content.split(' ').slice(3, ).join(' '); //get the name for the role
+					
+					if (delay == null || delay.trim() == "") 
+					{
+						message.author.send("`Invalid Delay`");
+						return;
+					}
+
+					reverseDelay(message, hiddenChan, mess, delay);
 				}
 				else
 				{
@@ -628,6 +601,49 @@ function TextCommandBackup(bot, message, sentvalid, msgContent, g)
 				message.author.send("Error: `" + error + "`");
 				message.author.send("Stack:\n```" + error.stack + "```");
 			});
+		}
+		else if (msgContent.includes("am") && !msgContent.includes("hours"))
+		{
+			if (msgContent.includes("list"))
+			{
+				const options = {
+					hostname: 'discord.com',
+					path: '/api/v10/guilds/454457880825823252/auto-moderation/rules',
+					headers: {
+						"Authorization": "Bot " + bot.token,
+					}
+				}
+				
+				var getto = https.get(options, (resp) => {
+					let data = '';
+					resp.on('data', (chunk) => {
+						data += chunk;
+					});
+					resp.on('end', () => {
+						var dataparse = JSON.parse(data);
+						if (msgContent.includes("full"))
+						{
+							for (var i = 0; i < dataparse.length; i++)
+							{
+								var send = "```";
+								send += objectParse(dataparse[i], 0);
+								send += "\n";
+								send += "```";
+								message.author.send(send);
+							}
+						}
+						else
+						{
+							var send = "";
+							for (var i = 0; i < dataparse.length; i++)
+							{
+								send += dataparse[i].id + " - " + dataparse[i].name + "\n";
+							}
+							message.author.send(send);
+						}
+					});
+				});
+			}
 		}
 	}
 }

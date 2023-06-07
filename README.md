@@ -49,7 +49,7 @@ dependencies included in package.json - just use
 `npm install`
 
 ## Installing from scratch
-A linux system is recommended. Production uses WSL1 on Win10.  
+A linux system is recommended.  Production uses WSL1 on Win10.  
 This guide installs nvm (Node Version Manager), node, and forever.
 
 - `curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.1/install.sh | bash`

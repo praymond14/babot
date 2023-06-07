@@ -1,6 +1,7 @@
 const { babaHaikuEmbed } = require("../commandFunctions.js");
 const { SlashCommandBuilder } = require('@discordjs/builders');
-const { sqlEscapeStringThingforAdamBecauseHeWillDoanSQLInjectionOtherwise, handleButtonsEmbed } = require("../helperFunc.js");
+const { sqlEscapeStringThingforAdamBecauseHeWillDoanSQLInjectionOtherwise } = require("../HelperFunctions/dbHelpers.js");
+const { handleButtonsEmbed } = require("../HelperFunctions/genericHelpers.js");
 
 module.exports = {
 	data: new SlashCommandBuilder()

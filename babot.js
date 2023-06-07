@@ -6,6 +6,7 @@ const { Routes } = require('discord-api-types/v9');
 var babadata = require('./babotdata.json'); //baba configuration file
 const txtCommands = require('./textCommands.js');
 //const { setCommandRoles } = require('./helperFunc');
+
 const { voiceChannelChange, startUpChecker } = require("./voice.js");
 const { cacheOpts, handleDisconnect, eventDB } = require('./database');
 const { dailyCallStart } = require('./dailycall.js');
@@ -14,9 +15,11 @@ const { contextInfo, modalInfo } = require('./contextMenu');
 global.dbAccess = [!process.argv.includes("-db"), process.argv.includes("-db") ? false : true];
 global.starttime = new Date();
 
+global.toke = babadata.token;
+
 // Initialize Discord Bot
 const bot = new Client({ intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MESSAGES, Intents.FLAGS.GUILD_MEMBERS, Intents.FLAGS.GUILD_PRESENCES, Intents.FLAGS.DIRECT_MESSAGES, Intents.FLAGS.GUILD_VOICE_STATES, Intents.FLAGS.GUILD_SCHEDULED_EVENTS], partials: ["CHANNEL"]});
-bot.login(babadata.token); //login
+bot.login(global.toke); //login
 
 bot.on('ready', function (evt) 
 {

@@ -1,7 +1,11 @@
 var babadata = require('./babotdata.json'); //baba configuration file
 const fs = require('fs');
 const Discord = require('discord.js'); //discord module for interation with discord api
-const { SetHolidayChan, CreateChannel, MonthsPlus, loadInDBFSV, FindNextHoliday, CheckHoliday, getD1 } = require('./helperFunc');
+
+const { loadInDBFSV } = require('./HelperFunctions/dbHelpers.js');
+const { SetHolidayChan, CreateChannel, MonthsPlus, getD1 } = require('./HelperFunctions/genericHelpers.js');
+const { FindNextHoliday, CheckHoliday } = require('./HelperFunctions/commandHelpers.js');
+
 const { cacheDOW, ObtainDBHolidays } = require('./database');
 
 var to = null;

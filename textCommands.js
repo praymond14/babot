@@ -1,4 +1,3 @@
-const { setGrole, setVote, setVBH, movetoChannel, SetHolidayChan, CheckFrogID, getErrorFlag, timedOutFrog, handleButtonsEmbed, normalizeMSG, preformEasterEggs } = require("./helperFunc.js");
 const { babaFriday,  babaHelp, babaPlease, babaPizza, babaVibeFlag, babaYugo, babaHaikuEmbed, babaWednesday, babaDayNextWed, babaJeremy, babaHurricane, babaRepost } = require("./commandFunctions.js");
 const { Client, Intents } = require('discord.js'); //discord module for interation with discord api
 const Discord = require('discord.js'); //discord module for interation with discord api
@@ -8,6 +7,12 @@ const fs = require('fs'); //file stream used for del fuction
 //const voice = require('@discordjs/voice')
 //var prism = require("prism-media");
 //var ffmpeg = require('fluent-ffmpeg');
+
+const { SetHolidayChan, CheckFrogID, handleButtonsEmbed, preformEasterEggs } = require("./HelperFunctions/genericHelpers.js");
+const { getErrorFlag } = require("./HelperFunctions/commandHelpers.js");
+const { setGrole, setVote, setVBH, movetoChannel, timedOutFrog } = require("./HelperFunctions/adminHelpers.js");
+const { normalizeMSG } = require("./HelperFunctions/dbHelpers.js");
+
 
 //To Do:
 /*
@@ -61,7 +66,7 @@ function babaMessage(bot, message)
 	}
 	
 	TextCommandBackup(bot, message, sentvalid, msgContent, g)
-
+	
 	if (babadata.holidaychan == null)
 	{
 		let rawdata = fs.readFileSync(__dirname + '/babotdata.json');

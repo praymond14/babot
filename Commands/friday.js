@@ -1,6 +1,6 @@
 const { babaFriday } = require("../commandFunctions.js");
 const { SlashCommandBuilder } = require('@discordjs/builders');
-const { funnyDOWText } = require("../helperFunc.js");
+const { funnyDOWText, removeCountRuin } = require("../HelperFunctions/slashFridayHelpers.js");
 
 module.exports = {
 	data: new SlashCommandBuilder()
@@ -38,6 +38,8 @@ module.exports = {
 		}
 		else
 		{
+			var guild = interaction.guild;
+			removeCountRuin(interaction.user.id, guild);
 			await interaction.editReply(babaFriday());
 		}
 		

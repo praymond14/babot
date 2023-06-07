@@ -1,6 +1,6 @@
 const { babaWednesday } = require("../commandFunctions.js");
 const { SlashCommandBuilder } = require('@discordjs/builders');
-const { FrogButtons } = require("../helperFunc.js");
+const { FrogButtons } = require("../HelperFunctions/genericHelpers.js");
 
 module.exports = {
 	data: new SlashCommandBuilder()
