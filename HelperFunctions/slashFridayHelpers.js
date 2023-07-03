@@ -15,6 +15,9 @@ const emotion2 = ["fun", "exciting", "monotonous", "speed run", "pretty eventful
 const bye = ["bid you a morrow", "will see you soon", "want to eat your soul, so watch out", "am going to leave now", "hate everything, goodbye", "am monke, heee heee hoo hoo", "wish you good luck on your adventures", "am going to go to bed now", "want to sleep but enevitably will not get any as i will be gaming all night, good morrow", "am going to go to the morrow lands", "will sleep now", "am pleased to sleep"];
 const emoji = ["ඞ", "🐸", "🍆", "💄", "⛧", "🎄", "🐷", "🐎", "🐴", "🐍", "⚡", "🪙", "🖕", "🚊", "🏻🏻", "🤔", "🌳", "🌲", "🌴", "🌵", "🐀", "🍝", "𓀒"];
 
+const localesz = ["in class", "in bed", "at Adam's House", "in the car driving to [l2]", "waiting for the bus", "playing slots", "doing cocaine", "in the bathroom", "in the shower", "in your walls ;),"];
+const l2 = ["the store", "New York", "Adam's House", "nowhere", "school", "a bacon festival", "somewhere under the sea"]
+
 function funnyDOWText(dowNum, authorID)
 {
 	let path = babadata.datalocation + "/DOWcache.json";
@@ -46,7 +49,31 @@ function funnyDOWText(dowNum, authorID)
 	}
 
 	var tod = new Date();
-	var text = optionsDOW[Math.floor(Math.random() * optionsDOW.length)];
+	var pretext = optionsDOW[Math.floor(Math.random() * optionsDOW.length)];
+
+	var textos = [];
+	for (var i = 0; i < 12; i++)
+		textos.push(pretext.text);
+
+	if (pretext.h1)
+	{
+		for (var i = 0; i < 1; i++)
+			textos.push("# " + pretext.text);
+	}
+
+	if (pretext.h2)
+	{
+		for (var i = 0; i < 2; i++)
+			textos.push("## " + pretext.text);
+	}
+
+	if (pretext.h3)
+	{
+		for (var i = 0; i < 4; i++)
+			textos.push("### " + pretext.text);
+	}
+
+	var text = textos[Math.floor(Math.random() * textos.length)];
 	var num = ((dowNum - tod.getDay()) + 7) % 7;
 
 	var dow = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
@@ -125,13 +152,37 @@ function funnyDOWText(dowNum, authorID)
 	text = text.replaceAll("[tdMid TS-D]", "<t:" + Math.floor(todOnlyDate.getTime() / 1000) + ":D>");
 	text = text.replaceAll("[tdMid TS-F]", "<t:" + Math.floor(todOnlyDate.getTime() / 1000) + ":F>");
 	
-	text = text.replace("[emotion]", emotions[Math.floor(Math.random() * emotions.length)]);
-	text = text.replace("[emotion]", emotions[Math.floor(Math.random() * emotions.length)]);
-	text = text.replace("[game]", game[Math.floor(Math.random() * game.length)]);
-	text = text.replace("[emotion2]", emotion2[Math.floor(Math.random() * emotion2.length)]);
-	text = text.replace("[person]", persontype[Math.floor(Math.random() * persontype.length)]);
-	text = text.replace("[goodbye]", bye[Math.floor(Math.random() * bye.length)]);
-	text = text.replace("[emoji]", emoji[Math.floor(Math.random() * emoji.length)]);
+	while (text.includes("[emotion]"))
+		text = text.replace("[emotion]", emotions[Math.floor(Math.random() * emotions.length)]);
+	
+	while (text.includes("[game]"))
+		text = text.replace("[game]", game[Math.floor(Math.random() * game.length)]);
+
+	while (text.includes("[emotion2]"))
+		text = text.replace("[emotion2]", emotion2[Math.floor(Math.random() * emotion2.length)]);
+
+	while (text.includes("[person]"))	
+		text = text.replace("[person]", persontype[Math.floor(Math.random() * persontype.length)]);	
+
+	while (text.includes("[goodbye]"))
+		text = text.replace("[goodbye]", bye[Math.floor(Math.random() * bye.length)]);
+
+	while (text.includes("[emoji]"))
+		text = text.replace("[emoji]", emoji[Math.floor(Math.random() * emoji.length)]);
+
+	while (text.includes("[location]"))
+		text = text.replace("[location]", localesz[Math.floor(Math.random() * localesz.length)]);
+
+	while (text.includes("[l2]"))
+		text = text.replace("[l2]", l2[Math.floor(Math.random() * l2.length)]);
+
+	// text = text.replace("[emotion]", emotions[Math.floor(Math.random() * emotions.length)]);
+	// text = text.replace("[emotion]", emotions[Math.floor(Math.random() * emotions.length)]);
+	// text = text.replace("[game]", game[Math.floor(Math.random() * game.length)]);
+	// text = text.replace("[emotion2]", emotion2[Math.floor(Math.random() * emotion2.length)]);
+	// text = text.replace("[person]", persontype[Math.floor(Math.random() * persontype.length)]);
+	// text = text.replace("[goodbye]", bye[Math.floor(Math.random() * bye.length)]);
+	// text = text.replace("[emoji]", emoji[Math.floor(Math.random() * emoji.length)]);
 
 	text = text.replaceAll("\\n", "\n");
 
@@ -163,7 +214,7 @@ function funnyFrogText(authorID)
 		optionsFROG = generateOps(optionsFROG, authorID, "FROG");
 	}
 
-	var text = optionsFROG[Math.floor(Math.random() * optionsFROG.length)];
+	var text = optionsFROG[Math.floor(Math.random() * optionsFROG.length)].text;
 
 	return text;
 }
@@ -189,7 +240,7 @@ function generateOps(opsArray, authorID, prefix)
 		{
 			if (opsArray[i].enabledDef == true)
 			{
-				ops.push(opsArray[i].text);
+				ops.push(opsArray[i]);
 			}
 		}
 
@@ -197,7 +248,7 @@ function generateOps(opsArray, authorID, prefix)
 		{
 			if (opsArray[i].IDS != null && opsArray[i].IDS.toString().includes(authorID))
 			{
-				ops.push(opsArray[i].text);
+				ops.push(opsArray[i]);
 			}
 		}
 	}

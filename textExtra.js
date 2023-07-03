@@ -74,48 +74,56 @@ function twoObjectParseCompare(old, neww, ind, arraymode = false)
 {
 	var objs = [];
 
-	picked = old;
+	var oCt = (old === undefined || old == "undefined") ? 0 : Object.keys(old).length;
+	var nCt = (neww === undefined || neww == "undefined") ? 0 : Object.keys(neww).length;
+
+	var picked = old;
+
+	if (oCt < nCt)
+		picked = neww;
+
 	if (arraymode)
 	{
 		if (old.length < neww.length)
 			picked = neww;
 	}
+
 	for (var key in picked)
 	{
-		if (old.hasOwnProperty(key) || arraymode)
+		if ((neww === undefined) || old[key] != neww[key] || arraymode)
 		{
-			if ((neww === undefined) || old[key] != neww[key] || arraymode)
+			if (typeof old[key] === 'object' && old[key] !== null)
 			{
-				if (typeof old[key] === 'object' && old[key] !== null)
+				if (Array.isArray(old[key]) && Array.isArray(neww[key]))
 				{
-					if (Array.isArray(old[key]) && Array.isArray(neww[key]))
-					{
-						if (old[key].length == neww[key].length && old[key].length == 0)
-							continue;
-					}
-					var strg = "";
-					if (isNaN(key)) strg += generateTabs(ind);
-					var nind = ind;
-					if (isNaN(key))
-					{
-						strg += key + ": \n"
-						nind++;
-					}
-					strg += twoObjectParseCompare(old[key], neww[key], nind, Array.isArray(old[key]));
-
-					objs.push(strg);
+					if (old[key].length == neww[key].length && old[key].length == 0)
+						continue;
 				}
+				var strg = "";
+				if (isNaN(key)) strg += generateTabs(ind);
+				var nind = ind;
+				if (isNaN(key))
+				{
+					strg += key + ": \n"
+					nind++;
+				}
+				
+				var nkey = neww !== undefined ? neww[key] : "undefined";
+
+				strg += twoObjectParseCompare(old[key], nkey, nind, Array.isArray(old[key]));
+
+				objs.push(strg);
+			}
+			else
+			{
+				var strg = "";
+				strg += generateTabs(ind);
+				if (!isNaN(key))
+					strg += old[key] + " -> " + neww[key];
 				else
-				{
-					var strg = "";
-					strg += generateTabs(ind);
-					if (!isNaN(key))
-						strg += old[key] + " -> " + neww[key];
-					else
-						strg += key + ": " + old[key] + " -> " + (neww === undefined ? "undefined" : neww[key]);
+					strg += key + ": " + old[key] + " -> " + (neww === undefined ? "undefined" : neww[key]);
 
-					objs.push(strg);
-				}
+				objs.push(strg);
 			}
 		}
 	}
@@ -130,6 +138,14 @@ function parseItems(old, neww)
 		if (typeof neww === 'object' && neww !== null)
 		{
 			strg = objectParse(neww, 1);
+		}
+	}
+	else if (neww == undefined)
+	{
+		strg = old
+		if (typeof old === 'object' && old !== null)
+		{
+			strg = objectParse(old, 1);
 		}
 	}
 	else
@@ -385,7 +401,7 @@ function TextCommandBackup(bot, message, sentvalid, msgContent, g)
 										console.log(items[i]);
 										mehstagw.react(items[i]).catch(console.error);
 									}
-									mehstagw.author.send("SUCC cess");
+									mess.author.send("SUCC cess");
 								}).catch(function (err) {});
 							})
 						).catch(function (err) {});
@@ -402,7 +418,7 @@ function TextCommandBackup(bot, message, sentvalid, msgContent, g)
 								console.log(items[i]);
 								mehstagw.react(items[i]).catch(console.error);
 							}
-							mehstagw.author.send("SUCC cess");
+							mess.author.send("SUCC cess");
 						}).catch(function (err) {}); 
 					}
 				});

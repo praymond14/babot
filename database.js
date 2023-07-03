@@ -722,46 +722,13 @@ function cacheDOW()
 				{
 					"text": text,
 					"enabledDef": res.enabled,
-					"IDS": res.overideIDs
+					"IDS": res.overideIDs,
+					"h1": res.h1,
+					"h2": res.h2,
+					"h3": res.h3
 				}
 
 				opts.push(resj);
-
-				if (res.h1)
-				{
-					var res2 = 
-					{
-						"text": "# " + text,
-						"enabledDef": res.enabled,
-						"IDS": res.overideIDs
-					}
-
-					opts.push(res2);
-				}
-
-				if (res.h2)
-				{
-					var res2 = 
-					{
-						"text": "## " + text,
-						"enabledDef": res.enabled,
-						"IDS": res.overideIDs
-					}
-
-					opts.push(res2);
-				}
-
-				if (res.h3)
-				{
-					var res2 = 
-					{
-						"text": "### " + text,
-						"enabledDef": res.enabled,
-						"IDS": res.overideIDs
-					}
-
-					opts.push(res2);
-				}
 			}
 
 			var data = JSON.stringify(opts);

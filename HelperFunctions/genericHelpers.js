@@ -4,6 +4,7 @@ const Discord = require('discord.js'); //discord module for interation with disc
 const fs = require('fs');
 // const images = require('images');
 // const Jimp = require('jimp');
+const https = require('https')
 const fetch = require('node-fetch');
 
 const options = { year: 'numeric', month: 'long', day: 'numeric' }; // for date parsing to string
@@ -472,6 +473,8 @@ function fetchMeAPirate(message, id, local, res)
 		var headWinkyFace = json["H"];
 		headWinkyFace = cleanHead(headWinkyFace);
 		var bod = json["B"];
+
+		console.log(JSON.stringify(bod));
 		
 		fetch(uAre, {
 			method: meth,
@@ -483,6 +486,8 @@ function fetchMeAPirate(message, id, local, res)
 				message.author.send("SUCC cess");
 			else
 				message.author.send("FAIL ure");
+
+			console.log(response);
 		})
 		.then(data => {});
 	});
@@ -666,6 +671,16 @@ function handleButtonsEmbed(channel, message, userid, data)
 	collector.on('end', collected => message.edit({components: []}));
 }
 
+async function uExist(url)
+{
+	https.get(url, res => {
+		if (res.statusCode === 404) 
+			return false;
+		else 
+			return true;
+	});
+}
+
 module.exports = {
 	RoleAdd,
     getD1,
@@ -683,5 +698,6 @@ module.exports = {
     SetHolidayChan,
     GetSimilarName,
     FrogButtons,
-    handleButtonsEmbed
+    handleButtonsEmbed,
+	uExist
 };
