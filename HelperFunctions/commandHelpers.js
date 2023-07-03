@@ -1,13 +1,13 @@
 var babadata = require('../babotdata.json'); //baba configuration file
 // var request = require('node-fetch');
 const Discord = require('discord.js'); //discord module for interation with discord api
-// const fs = require('fs');
+const fs = require('fs');
 const images = require('images');
 const Jimp = require('jimp');
-// const fetch = require('node-fetch');
+const fetch = require('node-fetch');
 
 const options = { year: 'numeric', month: 'long', day: 'numeric' }; // for date parsing to string
-const { dateDiffInDays, antiDelay, GetDate, GetSimilarName } = require('./genericHelpers.js');
+const { dateDiffInDays, antiDelay, GetDate, GetSimilarName, uExist } = require('./genericHelpers.js');
 
 function getErrorFlag()
 {
@@ -407,11 +407,78 @@ function CheckHoliday(msg, holdaylist) //checks if any of the holiday list is sa
 	return retme; //returns list of holidays asked for
 }
 
+function loadHurricaneHelpers()
+{
+	if(!fs.existsSync(babadata.datalocation + '/hurricaneHelp.json')) 
+	{
+		fs.writeFileSync(babadata.datalocation + '/hurricaneHelp.json', JSON.stringify({}));
+	}
+
+	let rawdata = fs.readFileSync(babadata.datalocation + '/hurricaneHelp.json');
+	let baadata = JSON.parse(rawdata);
+
+	return baadata;
+}
+
+async function checkHurricaneStuff(hurricanename, isFirst, eye)
+{
+    var hurricaneJson = loadHurricaneHelpers();
+
+	var thisYear = new Date().getFullYear();
+	var hurricanenameNum = hurricanename.toUpperCase().charCodeAt(0)
+
+	hurricanenameNum = hurricanenameNum - 64;
+	hurricanenameNum = hurricanenameNum + eye;
+
+	if (hurricanenameNum < 10) hurricanenameNum = "0" + hurricanenameNum;
+
+	var url = "https://www.nhc.noaa.gov/storm_graphics/AT" + hurricanenameNum + "/atcf-al" + hurricanenameNum + thisYear + ".xml";
+
+	var urlE = uExist(url);
+
+	if (!urlE)
+	{
+		if (isFirst)
+			return false
+		else
+			return true;
+	}
+
+	var xml = await fetch(url).then(response => response.text());
+
+	if (xml.includes("Page Not Found"))
+	{
+		if (isFirst)
+			return false
+		else
+			return true;
+	}
+	var storm = xml.split("<systemName>")[1].split("</systemName>")[0];
+
+	// check if in hurricaneJson
+	if (hurricaneJson[storm] == null)
+	{
+		hurricaneJson[storm] = {"name": storm.toLowerCase(), "letter": storm.charAt(0), "url": ""};
+		hurricaneJson[storm].url = "https://www.nhc.noaa.gov/storm_graphics/AT" + hurricanenameNum + "/refresh/AL" + hurricanenameNum + thisYear + "_5day_cone_no_line_and_wind+png/";
+	}
+
+	// save hurricaneJson
+	fs.writeFileSync(babadata.datalocation + '/hurricaneHelp.json', JSON.stringify(hurricaneJson));
+
+	// check if hurricaneName is in hurricaneJson
+	if (hurricaneJson[hurricanename.toUpperCase()] != null)
+		return true;
+	else
+		return false;
+}
+
 module.exports = {
     getErrorFlag,
     MakeImage,
     FindNextHoliday,
     reverseDelay,
     EmbedHaikuGen,
-    CheckHoliday
+    CheckHoliday,
+	loadHurricaneHelpers,
+	checkHurricaneStuff
 };

@@ -33,7 +33,7 @@ module.exports = {
 			{
 				var text = funnyDOWText(5, interaction.user.id);
 
-				interaction.editReply(text);
+				await interaction.editReply(text);
 			}
 		}
 		else

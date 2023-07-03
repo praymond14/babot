@@ -1,6 +1,6 @@
 const { FormatPurityList, HPLGenChannel, HPLGenUsers, HPLSelectChannel, HPLSelectUser, HPLSelectDate, HaikuSelection, ObtainDBHolidays, NameFromUserID, HPLGenD8 } = require("./database.js");
-const { getD1, FindDate, GetDate, dateDiffInDays } = require("./HelperFunctions/genericHelpers.js");
-const { CheckHoliday, FindNextHoliday, MakeImage, EmbedHaikuGen } = require("./HelperFunctions/commandHelpers.js");
+const { getD1, FindDate, GetDate, dateDiffInDays, uExist } = require("./HelperFunctions/genericHelpers.js");
+const { CheckHoliday, FindNextHoliday, MakeImage, EmbedHaikuGen, loadHurricaneHelpers, checkHurricaneStuff } = require("./HelperFunctions/commandHelpers.js");
 const { normalizeMSG } = require("./HelperFunctions/dbHelpers.js");
 const { funnyDOWText } = require("./HelperFunctions/slashFridayHelpers.js");
 
@@ -672,22 +672,84 @@ function babaWhomst(user, callback)
         user);
 }
 
-function babaHurricane(hurricanename, callback)
+async function babaHurricane(hurricanename, callback)
 {
     var tempFilePath = babadata.temp + "hurricane.png";
     const file = fs.createWriteStream(tempFilePath);
-    var url = "https://www.nhc.noaa.gov/xgtwo/two_atl_5d0.png";
+    var url = "https://www.nhc.noaa.gov/xgtwo/two_atl_7d0.png";
+
+    var binus = "";
+    var thisYear = new Date().getFullYear();
 
     console.log("Hurricane lookup for " + hurricanename);
+
+    // check the hurricane.json for exisiting name or subname classification:
+        // if name, use the the link saved  -DONE
+        // else if name starts with existing letter, provide the link to corresponding letter  -DONE
+        // else look up on the site starting with the number indexed letter
+            // if letter is not a-z skip
+            // if letter pulls a blank folder, skip (as may be something far down alphabet)
+            // XX if letter (to number) pulls a folder with files (check for xml file)
+                // if xml file exists, get name and check if in db and matches
+                    // if not in db, add to db with name of hurricane and link to image
+                    // check if name matches now or subname, or subletter
+                        // if so, we got em boys, use image in db
+                    // if name doesnt match, check next index and repeat starting at XX
+                // if xml file does not exist, stop searching as empty folder means end of line
+
+    // {"name": "bikus", "letter": "B", "url": "bikus.png"}
     if (hurricanename != "" && hurricanename != null)
     {
-        var hurricanenameNum = hurricanename.toUpperCase().charCodeAt(0)
-        if (hurricanenameNum >= 65 && hurricanenameNum <= 90)
+        var hurricaneJson = await loadHurricaneHelpers();
+        url = null;
+        var hFull = "";
+
+        for (const [hName, hObject] of Object.entries(hurricaneJson)) 
         {
-            hurricanenameNum = hurricanenameNum - 64;
-            if (hurricanenameNum < 10) hurricanenameNum = "0" + hurricanenameNum;
-            url = "https://www.nhc.noaa.gov/storm_graphics/AT" + hurricanenameNum + "/refresh/AL" + hurricanenameNum + "2022_5day_cone_no_line_and_wind+png/"
+            if (hName.toLowerCase() == hurricanename.toLowerCase() || hObject.letter == hurricanename.toUpperCase().charAt(0) || hName.toLowerCase().includes(hurricanename.toLowerCase()))
+            {
+                url = hObject.url;
+                hFull = hName;
+                break;
+            }
         }
+
+        if (url == null)
+        {
+            // if letter is not a-z skip
+            if (hurricanename.toUpperCase().charCodeAt(0) < 65 || hurricanename.toUpperCase().charCodeAt(0) > 90)
+            {
+                callback({ content: "Give a Valid Hurricane Name (A-Z supported only right now)" });
+                return;
+            }
+
+            for (var i = 0; i < 6; i++)
+            {
+                var good = await checkHurricaneStuff(hurricanename, i == 0, i)
+                if (good)
+                    break;
+            }
+
+
+            hurricaneJson = await loadHurricaneHelpers();
+            for (const [hName, hObject] of Object.entries(hurricaneJson)) 
+            {
+                if (hName.toLowerCase() == hurricanename.toLowerCase() || hObject.letter == hurricanename.toUpperCase().charAt(0) || hName.toLowerCase().includes(hurricanename.toLowerCase()))
+                {
+                    url = hObject.url;
+                    hFull = hName;
+                    break;
+                }
+            }
+        }
+
+        if (url == null)
+        {
+            callback({ content: "Hurricane Doesn't seem to exist!" });
+            return;
+        }
+
+        binus = " for " + hFull;
     }
     
     console.log(url);
@@ -700,7 +762,7 @@ function babaHurricane(hurricanename, callback)
            file.close();
            console.log("Download Completed");
 
-           callback({ content: "Baba Hurricane Info", files: [tempFilePath] });
+           callback({ content: "Baba Hurricane Info" + binus, files: [tempFilePath] });
        });
     });
 }

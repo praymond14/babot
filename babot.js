@@ -86,6 +86,8 @@ bot.on('interactionCreate', async interaction => {
 
 	try {
 		await command.execute(interaction, bot);
+		const message = await interaction.fetchReply();
+		txtCommands.babaMessage(bot, message);
 	} catch(error) {
 		console.error(error);
 		await interaction.reply({ content: 'An error occured while executing that command.', ephemeral: true });

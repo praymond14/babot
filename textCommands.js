@@ -25,6 +25,7 @@ const { normalizeMSG } = require("./HelperFunctions/dbHelpers.js");
 const { Console } = require('console');
 const { SSL_OP_SSLEAY_080_CLIENT_DH_BUG } = require('constants');
 const { TextCommandBackup } = require("./textExtra.js");
+const { funnyDOWText } = require("./HelperFunctions/slashFridayHelpers.js");
 //const { spawn } = require("child_process");
 /* [ 	["christmas", 12, 25, 0, 0], 
 	["thanksgiving", 11, 0, 4, 4], 
@@ -172,7 +173,18 @@ function babaMessage(bot, message)
 
 		if (msgContent.includes("friday"))
 		{
-			message.channel.send(babaFriday());
+			var tod = new Date();
+			if (tod.getDay() != 5)
+			{
+
+				var text = funnyDOWText(5, message.author.id);
+
+				message.channel.send(text);
+			}
+			else
+			{
+				message.channel.send(babaFriday());
+			}
 		}
 
 		if (msgContent.includes("please")) //this could do something better but its ok for now
