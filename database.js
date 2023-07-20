@@ -1,7 +1,7 @@
 const fs = require('fs');
 var babadata = require('./babotdata.json'); //baba configuration file
 var mysql = require('mysql2');
-const { FindDate } = require('./HelperFunctions/genericHelpers.js');
+const { FindDate } = require('./HelperFunctions/basicHelpers.js');
 
 var con;
 
@@ -949,6 +949,22 @@ function eventDB(event, change, user)
 		var d1 = new Date(event.scheduledStartTimestamp);
 		var d2 = new Date(event.scheduledEndTimestamp);
 		var status = event.status;
+		switch (status)
+		{
+			case 1:
+				status = "SCHEDULED";
+				break;
+			case 2:
+				status = "ACTIVE";
+				break;
+			case 3:
+				status = "COMPLETED";
+				break;
+			case 4:
+				status = "CANCELED";
+				break;
+		}
+
 		var loc = "Voice Channel";
 
 		var mpre1 = d1.getMonth() + 1 < 10 ? 0 : "";

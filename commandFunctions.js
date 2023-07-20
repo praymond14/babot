@@ -1,5 +1,5 @@
 const { FormatPurityList, HPLGenChannel, HPLGenUsers, HPLSelectChannel, HPLSelectUser, HPLSelectDate, HaikuSelection, ObtainDBHolidays, NameFromUserID, HPLGenD8 } = require("./database.js");
-const { getD1, FindDate, GetDate, dateDiffInDays, uExist } = require("./HelperFunctions/genericHelpers.js");
+const { getD1, FindDate, GetDate, dateDiffInDays, uExist } = require("./HelperFunctions/basicHelpers.js");
 const { CheckHoliday, FindNextHoliday, MakeImage, EmbedHaikuGen, loadHurricaneHelpers, checkHurricaneStuff } = require("./HelperFunctions/commandHelpers.js");
 const { normalizeMSG } = require("./HelperFunctions/dbHelpers.js");
 const { funnyDOWText } = require("./HelperFunctions/slashFridayHelpers.js");
@@ -17,8 +17,8 @@ const options = { year: 'numeric', month: 'long', day: 'numeric' }; // for date 
 function babaFriday()
 {
     var templocal = babadata.datalocation + "FrogHolidays/"; //creates the output frog image
-    var newAttch = new Discord.MessageAttachment().setFile(templocal + "/Friday.jpg"); //makes a new discord attachment
-    return { content: "FRIDAY!", files: [newAttch] };
+    var newFile = new Discord.AttachmentBuilder(templocal + "/Friday.jpg", { name: 'Friday.jpg', description : "Baba Friday Image, As it is ALWAYS Friday!" });
+    return { content: "FRIDAY!", files: [newFile] };
 }
 
 function babaRNG(min, max, spoiler)
@@ -144,8 +144,11 @@ function babaVibeFlag()
 
     var sood = locals[seed % 7][(d1.getDay() + d1_useage.getDate()) % 7]; // "the mommy number and daddy numbers get drunk and invite cousins" - Caden 2021
     
-    var newAttch = new Discord.MessageAttachment().setFile(babadata.datalocation + "Flags/" + "Night_Shift_" + sood + ".png"); //makes a new discord attachment
-    return {content: flagtext, files: [newAttch] };
+    // var newAttch = new Discord.MessageAttachment().setFile(); //makes a new discord attachment
+    var newFile = new Discord.AttachmentBuilder(babadata.datalocation + "Flags/" + "Night_Shift_" + sood + ".png", 
+        { name: 'NightShift.png', description : "This one is indexed as " + sood + "!" });
+
+    return {content: flagtext, files: [newFile] };
     
 }
 
@@ -153,15 +156,18 @@ function babaYugo()
 {
     var yugotext = "Here Yugo!";
     var num = Math.floor(Math.random() * 11); //pick a random one
-    var yugo = babadata.datalocation + "Yugo/" + num.toString() + ".jpg";
+    var yugo = new Discord.AttachmentBuilder(babadata.datalocation + "Yugo/" + num.toString() + ".jpg", 
+        { name: 'Yugo.jpg', description : "This is yugo number " + num + "!\nHere Yugo, Get IT, GET IT! HHUEHUEHEUHEHEUEUEHUEHUEHUE!" });
+
     return { content: yugotext, files: [yugo] };
 }
 
 function babaRepost()
 {
     var num = Math.floor(Math.random() * 5); //pick a random one
-    var yugo = babadata.datalocation + "Repost/" + num.toString() + ".png";
-    return { files: [yugo] };
+    var reppy = new Discord.AttachmentBuilder(babadata.datalocation + "Repost/" + num.toString() + ".png", 
+        { name: 'Repost.png', description : "This is repost number " + num + "!\nWhen will jeremy finish his report detector?"});
+    return { files: [reppy] };
 }
 
 
@@ -328,11 +334,16 @@ function EmbedPurityGen(hpl, bonust, bonupr, pagestuff)
             obj.components = [row];
         }
     
+        var footobj = {
+            text : footer,
+            iconURL : "https://media.discordapp.net/attachments/574840583563116566/949515044746559568/JSO3bX0V.png"
+        };
+
         var exampleEmbed = new Discord.MessageEmbed() // embed for the haiku
         .setColor("#" + (Math.random() < .5 ? "0" : "F") + (Math.random() < .5 ? "0" : "F") + (Math.random() < .5 ? "0" : "F") + (Math.random() < .5 ? "0" : "F") + (Math.random() < .5 ? "0" : "F") + (Math.random() < .5 ? "0" : "F"))
         .setTitle(bonupr + "Haiku Purity" + bonust)
         .setDescription(hpl.retstring[e])
-        .setFooter(footer, "https://media.discordapp.net/attachments/574840583563116566/949515044746559568/JSO3bX0V.png");
+        .setFooter(footobj);
         obj.embeds = [exampleEmbed];
         objs.push(obj);
     }
@@ -423,8 +434,10 @@ function babaWednesday(msgContent, author, callback)
 
                 if (isNaN(d2))
                 {
-                    var atch = new Discord.MessageAttachment().setFile(babadata.datalocation + "FrogHolidays/error.png");
-                    outs.push({ content: "The date does not exist so BABA will give you ERROR frog!", files: [atch] });
+                    var fronge = new Discord.AttachmentBuilder(babadata.datalocation + "FrogHolidays/error.png", 
+                        { name: 'ErrorFrog.png', description : "Brug, run commands better bud hee!"});
+
+                    outs.push({ content: "The date does not exist so BABA will give you ERROR frog!", files: [fronge] });
                     continue;
                 }
     
@@ -597,14 +610,16 @@ function babaWednesday(msgContent, author, callback)
     
             for (var j = 0; j < templocationslist.length; j++)
             {
-                var newAttch = new Discord.MessageAttachment().setFile(templocationslist[j]); //makes a new discord attachment
+                var newAttch = new Discord.AttachmentBuilder(templocationslist[j], 
+                    { name: IsHoliday[j].name + '.png', description : "It is " + IsHoliday[j].name + ", my dudes"}); //makes a new discord attachment
                 try
                 {
                     fs.accessSync(templocationslist[j], fs.constants.R_OK | fs.constants.W_OK);
                 } 
                 catch (err)
                 {
-                    newAttch = new Discord.MessageAttachment().setFile(templocal + "error.png"); //makes a new discord attachment (default fail image)
+                    var newAttch = new Discord.AttachmentBuilder(templocal + "error.png", 
+                        { name: 'error.png', description : "It is error time, my dudes! Brug why you erroring baba?"}); //makes a new discord attachment (default fail image)
                 }
                 
                 var op = { content: "It is Wednesday, My BABAs", files: [newAttch] }
@@ -758,12 +773,17 @@ async function babaHurricane(hurricanename, callback)
        response.pipe(file);
     
        // after download completed close filestream
-       file.on("finish", () => {
-           file.close();
-           console.log("Download Completed");
+        file.on("finish", () => {
+            file.close();
+            console.log("Download Completed");
 
-           callback({ content: "Baba Hurricane Info" + binus, files: [tempFilePath] });
-       });
+            var vv = hFull === undefined ? "Hurricanes" : hFull;
+           
+            var newAttch = new Discord.AttachmentBuilder(tempFilePath, 
+                { name: vv + '.png', description : "Hurricane Info for " + vv}); //makes a new discord attachment
+
+           callback({ content: "Baba Hurricane Info" + binus, files: [newAttch] });
+        });
     });
 }
 
@@ -811,7 +831,10 @@ function babaWeather(mode, city, callback)
            file.close();
            console.log("Download Completed");
 
-           callback({ content: "Baba Weather", files: [tempFilePath] });
+           var newAttch = new Discord.AttachmentBuilder(tempFilePath, 
+               { name: city + '.png', description : "Weather info for " + city}); //makes a new discord attachment
+
+           callback({ content: "Baba Weather", files: [newAttch] });
         }).on('error', () => {
             callback({ content: "Baba Weather Error" });
         });

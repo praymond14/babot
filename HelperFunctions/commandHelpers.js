@@ -7,7 +7,7 @@ const Jimp = require('jimp');
 const fetch = require('node-fetch');
 
 const options = { year: 'numeric', month: 'long', day: 'numeric' }; // for date parsing to string
-const { dateDiffInDays, antiDelay, GetDate, GetSimilarName, uExist } = require('./genericHelpers.js');
+const { dateDiffInDays, antiDelay, GetDate, GetSimilarName, uExist } = require('./basicHelpers.js');
 
 function getErrorFlag()
 {
@@ -246,10 +246,17 @@ function SingleHaiku(haiku, simnames, page, pagetotal)
         if (datetime != "") signature += " on " + datetime.toLocaleDateString('en-US', options);
     }
 
-    exampleEmbed = new Discord.MessageEmbed() // embed for the haiku
+	//footer from discordjs
+
+	var footobj = {
+		text : "- " + (!haiku.Accidental ? "Purposful Haiku by " : "") + signature + (page != null ? " - Page " + (1 + page) + " of " + pagetotal : ""),
+		iconURL : "https://media.discordapp.net/attachments/574840583563116566/949515044746559568/JSO3bX0V.png"
+	};
+
+    exampleEmbed = new Discord.EmbedBuilder() // embed for the haiku
     .setColor("#" + (Math.random() < .5 ? "0" : "F") + (Math.random() < .5 ? "0" : "F") + (Math.random() < .5 ? "0" : "F") + (Math.random() < .5 ? "0" : "F") + (Math.random() < .5 ? "0" : "F") + (Math.random() < .5 ? "0" : "F"))
     .setDescription(haiku.HaikuFormatted)
-    .setFooter("- " + (!haiku.Accidental ? "Purposful Haiku by " : "") + signature + (page != null ? " - Page " + (1 + page) + " of " + pagetotal : ""), "https://media.discordapp.net/attachments/574840583563116566/949515044746559568/JSO3bX0V.png");
+    .setFooter(footobj);
 
     obj.embeds = [exampleEmbed];
 	return obj;
@@ -260,11 +267,16 @@ function EmbedHaikuGen(haiku, simnames)
     var objs = [];
     if (haiku == null) 
     {
+        var footobj = {
+            text : "Haikus by Baba",
+            iconURL : "https://media.discordapp.net/attachments/574840583563116566/949515044746559568/JSO3bX0V.png"
+        };
+
 		var obj = {content: "BABA MAKE HAIKU"};
         var bad = new Discord.MessageEmbed() // embed for the haiku
         .setColor("#" + (Math.random() < .5 ? "0" : "F") + (Math.random() < .5 ? "0" : "F") + (Math.random() < .5 ? "0" : "F") + (Math.random() < .5 ? "0" : "F") + (Math.random() < .5 ? "0" : "F") + (Math.random() < .5 ? "0" : "F"))
         .setDescription("No Haikus Found!")
-        .setFooter("Haikus by Baba", "https://media.discordapp.net/attachments/574840583563116566/949515044746559568/JSO3bX0V.png");
+        .setFooter(footobj);
         obj.embeds = [bad];
         return [obj];
     }

@@ -1,5 +1,5 @@
 const fs = require('fs');
-const { Client, Intents, Collection } = require('discord.js'); //discord module for interation with discord api
+const { Client, GatewayIntentBits, Partials, Collection } = require('discord.js'); //discord module for interation with discord api
 const Discord = require('discord.js'); //discord module for interation with discord api
 const { REST } = require('@discordjs/rest');
 const { Routes } = require('discord-api-types/v9');
@@ -17,8 +17,40 @@ global.starttime = new Date();
 
 global.toke = babadata.token;
 
+
 // Initialize Discord Bot
-const bot = new Client({ intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MESSAGES, Intents.FLAGS.GUILD_MEMBERS, Intents.FLAGS.GUILD_PRESENCES, Intents.FLAGS.DIRECT_MESSAGES, Intents.FLAGS.GUILD_VOICE_STATES, Intents.FLAGS.GUILD_SCHEDULED_EVENTS], partials: ["CHANNEL"]});
+const bot = new Client({ intents: 
+	[
+		GatewayIntentBits.Guilds,
+		GatewayIntentBits.GuildMembers,
+		GatewayIntentBits.GuildModeration,
+		GatewayIntentBits.GuildEmojisAndStickers,
+		GatewayIntentBits.GuildIntegrations,
+		GatewayIntentBits.GuildWebhooks,
+		GatewayIntentBits.GuildInvites,
+		GatewayIntentBits.GuildVoiceStates,
+		GatewayIntentBits.GuildPresences,
+		GatewayIntentBits.GuildMessages,
+		GatewayIntentBits.GuildMessageReactions,
+		GatewayIntentBits.GuildMessageTyping,
+		GatewayIntentBits.DirectMessages,
+		GatewayIntentBits.DirectMessageReactions,
+		GatewayIntentBits.DirectMessageTyping,
+		GatewayIntentBits.MessageContent,
+		GatewayIntentBits.GuildScheduledEvents,
+		GatewayIntentBits.AutoModerationConfiguration,
+		GatewayIntentBits.AutoModerationExecution
+	], partials: 
+	[
+		Partials.User,
+		Partials.Channel,
+		Partials.GuildMember,
+		Partials.Message,
+		Partials.Reaction,
+		Partials.GuildScheduledEvent,
+		Partials.ThreadMember
+	]});
+
 bot.login(global.toke); //login
 
 bot.on('ready', function (evt) 
@@ -45,29 +77,34 @@ bot.commands = new Collection();
 
 const commandFiles = fs.readdirSync('./Commands').filter(file => file.endsWith('.js')); //get all .js files in the commands folder
 
+// v14 works
 for(const file of commandFiles) { //adds all commands in the commands folder
 	const command = require(`./Commands/${file}`);
 	bot.commands.set(command.data.name, command);
 }
 
+// v14 works
 bot.on('messageCreate', async message => {txtCommands.babaMessage(bot, message)}); //baba message handler
 
+// v14 works
 bot.on('voiceStateUpdate', (oldMember, newMember) => 
 {
-	if (babadata.testing === undefined && (global.dbAccess[1] && global.dbAccess[0]))
+	// if (babadata.testing === undefined && (global.dbAccess[1] && global.dbAccess[0]))
+	if (global.dbAccess[1] && global.dbAccess[0])
 		voiceChannelChange(newMember, oldMember);
 });
 
+// v14 works
 bot.on('guildScheduledEventCreate', async event => {eventDB(event, "create")});
 bot.on('guildScheduledEventUpdate', async (eold, enew) => {eventDB(enew, "update")});
 bot.on('guildScheduledEventDelete', async event => {eventDB(event, "delete")});
  
-
+// v14 works
 bot.on('guildScheduledEventUserAdd', async (event, user) => {eventDB(event, "useradd", user)});
 bot.on('guildScheduledEventUserRemove', async (event, user) => {eventDB(event, "userremove", user)});
 
 bot.on('interactionCreate', async interaction => {
-	if (interaction.isMessageContextMenu()) 
+	if (interaction.isContextMenuCommand()) 
 	{
 		contextInfo(interaction, bot);
 		return;

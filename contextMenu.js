@@ -1,5 +1,5 @@
 var babadata = require('./babotdata.json'); //baba configuration file
-const {  MessageActionRow, Modal, TextInputComponent  } = require('discord.js');
+const { ModalBuilder, ActionRowBuilder, TextInputBuilder } = require('discord.js');
 
 const { movetoChannel } = require('./HelperFunctions/adminHelpers.js');
 
@@ -15,7 +15,7 @@ async function contextInfo(interaction, bot)
 
         var chanMap = interaction.guild.channels.fetch().then(channels => {
             channels.each(chan => { //iterate through all the channels
-                if (!fnd && chan.type == "GUILD_TEXT") //make sure the channel is a text channel
+                if (!fnd && chan.type == 0) //make sure the channel is a text channel
                 {
                     chan.threads.fetch().then(thread => 
                         thread.threads.each(thr =>
@@ -46,29 +46,29 @@ async function contextInfo(interaction, bot)
         var msgID = interaction.targetId;
         var channelId = interaction.channelId;
 
-        const modal = new Modal()
+        const modal = new ModalBuilder()
             .setCustomId('movetoModal')
             .setTitle('Move Message');
 
-        const messageIDShow = new TextInputComponent()
+        const messageIDShow = new TextInputBuilder()
 			.setCustomId('msgID')
 			.setLabel("The ID of the Message to Move - Autofilled")
-			.setStyle('SHORT')
+			.setStyle(1)
             .setRequired(true)
             .setPlaceholder(msgID)
             .setValue(msgID);
         
-        const channelIDInput = new TextInputComponent()
+        const channelIDInput = new TextInputBuilder()
             .setCustomId('chanIDInput')
             .setLabel("The ID of the Channel to Move to")
-            .setStyle('SHORT')
+            .setStyle(1)
             .setRequired(true)
             .setPlaceholder("Channel ID");
 
 		// An action row only holds one text input,
 		// so you need one action row per text input.
-		const firstActionRow = new MessageActionRow().addComponents(messageIDShow);
-		const thtrdActionRow = new MessageActionRow().addComponents(channelIDInput);
+		const firstActionRow = new ActionRowBuilder().addComponents(messageIDShow);
+		const thtrdActionRow = new ActionRowBuilder().addComponents(channelIDInput);
 		// Add inputs to the modal
 		modal.addComponents(firstActionRow, thtrdActionRow);
 
@@ -89,7 +89,7 @@ async function modalInfo(interaction, bot)
 
         var chanMap = interaction.guild.channels.fetch().then(channels => {
             channels.each(chan => { //iterate through all the channels
-                if (!fnd && chan.type == "GUILD_TEXT") //make sure the channel is a text channel
+                if (!fnd && chan.type == 0) //make sure the channel is a text channel
                 {
                     chan.threads.fetch().then(thread => 
                         thread.threads.each(thr =>

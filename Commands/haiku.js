@@ -1,7 +1,7 @@
 const { babaHaikuEmbed } = require("../commandFunctions.js");
 const { SlashCommandBuilder } = require('@discordjs/builders');
 const { sqlEscapeStringThingforAdamBecauseHeWillDoanSQLInjectionOtherwise } = require("../HelperFunctions/dbHelpers.js");
-const { handleButtonsEmbed } = require("../HelperFunctions/genericHelpers.js");
+const { handleButtonsEmbed } = require("../HelperFunctions/basicHelpers.js");
 
 module.exports = {
 	data: new SlashCommandBuilder()
@@ -57,10 +57,10 @@ module.exports = {
             .addStringOption(option =>
                 option.setName('list_type')
                     .setDescription('The type of haiku purity list')
-                    .setRequired(true)
-                    .addChoice('Channels', 'chan')
-                    .addChoice('Date', 'd8')
-                    .addChoice('Users', 'userN')))
+                    .setRequired(true).addChoices(
+                        {name: 'Channels', value: 'chan'},
+                        {name: 'Date', value: 'd8'},
+                        {name: 'Users', value: 'userN'})))
     .addSubcommand(subcommand =>
         subcommand
             .setName('purity_score_custom')
@@ -68,10 +68,10 @@ module.exports = {
             .addStringOption(option =>
                 option.setName('list_type')
                     .setDescription('The type of haiku purity list')
-                    .setRequired(true)
-                    .addChoice('Channels', 'chan')
-                    .addChoice('Date', 'd8')
-                    .addChoice('Users', 'userN'))
+                    .setRequired(true).addChoices(
+                        {name: 'Channels', value: 'chan'},
+                        {name: 'Date', value: 'd8'},
+                        {name: 'Users', value: 'userN'}))
             .addStringOption(option => option.setName('person_name').setDescription('the persons name'))
             .addChannelOption(option => option.setName('channel').setDescription('the channel name'))
             .addStringOption(option => option.setName('keyword').setDescription('keyword to search for'))

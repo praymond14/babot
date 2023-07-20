@@ -9,8 +9,10 @@ module.exports = {
 			option.setName('mode')
 				.setDescription('The mode of the weather data!')
 				.setRequired(true)
-				.addChoice('Three Day Forcast', 'four')
-				.addChoice('Temperature Graph', 'deets'))
+				.addChoices(
+					{ name: "Three Day Forcast", value: "four" },
+					{ name: "Temperature Graph", value: "deets" }            
+				))
         .addStringOption(option => option.setName('city').setDescription('The city to get the weather for!')),
 	async execute(interaction, bot) {
 		await interaction.deferReply();

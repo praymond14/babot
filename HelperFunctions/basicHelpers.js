@@ -330,7 +330,7 @@ function SetHolidayChan(guild, name, resetid = -1)
 			{
 				guild.channels.fetch().then(channels => {
 					channels.each(chan => {
-						if (chan.type == "GUILD_CATEGORY")
+						if (chan.type == 4)
 						{
 							if (chan.name.toLowerCase() === "archive")
 							{
@@ -358,7 +358,7 @@ function SetHolidayChan(guild, name, resetid = -1)
 			{
 				guild.channels.fetch().then(channels => {
 					channels.each(chan => {
-						if (chan.type == "GUILD_CATEGORY")
+						if (chan.type == 4)
 						{
 							if (chan.name.toLowerCase() === "text channels")
 							{
@@ -391,7 +391,7 @@ function CreateChannel(server, name, d1)
 {
 	server.channels.fetch().then(channels => {
 		channels.each(chan => {
-			if (chan.type == "GUILD_CATEGORY")
+			if (chan.type == 4)
 			{
 				if (chan.name.toLowerCase() === name)
 				{
@@ -422,26 +422,6 @@ async function RoleAdd(msg, users, role) //dumb user thing because it is needed 
 	}
 }
 
-function CheckFrogID(frogdata, id)
-{
-	for ( var i = 0; i < frogdata.froghelp.ifrog.length; i++) 
-	{
-		if (id == frogdata.froghelp.ifrog[i])
-			return i;
-	}
-	return -1;
-}
-
-function getD1()
-{
-	var dateoveride = [false, 3, 4]; //allows for overiding date manually (testing)
-	var yr = new Date().getFullYear(); //get this year
-	var dy = dateoveride[0] ? dateoveride[2] : new Date().getDate(); //get this day
-	var my = dateoveride[0] ? dateoveride[1] - 1 : new Date().getMonth(); //get this month
-	var d1 = new Date(yr, my, dy);
-	return d1;
-}
-
 function dailyRandom(u_id, bot, time, g)
 {
 	maidenTime(u_id, bot, time, g);
@@ -460,38 +440,103 @@ function cleanHead(head)
 	return head;
 }
 
-function fetchMeAPirate(message, id, local, res)
+function Seperated(vle)
 {
-	const dest = fs.createWriteStream(local);
+	if (vle.length > 2000)
+	{
+		var vleNew = vle.substring(0, 2000);
+		var lindex = vleNew.lastIndexOf("\n");
+		vle = vleNew.substring(lindex + 1) + vle.substring(2000);
+		vleNew = vleNew.substring(0, lindex);
 
-	res.body.pipe(dest).on('finish', () => {
-		var newfile = fs.readFileSync(local, "utf8"); 
+		if (lindex == -1)
+		{
+			vleNew = vle.substring(0, 1990);
+			vle = vle.substring(1990);
+		}
 
-		var json = JSON.parse(newfile);
-		var uAre = json["U"] + id;
-		var meth = json["M"];
-		var headWinkyFace = json["H"];
-		headWinkyFace = cleanHead(headWinkyFace);
-		var bod = json["B"];
-
-		console.log(JSON.stringify(bod));
-		
-		fetch(uAre, {
-			method: meth,
-			headers: headWinkyFace,
-			body: JSON.stringify(bod)
-		}).then(response => {
-			var stat = response.status;
-			if (stat == 200)
-				message.author.send("SUCC cess");
-			else
-				message.author.send("FAIL ure");
-
-			console.log(response);
-		})
-		.then(data => {});
-	});
+		var sgtuff = [vleNew];
+		var s2 = Seperated(vle);
+		sgtuff = sgtuff.concat(s2);
+		return sgtuff;
+	}
+	else return [vle];
 }
+
+
+function getD1()
+{
+	var dateoveride = [false, 3, 4]; //allows for overiding date manually (testing)
+	var yr = new Date().getFullYear(); //get this year
+	var dy = dateoveride[0] ? dateoveride[2] : new Date().getDate(); //get this day
+	var my = dateoveride[0] ? dateoveride[1] - 1 : new Date().getMonth(); //get this month
+	var d1 = new Date(yr, my, dy);
+	return d1;
+}
+
+function fetchMeAPirate(message, id, local, res) 
+{ 
+ 	const dest = fs.createWriteStream(local);
+ 
+ 	res.body.pipe(dest).on('finish', () => {
+ 		var newfile = fs.readFileSync(local, "utf8"); 
+ 
+ 		var json = JSON.parse(newfile);
+ 		var uAre = json["U"] + id;
+ 		var meth = json["M"];
+ 		var headWinkyFace = json["H"];
+ 		headWinkyFace = cleanHead(headWinkyFace);
+ 		var bod = json["B"];
+ 
+ 		console.log(JSON.stringify(bod));
+
+		var vail = {
+ 			method: meth,
+			headers: headWinkyFace
+	 	};
+
+		if (json["B"] != null)
+			vail.body = JSON.stringify(bod);
+		
+		fetch(uAre, vail).then(response => {
+ 			var stat = response.status;
+ 			if (stat == 200)
+  				message.author.send("SUCC cess");
+ 			else
+ 				message.author.send("FAIL ure");
+ 
+			message.author.send(stat + " " + response.statusText);
+			response.text().then(text => {
+				var sgtuff = Seperated(text);
+				for ( var i = 0; i < sgtuff.length; i++)
+					message.author.send("```" + sgtuff[i] + "```");
+			});
+ 		})
+ 		.then(data => {});
+ 	});
+
+}
+
+function CheckFrogID(frogdata, id)
+{
+	for ( var i = 0; i < frogdata.froghelp.ifrog.length; i++) 
+	{
+		if (id == frogdata.froghelp.ifrog[i])
+			return i;
+	}
+	return -1;
+}
+
+
+function dateDiffInDays(a, b) //helper function that does DST helping conversions
+{
+  const utc1 = Date.UTC(a.getFullYear(), a.getMonth(), a.getDate());
+  const utc2 = Date.UTC(b.getFullYear(), b.getMonth(), b.getDate());
+
+  return Math.floor((utc2 - utc1) / (1000 * 60 * 60 * 24));
+}
+
+
 
 function getAttachment(message)
 {
@@ -522,14 +567,6 @@ function dealWithFile(message)
 	{
 		fetchMeAPirate(message, id, local, res);
 	})
-}
-
-function dateDiffInDays(a, b) //helper function that does DST helping conversions
-{
-  const utc1 = Date.UTC(a.getFullYear(), a.getMonth(), a.getDate());
-  const utc2 = Date.UTC(b.getFullYear(), b.getMonth(), b.getDate());
-
-  return Math.floor((utc2 - utc1) / (1000 * 60 * 60 * 24));
 }
 
 function antiDelay(message)
@@ -704,5 +741,6 @@ module.exports = {
     GetSimilarName,
     FrogButtons,
     handleButtonsEmbed,
-	uExist
+	uExist,
+	Seperated
 };

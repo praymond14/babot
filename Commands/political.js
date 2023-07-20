@@ -16,7 +16,7 @@ module.exports = {
 
         var chanMap = interaction.guild.channels.fetch().then(channels => {
             channels.each(chan => { //iterate through all the channels
-                if (!fnd && chan.type == "GUILD_TEXT") //make sure the channel is a text channel
+                if (!fnd && chan.type == 0) //make sure the channel is a text channel
                 {
                     chan.threads.fetch().then(thread => 
                         thread.threads.each(thr =>
