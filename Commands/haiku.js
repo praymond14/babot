@@ -63,6 +63,22 @@ module.exports = {
                     .addChoice('Users', 'userN')))
     .addSubcommand(subcommand =>
         subcommand
+            .setName('purity_score_custom')
+            .setDescription('List of haiku purity scores, in a custom way based on certain factors!')
+            .addStringOption(option =>
+                option.setName('list_type')
+                    .setDescription('The type of haiku purity list')
+                    .setRequired(true)
+                    .addChoice('Channels', 'chan')
+                    .addChoice('Date', 'd8')
+                    .addChoice('Users', 'userN'))
+            .addStringOption(option => option.setName('person_name').setDescription('the persons name'))
+            .addChannelOption(option => option.setName('channel').setDescription('the channel name'))
+            .addStringOption(option => option.setName('keyword').setDescription('keyword to search for'))
+            .addStringOption(option => option.setName('start_date').setDescription('start date'))
+            .addStringOption(option => option.setName('end_date').setDescription('end date')))
+    .addSubcommand(subcommand =>
+        subcommand
             .setName('purity_score_user')
             .setDescription('Haiku purity score per user')
             .addStringOption(option => option.setName('person_name').setDescription('the person name'))
@@ -76,7 +92,11 @@ module.exports = {
         subcommand
             .setName('purity_score_date')
             .setDescription('Haiku purity score based on date')
-            .addStringOption(option => option.setName('date').setDescription('the date').setRequired(true))),
+            .addStringOption(option => option.setName('date').setDescription('the date').setRequired(true)))
+    .addSubcommand(subcommand =>
+        subcommand
+            .setName('cursed')
+            .setDescription('Create a new haiku from all the haikus!')),
 	async execute(interaction, bot) {
 		await interaction.deferReply();
 
@@ -123,7 +143,7 @@ module.exports = {
 
             msgstr = `${chan}`;
         } 
-        else if (subCommand === 'custom' || subCommand === 'all')
+        else if (subCommand === 'custom' || subCommand === 'all' || subCommand === 'purity_score_custom')
         {
             var sdate = interaction.options.getString('start_date');
             var edate = interaction.options.getString('end_date');
@@ -140,6 +160,20 @@ module.exports = {
             buy = 4;
 
             msgstr = [sdate, edate, chan, person, keyword, subCommand];
+            if (subCommand == "purity_score_custom") 
+            {
+                var listType = interaction.options.getString('list_type');
+                list = true;
+                purity = true;
+                if (listType === 'chan')
+                {
+                    chans = true;
+                }
+                else if (listType === 'd8')
+                {
+                    chans = 2;
+                }
+            }
         } 
         else if (subCommand === 'keyword')
         {
@@ -191,6 +225,11 @@ module.exports = {
             var date = interaction.options.getString('date');
             purity = true;
             msgstr = `${date}`;
+        }
+        else if (subCommand === 'cursed')
+        {
+            msgstr = "";
+            buy = 6;
         }
         
         var message = await interaction.fetchReply();

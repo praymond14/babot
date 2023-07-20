@@ -600,6 +600,11 @@ function preformEasterEggs(message, msgContent, bot)
 		message.react("🐸");
 	}
 
+	if ((ames.includes("among") && ames.includes("us")) || msgContent.includes("sus") || msgContent.includes("ඞ"))
+	{
+		message.react("990701351258443797").catch(console.error);
+	}
+
 	if (msgContent.includes("huzzah") || msgContent.includes(":luna:") || msgContent.includes("doubled"))
 	{
 		message.react("891799760346955796").catch(console.error);

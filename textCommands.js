@@ -1,4 +1,4 @@
-const { babaFriday,  babaHelp, babaPlease, babaPizza, babaVibeFlag, babaYugo, babaHaikuEmbed, babaWednesday, babaDayNextWed, babaJeremy, babaHurricane, babaRepost } = require("./commandFunctions.js");
+const { babaFriday,  babaHelp, babaPlease, babaPizza, babaVibeFlag, babaYugo, babaHaikuEmbed, babaWednesday, babaDayNextWed, babaJeremy, babaHurricane, babaRepost, babaWeather } = require("./commandFunctions.js");
 const { Client, Intents } = require('discord.js'); //discord module for interation with discord api
 const Discord = require('discord.js'); //discord module for interation with discord api
 var babadata = require('./babotdata.json'); //baba configuration file
@@ -226,7 +226,10 @@ function babaMessage(bot, message)
 
 		if (msgContent.includes("weather"))
 		{
-			message.channel.send(babaWeather());
+			babaWeather("deets", "Apex NC", function(val)
+			{
+				message.channel.send(val);
+			});
 		}
 
 		if(msgContent.includes('help')) //reply with help text is baba help
