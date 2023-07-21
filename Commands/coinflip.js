@@ -10,12 +10,16 @@ module.exports = {
 		await interaction.deferReply();
         var templocal = babadata.datalocation + "Extra/";
         var coinimg = Math.floor(Math.random() * 4);
-        var newAttch = templocal + `/cf${coinimg}.gif`;
+
+        var coint = Math.floor(Math.random() * 2);
+        
+        var newAttch = new Discord.AttachmentBuilder(templocal + `/cf${coinimg}.gif`, 
+            { name: 'coin.gif', description : "Its gonna be " + (coint ? "Heads" : "Tails") + "!"}); //makes a new discord attachment
+
 		await interaction.editReply({ content: "Flipping Coin!", files: [newAttch] });
 
         var message = await interaction.fetchReply();
 
-        var coint = Math.floor(Math.random() * 2);
         setTimeout(function()
         {
             message.channel.send({ content: "The coin flip result is: `" + (coint ? "Heads" : "Tails") + "`"}).then(interaction.deleteReply());

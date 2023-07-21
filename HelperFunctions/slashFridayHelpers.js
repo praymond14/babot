@@ -8,15 +8,15 @@ const fs = require('fs');
 
 // const options = { year: 'numeric', month: 'long', day: 'numeric' }; // for date parsing to string
 
-const emotions = ["splendid", "exciting", "sad", "boring", "fun", "exquisite", "happy", "pretty eventful", "slow to start but it picked up later in the day", "not so good", "very good", "legal", "spungungulsumplus", "fish"];
-const persontype = ["madam", "friend", "enemy", "brother", "brother man", "BROTHERRRRRR", "bungle bus", "uncle", "second cousin twice removed", "uncles dogs sisters boyfriends moms second cousins cat", "leg", "adam"];
-const game = ["TF2", "Ultimate Admiral: Dreadnoughts", "Fishing Simulator", "Sea of Thieves", "Factorio", "Forza Horizon 5", "nothing", "Fallout: New Vegas", "Stabbing Simulator (IRL)"];
-const emotion2 = ["fun", "exciting", "monotonous", "speed run", "pretty eventful", "frog", "emotional", "devoid of all emotions", "mike"];
-const bye = ["bid you a morrow", "will see you soon", "want to eat your soul, so watch out", "am going to leave now", "hate everything, goodbye", "am monke, heee heee hoo hoo", "wish you good luck on your adventures", "am going to go to bed now", "want to sleep but enevitably will not get any as i will be gaming all night, good morrow", "am going to go to the morrow lands", "will sleep now", "am pleased to sleep"];
-const emoji = ["ඞ", "🐸", "🍆", "💄", "⛧", "🎄", "🐷", "🐎", "🐴", "🐍", "⚡", "🪙", "🖕", "🚊", "🏻🏻", "🤔", "🌳", "🌲", "🌴", "🌵", "🐀", "🍝", "𓀒"];
+// const emotions = ["splendid", "exciting", "sad", "boring", "fun", "exquisite", "happy", "pretty eventful", "slow to start but it picked up later in the day", "not so good", "very good", "legal", "spungungulsumplus", "fish"];
+// const persontype = ["madam", "friend", "enemy", "brother", "brother man", "BROTHERRRRRR", "bungle bus", "uncle", "second cousin twice removed", "uncles dogs sisters boyfriends moms second cousins cat", "leg", "adam"];
+// const game = ["TF2", "Ultimate Admiral: Dreadnoughts", "Fishing Simulator", "Sea of Thieves", "Factorio", "Forza Horizon 5", "nothing", "Fallout: New Vegas", "Stabbing Simulator (IRL)"];
+// const emotion2 = ["fun", "exciting", "monotonous", "speed run", "pretty eventful", "frog", "emotional", "devoid of all emotions", "mike"];
+// const bye = ["bid you a morrow", "will see you soon", "want to eat your soul, so watch out", "am going to leave now", "hate everything, goodbye", "am monke, heee heee hoo hoo", "wish you good luck on your adventures", "am going to go to bed now", "want to sleep but enevitably will not get any as i will be gaming all night, good morrow", "am going to go to the morrow lands", "will sleep now", "am pleased to sleep"];
+// const emoji = ["ඞ", "🐸", "🍆", "💄", "⛧", "🎄", "🐷", "🐎", "🐴", "🐍", "⚡", "🪙", "🖕", "🚊", "🏻🏻", "🤔", "🌳", "🌲", "🌴", "🌵", "🐀", "🍝", "𓀒"];
 
-const localesz = ["in class", "in bed", "at Adam's House", "in the car driving to [l2]", "waiting for the bus", "playing slots", "doing cocaine", "in the bathroom", "in the shower", "in your walls ;),"];
-const l2 = ["the store", "New York", "Adam's House", "nowhere", "school", "a bacon festival", "somewhere under the sea"]
+// const localesz = ["in class", "in bed", "at Adam's House", "in the car driving to [l2]", "waiting for the bus", "playing slots", "doing cocaine", "in the bathroom", "in the shower", "in your walls ;),"];
+// const l2 = ["the store", "New York", "Adam's House", "nowhere", "school", "a bacon festival", "somewhere under the sea"]
 
 function funnyDOWText(dowNum, authorID)
 {
@@ -152,29 +152,56 @@ function funnyDOWText(dowNum, authorID)
 	text = text.replaceAll("[tdMid TS-D]", "<t:" + Math.floor(todOnlyDate.getTime() / 1000) + ":D>");
 	text = text.replaceAll("[tdMid TS-F]", "<t:" + Math.floor(todOnlyDate.getTime() / 1000) + ":F>");
 	
-	while (text.includes("[emotion]"))
-		text = text.replace("[emotion]", emotions[Math.floor(Math.random() * emotions.length)]);
+	var replaced = true;
+	var replacements = global.replacements;
+
+	while (replaced)
+	{
+		replaced = false;
+
+		// loop throught replacements
+		for (var i = 0; i < Object.keys(replacements).length; i++)
+		{
+			var key = Object.keys(replacements)[i];
+			var value = replacements[key];
+
+			var regex = new RegExp("\\[" + key + "\\]", "g");
+
+			if (text.match(regex))
+			{
+				while (text.match(regex))
+				{
+					var numbo = Math.floor(Math.random() * value.length);
+					text = text.replace("[" + key + "]", value[numbo]);
+				}
+				replaced = true;
+			}
+		}
+	}
+
+	// while (text.includes("[emotion]"))
+	// 	text = text.replace("[emotion]", emotions[Math.floor(Math.random() * emotions.length)]);
 	
-	while (text.includes("[game]"))
-		text = text.replace("[game]", game[Math.floor(Math.random() * game.length)]);
+	// while (text.includes("[game]"))
+	// 	text = text.replace("[game]", game[Math.floor(Math.random() * game.length)]);
 
-	while (text.includes("[emotion2]"))
-		text = text.replace("[emotion2]", emotion2[Math.floor(Math.random() * emotion2.length)]);
+	// while (text.includes("[emotion2]"))
+	// 	text = text.replace("[emotion2]", emotion2[Math.floor(Math.random() * emotion2.length)]);
 
-	while (text.includes("[person]"))	
-		text = text.replace("[person]", persontype[Math.floor(Math.random() * persontype.length)]);	
+	// while (text.includes("[person]"))	
+	// 	text = text.replace("[person]", persontype[Math.floor(Math.random() * persontype.length)]);	
 
-	while (text.includes("[goodbye]"))
-		text = text.replace("[goodbye]", bye[Math.floor(Math.random() * bye.length)]);
+	// while (text.includes("[goodbye]"))
+	// 	text = text.replace("[goodbye]", bye[Math.floor(Math.random() * bye.length)]);
 
-	while (text.includes("[emoji]"))
-		text = text.replace("[emoji]", emoji[Math.floor(Math.random() * emoji.length)]);
+	// while (text.includes("[emoji]"))
+	// 	text = text.replace("[emoji]", emoji[Math.floor(Math.random() * emoji.length)]);
 
-	while (text.includes("[location]"))
-		text = text.replace("[location]", localesz[Math.floor(Math.random() * localesz.length)]);
+	// while (text.includes("[location]"))
+	// 	text = text.replace("[location]", localesz[Math.floor(Math.random() * localesz.length)]);
 
-	while (text.includes("[l2]"))
-		text = text.replace("[l2]", l2[Math.floor(Math.random() * l2.length)]);
+	// while (text.includes("[l2]"))
+	// 	text = text.replace("[l2]", l2[Math.floor(Math.random() * l2.length)]);
 
 	// text = text.replace("[emotion]", emotions[Math.floor(Math.random() * emotions.length)]);
 	// text = text.replace("[emotion]", emotions[Math.floor(Math.random() * emotions.length)]);

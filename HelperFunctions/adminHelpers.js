@@ -7,7 +7,7 @@ const fs = require('fs');
 // const fetch = require('node-fetch');
 
 // const options = { year: 'numeric', month: 'long', day: 'numeric' }; // for date parsing to string
-const { RoleAdd } = require('./genericHelpers.js');
+const { RoleAdd } = require('./basicHelpers.js');
 
 async function setGrole(msg, rname) //creates role and sets users
 {
@@ -92,6 +92,9 @@ async function movetoChannel(msg, channel, logchan, silent) //archive the messag
 
 	var attch = msg.attachments; //get the attacments from the original message
 
+	if (hiddenChan == null) //if the channel does not exist
+		return;	
+
 	hiddenChan.send(savemsg); //send the text
 
 	if (!silent)
@@ -126,14 +129,18 @@ async function movetoChannel(msg, channel, logchan, silent) //archive the messag
 
 async function DelayedDeletion(hiddenChan, img) //download function used when the delay call is ran
 {
-	var tempFilePath = babadata.temp + "tempfile" + img.url.substring(img.url.lastIndexOf('.')); // temp file location 
+	var suffix = img.url.substring(img.url.lastIndexOf('.')); //gets the file extension
+	var tempFilePath = babadata.temp + "tempfile" + suffix; // temp file location 
 	var url = img.url;
 
 	download(url, tempFilePath, () => { //downloads the file to the system at tempfile location
 		console.log('Done!')
 	})
 
-	var newAttch = new Discord.MessageAttachment().setFile(tempFilePath); //makes a new discord attachment
+	var newAttch = tempFilePath; //makes a new discord attachment
+
+	var newAttch = new Discord.AttachmentBuilder(tempFilePath, 
+		{ name: 'file' + suffix, description : "Twas deleted from a place in time, ADAM PLEASE!"}); //makes a new discord attachment
 
 	setTimeout(function(){ hiddenChan.send({files: [newAttch] }); }, 2000); //sends the attachment (delayed by 1 sec to allow for download)
 
@@ -146,7 +153,9 @@ function timedOutFrog(i, texts, message, templocal)
 	{ 
 		var ti = texts[i];
 		message.channel.send(ti).catch(error => {
-			var newAttch = new Discord.MessageAttachment().setFile(templocal + "error.png"); //makes a new discord attachment (default fail image)
+			var newAttch = new Discord.AttachmentBuilder(templocal + "error.png", 
+				{ name: 'error.png', description : "Error Fronge!"}); //makes a new discord attachment
+
 			message.channel.send({ content: "It is Wednesday, My BABAs", files: [newAttch] }); // send file
 		})
 	}, 1000);

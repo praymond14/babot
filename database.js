@@ -1,7 +1,7 @@
 const fs = require('fs');
 var babadata = require('./babotdata.json'); //baba configuration file
 var mysql = require('mysql2');
-const { FindDate } = require('./HelperFunctions/genericHelpers.js');
+const { FindDate } = require('./HelperFunctions/basicHelpers.js');
 
 var con;
 
@@ -211,7 +211,6 @@ function HPLSelectChannel(callback, msgContent)
 
 function HPLSelectDate(callback, msgContent)
 {
-	console.log(msgContent);
 	con.query(`SELECT date as Name, Count(*) as Count, SUM(IF(Accidental = '1', 1, 0)) as Accidental, SUM(IF(Accidental = '1', 1, 0))/COUNT(Accidental) * 100 As Purity FROM haiku 
 	Where `+ searchDate(msgContent) +
 	`Group by date`, function (err, result)
@@ -345,6 +344,34 @@ function HaikuSelection(callback, by, msgContent)
 			query += " WHERE ";
 
 		query += addquery.join(" AND ");
+
+		if (msgContent[5] == "purity")
+		{
+			var pMode = msgContent[6];
+			var queueueueu = "SELECT " + (pMode == "chans" ? "ChannelName" : (pMode == "users" ? "haiku.PersonName" : "date"))
+			queueueueu += " as Name";
+			queueueueu += (pMode == "chans" ? ", haiku.ChannelID as ID" : (pMode == "users" ? ", DiscordID as ID" : ""))
+			queueueueu += ", Count(*) as Count, SUM(IF(Accidental = '1', 1, 0)) as Accidental, SUM(IF(Accidental = '1', 1, 0))/COUNT(Accidental) * 100 As Purity FROM haiku";
+
+			queueueueu += `
+			Left Join userval on haiku.PersonName = userval.PersonName 
+			Left Join channelval on haiku.ChannelID = channelval.ChannelID`;
+
+			if (addquery.length)
+				queueueueu += " WHERE ";
+
+			queueueueu += addquery.join(" AND ");
+
+			queueueueu += " " + (pMode == "chans" ? "Group by haiku.ChannelID" : (pMode == "users" ? "Group by haiku.PersonName" : "Group by date order by count desc, purity desc, name desc"));
+
+			console.log(queueueueu);
+			con.query(queueueueu, function (err, result) 
+			{
+				if (err) throw err;
+				return callback(result);
+			});
+			return;
+		}
 	}
 	else if (by == 5)
 	{
@@ -355,6 +382,43 @@ function HaikuSelection(callback, by, msgContent)
 
 	con.query(query, function (err, result)
 	{
+		if (by == 6)
+		{
+			var object = {};
+			object.PersonName = "No One";
+			object.HaikuFormatted = "";
+			object.DiscordName = "No One";
+			object.Date = new Date();
+			object.ChannelName = "No Channel";
+			object.Accidental = 1;
+
+			var fives = [];
+			var sevens = [];
+
+			for (var x in result)
+			{
+				//split on \r\n
+				var lines = result[x].HaikuFormatted.split("\r\n");
+				// remove blank lines
+				lines = lines.filter(function (el) {
+					return el != "";
+				});
+				
+				fives.push(lines[0]);
+				sevens.push(lines[1]);
+				fives.push(lines[2]);
+			}
+
+			var thefive = fives[Math.floor(Math.random() * fives.length)];
+			var theseven = sevens[Math.floor(Math.random() * sevens.length)];
+			var thefive2 = fives[Math.floor(Math.random() * fives.length)];
+
+			var retme = thefive + "\r\n\r\n" + theseven + "\r\n\r\n" + thefive2;
+
+			object.HaikuFormatted = retme;
+			return callback([object], null);
+		}
+
 		if (err) throw err;
 		if (result.length == 0) return callback(null);
 
@@ -643,6 +707,30 @@ function cacheDOW()
 		}
   	});
 
+	global.channelCache = {};
+	con.query(`Select * from channelval`,
+		function (err, result)
+		{
+			for (var i = 0; i < result.length; i++)
+			{
+				var res = result[i];
+				global.channelCache[res.ChannelID] = res.ChannelName;
+			}
+		}
+	);
+
+	global.userCache = {};
+	con.query(`Select * from userval`,
+		function (err, result)
+		{
+			for (var i = 0; i < result.length; i++)
+			{
+				var res = result[i];
+				global.userCache[res.DiscordID] = res.PersonName;
+			}
+		}
+	);
+
 	con.query(`Select * from dow`,
 	function (err, result)
 		{
@@ -676,6 +764,60 @@ function cacheDOW()
 					fs.writeFileSync(babadata.datalocation + "/DOWItems.json", data);
 				}
 			);
+		}
+	);
+
+	con.query(`Select * from fridaynestedloops`,
+	function (err, result)
+		{
+			var opts = [];
+			if (err) throw err;
+			for (var i = 0; i < result.length; i++)
+			{
+				var res = result[i];
+				text = res.text;
+				var resj = 
+				{
+					"text": text,
+					"group": res.group,
+					"weight": res.weight,
+				}
+
+				opts.push(resj);
+			}
+
+			// var data = JSON.stringify(opts);
+
+			// fs.writeFileSync(babadata.datalocation + "/FridayLoops.json", data);
+			// let rawloops = fs.readFileSync(babadata.datalocation + "/FridayLoops.json");
+
+			var fridLoops = opts
+		
+			var replacements = {};
+			var replacementsWeights = {};
+			for (var i = 0; i < fridLoops.length; i++)
+			{
+				if (replacements[fridLoops[i].group] == null)
+				{
+					replacements[fridLoops[i].group] = [];
+					replacementsWeights[fridLoops[i].group] = {"min": 1}
+				}
+		
+				if (fridLoops[i].weight < replacementsWeights[fridLoops[i].group].min)
+					replacementsWeights[fridLoops[i].group].min = fridLoops[i].weight;
+		
+			}
+			
+			for (var i = 0; i < fridLoops.length; i++)
+			{
+				gWeight = replacementsWeights[fridLoops[i].group].min;
+				insertCount = gWeight == 1 ? 1 : Math.floor((1 / gWeight) * fridLoops[i].weight);
+		
+				for (var j = 0; j < insertCount; j++)
+					replacements[fridLoops[i].group].push(fridLoops[i].text);
+			}
+
+			global.replacements = replacements;
 		}
 	);
 
@@ -858,6 +1000,22 @@ function eventDB(event, change, user)
 		var d1 = new Date(event.scheduledStartTimestamp);
 		var d2 = new Date(event.scheduledEndTimestamp);
 		var status = event.status;
+		switch (status)
+		{
+			case 1:
+				status = "SCHEDULED";
+				break;
+			case 2:
+				status = "ACTIVE";
+				break;
+			case 3:
+				status = "COMPLETED";
+				break;
+			case 4:
+				status = "CANCELED";
+				break;
+		}
+
 		var loc = "Voice Channel";
 
 		var mpre1 = d1.getMonth() + 1 < 10 ? 0 : "";

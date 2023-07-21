@@ -3,7 +3,7 @@ const fs = require('fs');
 const Discord = require('discord.js'); //discord module for interation with discord api
 
 const { loadInDBFSV } = require('./HelperFunctions/dbHelpers.js');
-const { SetHolidayChan, CreateChannel, MonthsPlus, getD1 } = require('./HelperFunctions/genericHelpers.js');
+const { SetHolidayChan, CreateChannel, MonthsPlus, getD1 } = require('./HelperFunctions/basicHelpers.js');
 const { FindNextHoliday, CheckHoliday } = require('./HelperFunctions/commandHelpers.js');
 
 const { cacheDOW, ObtainDBHolidays } = require('./database');
@@ -112,7 +112,7 @@ function todayDay(dow, guild, now)
 			coolCats = ["915351407287222403"]; // allowed channels, add exceptions manually
 			for (let currenter of channels) 
 			{
-				if (currenter[1] != null && currenter[1].type == "GUILD_TEXT" && !bannedKittens.includes(currenter[1].id))
+				if (currenter[1] != null && currenter[1].type == 0 && !bannedKittens.includes(currenter[1].id))
 				{
 					if (!bannedCats.includes(currenter[1].parentId))
 						coolCats.push(currenter[1]);

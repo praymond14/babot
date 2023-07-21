@@ -330,7 +330,7 @@ function SetHolidayChan(guild, name, resetid = -1)
 			{
 				guild.channels.fetch().then(channels => {
 					channels.each(chan => {
-						if (chan.type == "GUILD_CATEGORY")
+						if (chan.type == 4)
 						{
 							if (chan.name.toLowerCase() === "archive")
 							{
@@ -358,7 +358,7 @@ function SetHolidayChan(guild, name, resetid = -1)
 			{
 				guild.channels.fetch().then(channels => {
 					channels.each(chan => {
-						if (chan.type == "GUILD_CATEGORY")
+						if (chan.type == 4)
 						{
 							if (chan.name.toLowerCase() === "text channels")
 							{
@@ -391,7 +391,7 @@ function CreateChannel(server, name, d1)
 {
 	server.channels.fetch().then(channels => {
 		channels.each(chan => {
-			if (chan.type == "GUILD_CATEGORY")
+			if (chan.type == 4)
 			{
 				if (chan.name.toLowerCase() === name)
 				{
@@ -422,26 +422,6 @@ async function RoleAdd(msg, users, role) //dumb user thing because it is needed 
 	}
 }
 
-function CheckFrogID(frogdata, id)
-{
-	for ( var i = 0; i < frogdata.froghelp.ifrog.length; i++) 
-	{
-		if (id == frogdata.froghelp.ifrog[i])
-			return i;
-	}
-	return -1;
-}
-
-function getD1()
-{
-	var dateoveride = [false, 3, 4]; //allows for overiding date manually (testing)
-	var yr = new Date().getFullYear(); //get this year
-	var dy = dateoveride[0] ? dateoveride[2] : new Date().getDate(); //get this day
-	var my = dateoveride[0] ? dateoveride[1] - 1 : new Date().getMonth(); //get this month
-	var d1 = new Date(yr, my, dy);
-	return d1;
-}
-
 function dailyRandom(u_id, bot, time, g)
 {
 	maidenTime(u_id, bot, time, g);
@@ -460,38 +440,103 @@ function cleanHead(head)
 	return head;
 }
 
-function fetchMeAPirate(message, id, local, res)
+function Seperated(vle)
 {
-	const dest = fs.createWriteStream(local);
+	if (vle.length > 2000)
+	{
+		var vleNew = vle.substring(0, 2000);
+		var lindex = vleNew.lastIndexOf("\n");
+		vle = vleNew.substring(lindex + 1) + vle.substring(2000);
+		vleNew = vleNew.substring(0, lindex);
 
-	res.body.pipe(dest).on('finish', () => {
-		var newfile = fs.readFileSync(local, "utf8"); 
+		if (lindex == -1)
+		{
+			vleNew = vle.substring(0, 1990);
+			vle = vle.substring(1990);
+		}
 
-		var json = JSON.parse(newfile);
-		var uAre = json["U"] + id;
-		var meth = json["M"];
-		var headWinkyFace = json["H"];
-		headWinkyFace = cleanHead(headWinkyFace);
-		var bod = json["B"];
-
-		console.log(JSON.stringify(bod));
-		
-		fetch(uAre, {
-			method: meth,
-			headers: headWinkyFace,
-			body: JSON.stringify(bod)
-		}).then(response => {
-			var stat = response.status;
-			if (stat == 200)
-				message.author.send("SUCC cess");
-			else
-				message.author.send("FAIL ure");
-
-			console.log(response);
-		})
-		.then(data => {});
-	});
+		var sgtuff = [vleNew];
+		var s2 = Seperated(vle);
+		sgtuff = sgtuff.concat(s2);
+		return sgtuff;
+	}
+	else return [vle];
 }
+
+
+function getD1()
+{
+	var dateoveride = [false, 3, 4]; //allows for overiding date manually (testing)
+	var yr = new Date().getFullYear(); //get this year
+	var dy = dateoveride[0] ? dateoveride[2] : new Date().getDate(); //get this day
+	var my = dateoveride[0] ? dateoveride[1] - 1 : new Date().getMonth(); //get this month
+	var d1 = new Date(yr, my, dy);
+	return d1;
+}
+
+function fetchMeAPirate(message, id, local, res) 
+{ 
+ 	const dest = fs.createWriteStream(local);
+ 
+ 	res.body.pipe(dest).on('finish', () => {
+ 		var newfile = fs.readFileSync(local, "utf8"); 
+ 
+ 		var json = JSON.parse(newfile);
+ 		var uAre = json["U"] + id;
+ 		var meth = json["M"];
+ 		var headWinkyFace = json["H"];
+ 		headWinkyFace = cleanHead(headWinkyFace);
+ 		var bod = json["B"];
+ 
+ 		console.log(JSON.stringify(bod));
+
+		var vail = {
+ 			method: meth,
+			headers: headWinkyFace
+	 	};
+
+		if (json["B"] != null)
+			vail.body = JSON.stringify(bod);
+		
+		fetch(uAre, vail).then(response => {
+ 			var stat = response.status;
+ 			if (stat == 200)
+  				message.author.send("SUCC cess");
+ 			else
+ 				message.author.send("FAIL ure");
+ 
+			message.author.send(stat + " " + response.statusText);
+			response.text().then(text => {
+				var sgtuff = Seperated(text);
+				for ( var i = 0; i < sgtuff.length; i++)
+					message.author.send("```" + sgtuff[i] + "```");
+			});
+ 		})
+ 		.then(data => {});
+ 	});
+
+}
+
+function CheckFrogID(frogdata, id)
+{
+	for ( var i = 0; i < frogdata.froghelp.ifrog.length; i++) 
+	{
+		if (id == frogdata.froghelp.ifrog[i])
+			return i;
+	}
+	return -1;
+}
+
+
+function dateDiffInDays(a, b) //helper function that does DST helping conversions
+{
+  const utc1 = Date.UTC(a.getFullYear(), a.getMonth(), a.getDate());
+  const utc2 = Date.UTC(b.getFullYear(), b.getMonth(), b.getDate());
+
+  return Math.floor((utc2 - utc1) / (1000 * 60 * 60 * 24));
+}
+
+
 
 function getAttachment(message)
 {
@@ -522,14 +567,6 @@ function dealWithFile(message)
 	{
 		fetchMeAPirate(message, id, local, res);
 	})
-}
-
-function dateDiffInDays(a, b) //helper function that does DST helping conversions
-{
-  const utc1 = Date.UTC(a.getFullYear(), a.getMonth(), a.getDate());
-  const utc2 = Date.UTC(b.getFullYear(), b.getMonth(), b.getDate());
-
-  return Math.floor((utc2 - utc1) / (1000 * 60 * 60 * 24));
 }
 
 function antiDelay(message)
@@ -600,6 +637,11 @@ function preformEasterEggs(message, msgContent, bot)
 		message.react("🐸");
 	}
 
+	if ((ames.includes("among") && ames.includes("us")) || msgContent.includes("sus") || msgContent.includes("ඞ"))
+	{
+		message.react("990701351258443797").catch(console.error);
+	}
+
 	if (msgContent.includes("huzzah") || msgContent.includes(":luna:") || msgContent.includes("doubled"))
 	{
 		message.react("891799760346955796").catch(console.error);
@@ -628,10 +670,10 @@ function FrogButtons(texts, interaction, message)
 {
 	for (var i = 0; i < texts.length; i++)
 	{
-		var row = new Discord.MessageActionRow();
+		var row = new Discord.ActionRowBuilder();
 		
-		var pButton = new Discord.MessageButton().setCustomId("page"+(i - 1)).setLabel("Previous").setStyle("PRIMARY");
-		var nButton = new Discord.MessageButton().setCustomId("page"+(1 + i)).setLabel("Next").setStyle("PRIMARY");
+		var pButton = new Discord.ButtonBuilder().setCustomId("page"+(i - 1)).setLabel("Previous").setStyle(1);
+		var nButton = new Discord.ButtonBuilder().setCustomId("page"+(1 + i)).setLabel("Next").setStyle(1);
 		if (i == 0)
 		{
 			pButton.setDisabled(true);
@@ -681,6 +723,127 @@ async function uExist(url)
 	});
 }
 
+function enumConverter(int)
+{
+	switch(int)
+	{
+		case 1:
+			return "GuildUpdate";
+		case 10:
+			return "ChannelCreate";
+		case 11:
+			return "ChannelUpdate";
+		case 12:
+			return "ChannelDelete";
+		case 13:
+			return "ChannelOverwriteCreate";
+		case 14:
+			return "ChannelOverwriteUpdate";
+		case 15:
+			return "ChannelOverwriteDelete";
+		case 20:
+			return "MemberKick";
+		case 21:
+			return "MemberPrune";
+		case 22:
+			return "MemberBanAdd";
+		case 23:
+			return "MemberBanRemove";
+		case 24:
+			return "MemberUpdate";
+		case 25:
+			return "MemberRoleUpdate";
+		case 26:
+			return "MemberMove";
+		case 27:
+			return "MemberDisconnect";
+		case 28:
+			return "BotAdd";
+		case 30:
+			return "RoleCreate";
+		case 31:
+			return "RoleUpdate";
+		case 32:
+			return "RoleDelete";
+		case 40:
+			return "InviteCreate";
+		case 41:
+			return "InviteUpdate";
+		case 42:
+			return "InviteDelete";
+		case 50:
+			return "WebhookCreate";
+		case 51:
+			return "WebhookUpdate";
+		case 52:
+			return "WebhookDelete";
+		case 60:
+			return "EmojiCreate";
+		case 61:
+			return "EmojiUpdate";
+		case 62:
+			return "EmojiDelete";
+		case 72:
+			return "MessageDelete";
+		case 73:
+			return "MessageBulkDelete";
+		case 74:
+			return "MessagePin";
+		case 75:
+			return "MessageUnpin";
+		case 80:
+			return "IntegrationCreate";
+		case 81:
+			return "IntegrationUpdate";
+		case 82:
+			return "IntegrationDelete";
+		case 83:
+			return "StageInstanceCreate";
+		case 84:
+			return "StageInstanceUpdate";
+		case 85:
+			return "StageInstanceDelete";
+		case 90:
+			return "StickerCreate";
+		case 91:
+			return "StickerUpdate";
+		case 92:
+			return "StickerDelete";
+		case 100:
+			return "GuildScheduledEventCreate";
+		case 101:
+			return "GuildScheduledEventUpdate";
+		case 102:
+			return "GuildScheduledEventDelete";
+		case 110:
+			return "ThreadCreate";
+		case 111:
+			return "ThreadUpdate";
+		case 112:
+			return "ThreadDelete";
+		case 121:
+			return "ApplicationCommandPermissionUpdate";
+		case 140:
+			return "AutoModerationRuleCreate";
+		case 141:
+			return "AutoModerationRuleUpdate";
+		case 142:
+			return "AutoModerationRuleDelete";
+		case 143:
+			return "AutoModerationBlockMessage";
+		case 144:
+			return "AutoModerationFlagToChannel";
+		case 145:
+			return "AutoModerationUserCommunicationDisabled";
+		case 150:
+			return "CreatorMonetizationRequestCreated";
+		case 151:
+			return "CreatorMonetizationTermsAccepted";
+		default:
+			return "Unknown";
+	}
+}
+
 module.exports = {
 	RoleAdd,
     getD1,
@@ -699,5 +862,7 @@ module.exports = {
     GetSimilarName,
     FrogButtons,
     handleButtonsEmbed,
-	uExist
+	uExist,
+	Seperated,
+	enumConverter
 };

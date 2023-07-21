@@ -10,7 +10,7 @@ module.exports = {
             option.setName('choices')
                 .setDescription('What to opt out to!')
                 .setRequired(true)
-                .addChoice('Voice Activity', 'voice')),
+                .addChoices({ name: 'Voice Activity', value: 'voice' })),
 	async execute(interaction, bot) {
         await interaction.deferReply();
         var opts = interaction.options.getString('choices');

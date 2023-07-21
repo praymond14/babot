@@ -7,7 +7,7 @@ const Jimp = require('jimp');
 const fetch = require('node-fetch');
 
 const options = { year: 'numeric', month: 'long', day: 'numeric' }; // for date parsing to string
-const { dateDiffInDays, antiDelay, GetDate, GetSimilarName, uExist } = require('./genericHelpers.js');
+const { dateDiffInDays, antiDelay, GetDate, GetSimilarName, uExist } = require('./basicHelpers.js');
 
 function getErrorFlag()
 {
@@ -246,10 +246,17 @@ function SingleHaiku(haiku, simnames, page, pagetotal)
         if (datetime != "") signature += " on " + datetime.toLocaleDateString('en-US', options);
     }
 
-    exampleEmbed = new Discord.MessageEmbed() // embed for the haiku
+	//footer from discordjs
+
+	var footobj = {
+		text : "- " + (!haiku.Accidental ? "Purposful Haiku by " : "") + signature + (page != null ? " - Page " + (1 + page) + " of " + pagetotal : ""),
+		iconURL : "https://media.discordapp.net/attachments/574840583563116566/949515044746559568/JSO3bX0V.png"
+	};
+
+    exampleEmbed = new Discord.EmbedBuilder() // embed for the haiku
     .setColor("#" + (Math.random() < .5 ? "0" : "F") + (Math.random() < .5 ? "0" : "F") + (Math.random() < .5 ? "0" : "F") + (Math.random() < .5 ? "0" : "F") + (Math.random() < .5 ? "0" : "F") + (Math.random() < .5 ? "0" : "F"))
     .setDescription(haiku.HaikuFormatted)
-    .setFooter("- " + (!haiku.Accidental ? "Purposful Haiku by " : "") + signature + (page != null ? " - Page " + (1 + page) + " of " + pagetotal : ""), "https://media.discordapp.net/attachments/574840583563116566/949515044746559568/JSO3bX0V.png");
+    .setFooter(footobj);
 
     obj.embeds = [exampleEmbed];
 	return obj;
@@ -260,11 +267,16 @@ function EmbedHaikuGen(haiku, simnames)
     var objs = [];
     if (haiku == null) 
     {
+        var footobj = {
+            text : "Haikus by Baba",
+            iconURL : "https://media.discordapp.net/attachments/574840583563116566/949515044746559568/JSO3bX0V.png"
+        };
+
 		var obj = {content: "BABA MAKE HAIKU"};
-        var bad = new Discord.MessageEmbed() // embed for the haiku
+        var bad = new Discord.EmbedBuilder() // embed for the haiku
         .setColor("#" + (Math.random() < .5 ? "0" : "F") + (Math.random() < .5 ? "0" : "F") + (Math.random() < .5 ? "0" : "F") + (Math.random() < .5 ? "0" : "F") + (Math.random() < .5 ? "0" : "F") + (Math.random() < .5 ? "0" : "F"))
         .setDescription("No Haikus Found!")
-        .setFooter("Haikus by Baba", "https://media.discordapp.net/attachments/574840583563116566/949515044746559568/JSO3bX0V.png");
+        .setFooter(footobj);
         obj.embeds = [bad];
         return [obj];
     }
@@ -278,11 +290,11 @@ function EmbedHaikuGen(haiku, simnames)
 		{
 			var ovb = SingleHaiku(haiku[e], simnames, e, haiku.length);
 			
-			var row = new Discord.MessageActionRow();
+			var row = new Discord.ActionRowBuilder();
 
 			if (haiku.length > 100) 
 			{
-				var p100btn = new Discord.MessageButton().setCustomId("page"+(e - 100)).setLabel("-100").setStyle("PRIMARY");
+				var p100btn = new Discord.ButtonBuilder().setCustomId("page"+(e - 100)).setLabel("-100").setStyle(1);
 				if (e < 100)
 				{
 					p100btn.setDisabled(true);
@@ -290,8 +302,8 @@ function EmbedHaikuGen(haiku, simnames)
 				row.addComponents(p100btn);
 			}
 
-			var pButton = new Discord.MessageButton().setCustomId("page"+(e - 1)).setLabel("Previous").setStyle("PRIMARY");
-			var nButton = new Discord.MessageButton().setCustomId("page"+(1 + e)).setLabel("Next").setStyle("PRIMARY");
+			var pButton = new Discord.ButtonBuilder().setCustomId("page"+(e - 1)).setLabel("Previous").setStyle(1);
+			var nButton = new Discord.ButtonBuilder().setCustomId("page"+(1 + e)).setLabel("Next").setStyle(1);
 
 			if (e == 0)
 			{
@@ -306,7 +318,7 @@ function EmbedHaikuGen(haiku, simnames)
 			
 			if (haiku.length > 100) 
 			{
-				var n100btn = new Discord.MessageButton().setCustomId("page"+(e + 100)).setLabel("+100").setStyle("PRIMARY");
+				var n100btn = new Discord.ButtonBuilder().setCustomId("page"+(e + 100)).setLabel("+100").setStyle(1);
 				if (e >= haiku.length - 100)
 				{
 					n100btn.setDisabled(true);
@@ -472,6 +484,37 @@ async function checkHurricaneStuff(hurricanename, isFirst, eye)
 		return false;
 }
 
+function monthFromInt(mint)
+{
+	switch(mint)
+	{
+		case 1:
+			return "January";
+		case 2:
+			return "Febuary";
+		case 3:
+			return "March";
+		case 4:
+			return "April";
+		case 5:
+			return "May";
+		case 6:
+			return "June";
+		case 7:
+			return "July";
+		case 8:
+			return "August";
+		case 9:
+			return "September";
+		case 10:
+			return "October";
+		case 11:
+			return "November";
+		default:
+			return "December";
+	}
+}
+
 module.exports = {
     getErrorFlag,
     MakeImage,
@@ -480,5 +523,6 @@ module.exports = {
     EmbedHaikuGen,
     CheckHoliday,
 	loadHurricaneHelpers,
-	checkHurricaneStuff
+	checkHurricaneStuff,
+	monthFromInt
 };

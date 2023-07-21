@@ -1,4 +1,4 @@
-const { babaFriday,  babaHelp, babaPlease, babaPizza, babaVibeFlag, babaYugo, babaHaikuEmbed, babaWednesday, babaDayNextWed, babaJeremy, babaHurricane, babaRepost } = require("./commandFunctions.js");
+const { babaFriday,  babaHelp, babaPlease, babaPizza, babaVibeFlag, babaYugo, babaHaikuEmbed, babaWednesday, babaDayNextWed, babaJeremy, babaHurricane, babaRepost, babaWeather } = require("./commandFunctions.js");
 const { Client, Intents } = require('discord.js'); //discord module for interation with discord api
 const Discord = require('discord.js'); //discord module for interation with discord api
 var babadata = require('./babotdata.json'); //baba configuration file
@@ -8,7 +8,7 @@ const fs = require('fs'); //file stream used for del fuction
 //var prism = require("prism-media");
 //var ffmpeg = require('fluent-ffmpeg');
 
-const { SetHolidayChan, CheckFrogID, handleButtonsEmbed, preformEasterEggs } = require("./HelperFunctions/genericHelpers.js");
+const { SetHolidayChan, CheckFrogID, handleButtonsEmbed, preformEasterEggs } = require("./HelperFunctions/basicHelpers.js");
 const { getErrorFlag } = require("./HelperFunctions/commandHelpers.js");
 const { setGrole, setVote, setVBH, movetoChannel, timedOutFrog } = require("./HelperFunctions/adminHelpers.js");
 const { normalizeMSG } = require("./HelperFunctions/dbHelpers.js");
@@ -58,7 +58,7 @@ function babaMessage(bot, message)
 	var rid = frogdata.froghelp.rfrog[0];
 	var msgContent = normalizeMSG(message.content.toLowerCase());
 
-	if (message.channel.type == "DM" && idint >= 0)
+	if (message.channel.type == 1 && idint >= 0)
 	{
 		rid = frogdata.froghelp.rfrog[idint];
 		g = bot.guilds.resolve(frogdata.froghelp.mainfrog);
@@ -226,7 +226,10 @@ function babaMessage(bot, message)
 
 		if (msgContent.includes("weather"))
 		{
-			message.channel.send(babaWeather());
+			babaWeather("deets", "Apex NC", function(val)
+			{
+				message.channel.send(val);
+			});
 		}
 
 		if(msgContent.includes('help')) //reply with help text is baba help
@@ -238,7 +241,10 @@ function babaMessage(bot, message)
 		{
 			var flagcontent = babaVibeFlag();
 			message.channel.send(flagcontent).catch(error => {
-				newAttch = new Discord.MessageAttachment().setFile(getErrorFlag());
+
+				var newAttch = new Discord.AttachmentBuilder(getErrorFlag(), 
+					{ name: 'errrrrr.png', description : "No flag for you bud hee!"}); //makes a new discord attachment
+
 				message.channel.send({content: flagcontent.content, files: [newAttch] }); // send file
 			});
 		}
@@ -298,14 +304,14 @@ function babaMessage(bot, message)
 	}
 	if(msgContent.includes('!bdelete')) //code to del and move to log
 	{
-		if(message.channel.type != "DM" && message.member.roles.cache.has(babadata.adminId)) //check if admin
+		if(message.channel.type != 1 && message.member.roles.cache.has(babadata.adminId)) //check if admin
 		{
 			var message_id = message.content.replace(/\D/g,''); //get message id
 			var fnd = false;
 			
 			var chanMap = message.guild.channels.fetch().then(channels => {
 				channels.each(chan => { //iterate through all the channels
-					if (!fnd && chan.type == "GUILD_TEXT") //make sure the channel is a text channel
+					if (!fnd && chan.type == 0) //make sure the channel is a text channel
 					{
 						chan.threads.fetch().then(thread => 
 							thread.threads.each(thr =>
@@ -331,14 +337,14 @@ function babaMessage(bot, message)
 	// move messsage to politics channel
 	if(msgContent.includes('!political'))
 	{
-		if(message.channel.type != "DM" && message.member.roles.cache.has(babadata.adminId)) //check if admin
+		if(message.channel.type != 1 && message.member.roles.cache.has(babadata.adminId)) //check if admin
 		{
 			var message_id = message.content.replace(/\D/g,''); //get message id
 			var fnd = false;
 			
 			var chanMap = message.guild.channels.fetch().then(channels => {
 				channels.each(chan => { //iterate through all the channels
-					if (!fnd && chan.type == "GUILD_TEXT") //make sure the channel is a text channel
+					if (!fnd && chan.type == 0) //make sure the channel is a text channel
 					{
 						chan.threads.fetch().then(thread => 
 							thread.threads.each(thr =>
@@ -363,14 +369,14 @@ function babaMessage(bot, message)
 	}
 	if(msgContent.includes('!setvote')) //code to set vote
 	{
-		if(message.channel.type != "DM" && message.member.roles.cache.has(babadata.adminId)) //check if admin
+		if(message.channel.type != 1 && message.member.roles.cache.has(babadata.adminId)) //check if admin
 		{
 			var message_id = message.content.replace(/\D/g,''); //get message id
 			var fnd = false;
 
 			var chanMap = message.guild.channels.fetch().then(channels => {
 				channels.each(chan => { //iterate through all the channels
-					if (!fnd && chan.type == "GUILD_TEXT") //make sure the channel is a text channel
+					if (!fnd && chan.type == 0) //make sure the channel is a text channel
 					{
 						chan.threads.fetch().then(thread => 
 							thread.threads.each(thr =>
@@ -395,7 +401,7 @@ function babaMessage(bot, message)
 	}
 	if(msgContent.includes('!bsetstatus')) //code to set game
 	{
-		if(message.channel.type != "DM" && message.member.roles.cache.has(babadata.adminId)) //check if admin
+		if(message.channel.type != 1 && message.member.roles.cache.has(babadata.adminId)) //check if admin
 		{
 			var text = msgContent;
 			var tyepe = -1;
@@ -424,7 +430,7 @@ function babaMessage(bot, message)
 	}
 	if(msgContent.includes('!bsetgame')) //code to set game
 	{
-		if(message.channel.type != "DM" && message.member.roles.cache.has(babadata.adminId)) //check if admin
+		if(message.channel.type != 1 && message.member.roles.cache.has(babadata.adminId)) //check if admin
 		{
 			var text = msgContent;
 			var tyepe = -1;
@@ -457,14 +463,14 @@ function babaMessage(bot, message)
 	}
 	if(msgContent.includes('!banhammer')) //code to set ban hammer
 	{
-		if(message.channel.type != "DM" && message.member.roles.cache.has(babadata.adminId)) //check if admin
+		if(message.channel.type != 1 && message.member.roles.cache.has(babadata.adminId)) //check if admin
 		{
 			var message_id = message.content.replace(/\D/g,''); //get message id
 			var fnd = false;
 			
 			var chanMap = message.guild.channels.fetch().then(channels => {
 				channels.each(chan => { //iterate through all the channels
-					if (!fnd && chan.type == "GUILD_TEXT") //make sure the channel is a text channel
+					if (!fnd && chan.type == 0) //make sure the channel is a text channel
 					{
 						chan.threads.fetch().then(thread => 
 							thread.threads.each(thr =>
@@ -489,7 +495,7 @@ function babaMessage(bot, message)
 	}
 	if(msgContent.includes('!grole')) //code to set game role
 	{
-		if(message.channel.type != "DM" && message.member.roles.cache.has(babadata.adminId)) //check if admin
+		if(message.channel.type != 1 && message.member.roles.cache.has(babadata.adminId)) //check if admin
 		{
 			role_name = message.content.split(' ').slice(0, 2).join(' ').substring(6).replace(' ',''); //get the name for the role
 			var message_id = message.content.replace(role_name,''); //remove role name from string
@@ -498,7 +504,7 @@ function babaMessage(bot, message)
 			
 			var chanMap = message.guild.channels.fetch().then(channels => {
 				channels.each(chan => { //iterate through all the channels
-					if (!fnd && chan.type == "GUILD_TEXT") //make sure the channel is a text channel
+					if (!fnd && chan.type == 0) //make sure the channel is a text channel
 					{
 						chan.threads.fetch().then(thread => 
 							thread.threads.each(thr =>

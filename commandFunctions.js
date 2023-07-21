@@ -1,6 +1,6 @@
 const { FormatPurityList, HPLGenChannel, HPLGenUsers, HPLSelectChannel, HPLSelectUser, HPLSelectDate, HaikuSelection, ObtainDBHolidays, NameFromUserID, HPLGenD8 } = require("./database.js");
-const { getD1, FindDate, GetDate, dateDiffInDays, uExist } = require("./HelperFunctions/genericHelpers.js");
-const { CheckHoliday, FindNextHoliday, MakeImage, EmbedHaikuGen, loadHurricaneHelpers, checkHurricaneStuff } = require("./HelperFunctions/commandHelpers.js");
+const { getD1, FindDate, GetDate, dateDiffInDays, uExist } = require("./HelperFunctions/basicHelpers.js");
+const { CheckHoliday, FindNextHoliday, MakeImage, EmbedHaikuGen, loadHurricaneHelpers, checkHurricaneStuff, monthFromInt } = require("./HelperFunctions/commandHelpers.js");
 const { normalizeMSG } = require("./HelperFunctions/dbHelpers.js");
 const { funnyDOWText } = require("./HelperFunctions/slashFridayHelpers.js");
 
@@ -17,8 +17,8 @@ const options = { year: 'numeric', month: 'long', day: 'numeric' }; // for date 
 function babaFriday()
 {
     var templocal = babadata.datalocation + "FrogHolidays/"; //creates the output frog image
-    var newAttch = new Discord.MessageAttachment().setFile(templocal + "/Friday.jpg"); //makes a new discord attachment
-    return { content: "FRIDAY!", files: [newAttch] };
+    var newFile = new Discord.AttachmentBuilder(templocal + "/Friday.jpg", { name: 'Friday.jpg', description : "Baba Friday Image, As it is ALWAYS Friday!" });
+    return { content: "FRIDAY!", files: [newFile] };
 }
 
 function babaRNG(min, max, spoiler)
@@ -144,8 +144,11 @@ function babaVibeFlag()
 
     var sood = locals[seed % 7][(d1.getDay() + d1_useage.getDate()) % 7]; // "the mommy number and daddy numbers get drunk and invite cousins" - Caden 2021
     
-    var newAttch = new Discord.MessageAttachment().setFile(babadata.datalocation + "Flags/" + "Night_Shift_" + sood + ".png"); //makes a new discord attachment
-    return {content: flagtext, files: [newAttch] };
+    // var newAttch = new Discord.MessageAttachment().setFile(); //makes a new discord attachment
+    var newFile = new Discord.AttachmentBuilder(babadata.datalocation + "Flags/" + "Night_Shift_" + sood + ".png", 
+        { name: 'NightShift.png', description : "This one is indexed as " + sood + "!" });
+
+    return {content: flagtext, files: [newFile] };
     
 }
 
@@ -153,15 +156,18 @@ function babaYugo()
 {
     var yugotext = "Here Yugo!";
     var num = Math.floor(Math.random() * 11); //pick a random one
-    var yugo = babadata.datalocation + "Yugo/" + num.toString() + ".jpg";
+    var yugo = new Discord.AttachmentBuilder(babadata.datalocation + "Yugo/" + num.toString() + ".jpg", 
+        { name: 'Yugo.jpg', description : "This is yugo number " + num + "!\nHere Yugo, Get IT, GET IT! HHUEHUEHEUHEHEUEUEHUEHUEHUE!" });
+
     return { content: yugotext, files: [yugo] };
 }
 
 function babaRepost()
 {
     var num = Math.floor(Math.random() * 5); //pick a random one
-    var yugo = babadata.datalocation + "Repost/" + num.toString() + ".png";
-    return { files: [yugo] };
+    var reppy = new Discord.AttachmentBuilder(babadata.datalocation + "Repost/" + num.toString() + ".png", 
+        { name: 'Repost.png', description : "This is repost number " + num + "!\nWhen will jeremy finish his report detector?"});
+    return { files: [reppy] };
 }
 
 
@@ -209,13 +215,32 @@ function babaHaikuEmbed(purity, list, chans, mye, buy, msgContent, pagestuff, ca
             }
             else
             {
-                bonust = " List"
-                HPLGenUsers(function(result)
+                if (buy == 4)
                 {
-                    hpl = FormatPurityList(result, false, pagestuff);
-                    haifou = true;
-                    return callback(EmbedPurityGen(hpl, bonust, bonupr, pagestuff));
-                });
+                    bonust = " List for ";
+                    bonust += (msgContent[6] == "chans" ? "Channels" : (msgContent[6] == "dates" ? "Dates" : "Users"));
+                    HaikuSelection(function(result)
+                    {
+                        hpl = FormatPurityList(result, (msgContent[6] == "chans" ? true : (msgContent[6] == "dates" ? 2 : false)), pagestuff);
+
+                        if (hpl.retstring.length != 0)
+                        {
+                            haifou = true;
+                            return callback(EmbedPurityGen(hpl, bonust, bonupr, pagestuff, msgContent));
+                        }
+                        else hpl = {"retstring": ["No Haiku Purity Found based on Selections"], "total": 1};
+                    }, buy, msgContent);
+                }
+                else
+                {
+                    bonust = " List"
+                    HPLGenUsers(function(result)
+                    {
+                        hpl = FormatPurityList(result, false, pagestuff);
+                        haifou = true;
+                        return callback(EmbedPurityGen(hpl, bonust, bonupr, pagestuff));
+                    });
+                }
             }
         }
         else
@@ -299,22 +324,118 @@ function babaHaikuEmbed(purity, list, chans, mye, buy, msgContent, pagestuff, ca
     }
 }
 
-function EmbedPurityGen(hpl, bonust, bonupr, pagestuff)
+function EmbedPurityGen(hpl, bonust, bonupr, pagestuff, msgContent)
 {
     var objs = [];
     var pagetotal = Math.ceil(hpl.total / pagestuff.ipp);
     for (var e = 0; e < pagetotal; e++)
     {
         var obj = {content: "BABA MAKE HAIKU"};
+        if (msgContent != undefined)
+        {
+            var sd = msgContent[0];
+            var startDate = null;
+            var ed = msgContent[1];
+            var endDate = null;
+            var chan = msgContent[2];
+            var pson = msgContent[3];
+            var kword = msgContent[4];
+
+            var cont = "BABA MAKE HAIKU\n";
+            cont += "```\n";
+
+            if (pson != null)
+            {
+                var ppl2s = pson.split("---");
+                cont += "Users: \n";
+                if (ppl2s[1] != "")
+                {
+                    var ids = ppl2s[1].split(",");
+                    
+                    cont += "\t-> " + ids.map(id => global.userCache[id]).join(", ") + "\n";
+                }
+                if (ppl2s[0] != "")
+                {
+                    cont += "\t-> " + ppl2s[0] + "\n";
+                }
+            }
+
+            if (chan != null)
+            {
+                var chans = chan.split(",");
+                cont += "Channels: \n";
+                cont += "\t-> " + chans.map(id => global.channelCache[id]).join(", ") + "\n";
+            }
+
+            if (kword != null)
+                cont += "Containing: " + kword.split(" ").join(", ") + "\n";
+
+            if (sd != null || ed != null)
+            {
+                if (sd != null)
+                    startDate = FindDate(sd);
+                if (ed != null)
+                    endDate = FindDate(ed);
+
+                if (startDate == null && endDate != null) startDate = endDate;
+
+                if (startDate != null)
+                {
+                    var d1 = new Date(startDate.year, startDate.month - 1, startDate.day);
+                    if (endDate != null)
+                    {
+                        var d2 = new Date(endDate.year, endDate.month - 1, endDate.day);
+                        if (endDate < startDate)
+                        {
+                            var temp = startDate;
+                            startDate = endDate;
+                            endDate = temp;
+                        }
+                        
+                        cont += "From: " + d1.toLocaleDateString('en-US', options) + "\n";
+                        cont += "To: " + d2.toLocaleDateString('en-US', options) + "\n";
+                    }
+                    else
+                    {
+                        cont += "Occuring On: " + d1.toLocaleDateString('en-US', options) + "\n";
+                    }
+                }
+                else if (sd != null)
+                {
+                    startDate = FindDate(sd, true);
+                    if (startDate != null)
+                    {
+                        var year = startDate.year;
+                        var month = startDate.month;
+                        var day = startDate.day;
+                        
+                        month = (month == 0) ? month = "ANY Month" : monthFromInt(month)
+                        day = (day == 0) ? day = "ANY Day" : day;
+                        year = (year == 0) ? year = "ANY Year" : year;
+                        
+                        cont += "Occuring On Any Instance of: " + `${month} ${day}, ${year}` + "\n";
+                    }
+                }
+            } 
+
+            //remove last newline
+            cont = cont.substring(0, cont.length - 1);
+            cont += "```\n";
+
+            if (msgContent[0] == null && msgContent[1] == null && msgContent[2] == null && msgContent[3] == null && msgContent[4] == null)
+                cont = "BABA MAKE HAIKU";
+
+            obj = {content: cont};
+        }
 
         var footer = "Haikus by Baba!";
         if (pagetotal > 1) 
         {
             footer += " - Page " + (1 + e) + " of " + pagetotal;
-            var row = new Discord.MessageActionRow();
+            var row = new Discord.ActionRowBuilder();
             
-            var pButton = new Discord.MessageButton().setCustomId("page"+(e - 1)).setLabel("Previous").setStyle("PRIMARY");
-            var nButton = new Discord.MessageButton().setCustomId("page"+(1 + e)).setLabel("Next").setStyle("PRIMARY");
+            var pButton = new Discord.ButtonBuilder().setCustomId("page"+(e - 1)).setLabel("Previous").setStyle(1);
+            var nButton = new Discord.ButtonBuilder().setCustomId("page"+(1 + e)).setLabel("Next").setStyle(1);
             if (e == 0)
             {
                 pButton.setDisabled(true);
@@ -328,11 +449,16 @@ function EmbedPurityGen(hpl, bonust, bonupr, pagestuff)
             obj.components = [row];
         }
     
-        var exampleEmbed = new Discord.MessageEmbed() // embed for the haiku
+        var footobj = {
+            text : footer,
+            iconURL : "https://media.discordapp.net/attachments/574840583563116566/949515044746559568/JSO3bX0V.png"
+        };
+
+        var exampleEmbed = new Discord.EmbedBuilder() // embed for the haiku
         .setColor("#" + (Math.random() < .5 ? "0" : "F") + (Math.random() < .5 ? "0" : "F") + (Math.random() < .5 ? "0" : "F") + (Math.random() < .5 ? "0" : "F") + (Math.random() < .5 ? "0" : "F") + (Math.random() < .5 ? "0" : "F"))
         .setTitle(bonupr + "Haiku Purity" + bonust)
         .setDescription(hpl.retstring[e])
-        .setFooter(footer, "https://media.discordapp.net/attachments/574840583563116566/949515044746559568/JSO3bX0V.png");
+        .setFooter(footobj);
         obj.embeds = [exampleEmbed];
         objs.push(obj);
     }
@@ -423,8 +549,10 @@ function babaWednesday(msgContent, author, callback)
 
                 if (isNaN(d2))
                 {
-                    var atch = new Discord.MessageAttachment().setFile(babadata.datalocation + "FrogHolidays/error.png");
-                    outs.push({ content: "The date does not exist so BABA will give you ERROR frog!", files: [atch] });
+                    var fronge = new Discord.AttachmentBuilder(babadata.datalocation + "FrogHolidays/error.png", 
+                        { name: 'ErrorFrog.png', description : "Brug, run commands better bud hee!"});
+
+                    outs.push({ content: "The date does not exist so BABA will give you ERROR frog!", files: [fronge] });
                     continue;
                 }
     
@@ -597,14 +725,16 @@ function babaWednesday(msgContent, author, callback)
     
             for (var j = 0; j < templocationslist.length; j++)
             {
-                var newAttch = new Discord.MessageAttachment().setFile(templocationslist[j]); //makes a new discord attachment
+                var newAttch = new Discord.AttachmentBuilder(templocationslist[j], 
+                    { name: IsHoliday[j].name + '.png', description : "It is " + IsHoliday[j].name + ", my dudes"}); //makes a new discord attachment
                 try
                 {
                     fs.accessSync(templocationslist[j], fs.constants.R_OK | fs.constants.W_OK);
                 } 
                 catch (err)
                 {
-                    newAttch = new Discord.MessageAttachment().setFile(templocal + "error.png"); //makes a new discord attachment (default fail image)
+                    var newAttch = new Discord.AttachmentBuilder(templocal + "error.png", 
+                        { name: 'error.png', description : "It is error time, my dudes! Brug why you erroring baba?"}); //makes a new discord attachment (default fail image)
                 }
                 
                 var op = { content: "It is Wednesday, My BABAs", files: [newAttch] }
@@ -758,12 +888,17 @@ async function babaHurricane(hurricanename, callback)
        response.pipe(file);
     
        // after download completed close filestream
-       file.on("finish", () => {
-           file.close();
-           console.log("Download Completed");
+        file.on("finish", () => {
+            file.close();
+            console.log("Download Completed");
 
-           callback({ content: "Baba Hurricane Info" + binus, files: [tempFilePath] });
-       });
+            var vv = hFull === undefined ? "Hurricanes" : hFull;
+           
+            var newAttch = new Discord.AttachmentBuilder(tempFilePath, 
+                { name: vv + '.png', description : "Hurricane Info for " + vv}); //makes a new discord attachment
+
+           callback({ content: "Baba Hurricane Info" + binus, files: [newAttch] });
+        });
     });
 }
 
@@ -811,7 +946,10 @@ function babaWeather(mode, city, callback)
            file.close();
            console.log("Download Completed");
 
-           callback({ content: "Baba Weather", files: [tempFilePath] });
+           var newAttch = new Discord.AttachmentBuilder(tempFilePath, 
+               { name: city + '.png', description : "Weather info for " + city}); //makes a new discord attachment
+
+           callback({ content: "Baba Weather", files: [newAttch] });
         }).on('error', () => {
             callback({ content: "Baba Weather Error" });
         });

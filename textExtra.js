@@ -4,27 +4,8 @@ const fs = require('fs');
 const https = require('https');
 const fetch = require('node-fetch');
 
-const { SetHolidayChan, dailyRandom, fronge } = require("./HelperFunctions/genericHelpers.js");
+const { SetHolidayChan, dailyRandom, fronge, Seperated, enumConverter } = require("./HelperFunctions/basicHelpers.js");
 const { reverseDelay } = require("./HelperFunctions/commandHelpers.js");
-
-
-
-function Seperated(vle)
-{
-	if (vle.length > 2000)
-	{
-		var vleNew = vle.substring(0, 2000);
-		var lindex = vleNew.lastIndexOf("\n");
-		vle = vleNew.substring(lindex + 1) + vle.substring(2000);
-		vleNew = vleNew.substring(0, lindex);
-
-		var sgtuff = [vleNew];
-		var s2 = Seperated(vle);
-		sgtuff = sgtuff.concat(s2);
-		return sgtuff;
-	}
-	else return [vle];
-}
 
 function generateTabs(num)
 {
@@ -211,7 +192,7 @@ function TextCommandBackup(bot, message, sentvalid, msgContent, g)
 			var message_id = message.content.replace(/\D/g,''); //get message id
 			var chanMap = g.channels.fetch().then(channels => {
 				channels.each(chan => { //iterate through all the channels
-					if (!fnd && chan.type == "GUILD_TEXT") //make sure the channel is a text channel
+					if (!fnd && chan.type == 0) //make sure the channel is a text channel
 					{
 						chan.threads.fetch().then(thread => 
 							thread.threads.each(thr =>
@@ -242,7 +223,7 @@ function TextCommandBackup(bot, message, sentvalid, msgContent, g)
 			var message_id = message.content.replace(/\D/g,''); //get message id
 			var chanMap = g.channels.fetch().then(channels => {
 				channels.each(chan => { //iterate through all the channels
-					if (!fnd && chan.type == "GUILD_TEXT") //make sure the channel is a text channel
+					if (!fnd && chan.type == 0) //make sure the channel is a text channel
 					{
 						chan.threads.fetch().then(thread => 
 							thread.threads.each(thr =>
@@ -296,7 +277,7 @@ function TextCommandBackup(bot, message, sentvalid, msgContent, g)
 						var avatarimg = user.user.avatarURL();
 
 						thread = false;
-						if (hiddenChan.type.includes("THREAD")) 
+						if (hiddenChan.type >= 10 && hiddenChan.type < 13)
 						{
 							hiddenChan = g.channels.cache.get(hiddenChan.parentId);
 							thread = true;
@@ -384,7 +365,7 @@ function TextCommandBackup(bot, message, sentvalid, msgContent, g)
 
 			var chanMap = g.channels.fetch().then(channels => {
 				channels.each(chan => { //iterate through all the channels
-					if (!fnd && chan.type == "GUILD_TEXT") //make sure the channel is a text channel
+					if (!fnd && chan.type == 0) //make sure the channel is a text channel
 					{
 						chan.threads.fetch().then(thread => 
 							thread.threads.each(thr =>
@@ -401,7 +382,7 @@ function TextCommandBackup(bot, message, sentvalid, msgContent, g)
 										console.log(items[i]);
 										mehstagw.react(items[i]).catch(console.error);
 									}
-									mess.author.send("SUCC cess");
+									message.author.send("SUCC cess");
 								}).catch(function (err) {});
 							})
 						).catch(function (err) {});
@@ -418,7 +399,7 @@ function TextCommandBackup(bot, message, sentvalid, msgContent, g)
 								console.log(items[i]);
 								mehstagw.react(items[i]).catch(console.error);
 							}
-							mess.author.send("SUCC cess");
+							message.author.send("SUCC cess");
 						}).catch(function (err) {}); 
 					}
 				});
@@ -498,15 +479,17 @@ function TextCommandBackup(bot, message, sentvalid, msgContent, g)
 				{
 					var k = entries[i];
 					var act = k.action;
+					var actTxt = enumConverter(act);
 					var user = k.executor ? k.executor.id : 0;
 					var reason = k.reason;
 					var target = k.target;
 					var chaib = k.changes;
 
-					var outpiut = "`" + act + (user != 0 ? "` by <@" + user + ">" : "`");
+					var outpiut = "`" + actTxt + (user != 0 ? "` by <@" + user + ">" : "`");
 
 					if (reason != null) outpiut += " for `" + reason + "`:";
 					else outpiut += ":";
+
 					// if (k.targetType == "USER") outpiut += " <@" + target + ">";
 					// else if (k.targetType == "GUILD_MEMBER") outpiut += " <@" + target.user.id + ">";
 					// else if (k.targetType == "MEMBER") outpiut += " <@" + target.user.id + ">";
@@ -521,7 +504,7 @@ function TextCommandBackup(bot, message, sentvalid, msgContent, g)
 					// else if (k.targetType == "STAGE_INSTANCE") outpiut += " " + target.id;
 					// else if (k.targetType == "STICKER") outpiut += " " + target.name;
 					// else if (k.targetType == "GUILD") outpiut += " " + target.id;
-					switch (k.targetType) {
+					switch (k.targetType.toUpperCase()) {
 						case "USER":
 							outpiut += " <@" + target + ">";
 							break;
