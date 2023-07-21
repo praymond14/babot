@@ -4,7 +4,7 @@ const fs = require('fs');
 const https = require('https');
 const fetch = require('node-fetch');
 
-const { SetHolidayChan, dailyRandom, fronge, Seperated } = require("./HelperFunctions/basicHelpers.js");
+const { SetHolidayChan, dailyRandom, fronge, Seperated, enumConverter } = require("./HelperFunctions/basicHelpers.js");
 const { reverseDelay } = require("./HelperFunctions/commandHelpers.js");
 
 function generateTabs(num)
@@ -479,15 +479,17 @@ function TextCommandBackup(bot, message, sentvalid, msgContent, g)
 				{
 					var k = entries[i];
 					var act = k.action;
+					var actTxt = enumConverter(act);
 					var user = k.executor ? k.executor.id : 0;
 					var reason = k.reason;
 					var target = k.target;
 					var chaib = k.changes;
 
-					var outpiut = "`" + act + (user != 0 ? "` by <@" + user + ">" : "`");
+					var outpiut = "`" + actTxt + (user != 0 ? "` by <@" + user + ">" : "`");
 
 					if (reason != null) outpiut += " for `" + reason + "`:";
 					else outpiut += ":";
+
 					// if (k.targetType == "USER") outpiut += " <@" + target + ">";
 					// else if (k.targetType == "GUILD_MEMBER") outpiut += " <@" + target.user.id + ">";
 					// else if (k.targetType == "MEMBER") outpiut += " <@" + target.user.id + ">";
@@ -502,7 +504,7 @@ function TextCommandBackup(bot, message, sentvalid, msgContent, g)
 					// else if (k.targetType == "STAGE_INSTANCE") outpiut += " " + target.id;
 					// else if (k.targetType == "STICKER") outpiut += " " + target.name;
 					// else if (k.targetType == "GUILD") outpiut += " " + target.id;
-					switch (k.targetType) {
+					switch (k.targetType.toUpperCase()) {
 						case "USER":
 							outpiut += " <@" + target + ">";
 							break;

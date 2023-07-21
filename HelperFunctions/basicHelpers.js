@@ -670,10 +670,10 @@ function FrogButtons(texts, interaction, message)
 {
 	for (var i = 0; i < texts.length; i++)
 	{
-		var row = new Discord.MessageActionRow();
+		var row = new Discord.ActionRowBuilder();
 		
-		var pButton = new Discord.MessageButton().setCustomId("page"+(i - 1)).setLabel("Previous").setStyle("PRIMARY");
-		var nButton = new Discord.MessageButton().setCustomId("page"+(1 + i)).setLabel("Next").setStyle("PRIMARY");
+		var pButton = new Discord.ButtonBuilder().setCustomId("page"+(i - 1)).setLabel("Previous").setStyle(1);
+		var nButton = new Discord.ButtonBuilder().setCustomId("page"+(1 + i)).setLabel("Next").setStyle(1);
 		if (i == 0)
 		{
 			pButton.setDisabled(true);
@@ -723,6 +723,127 @@ async function uExist(url)
 	});
 }
 
+function enumConverter(int)
+{
+	switch(int)
+	{
+		case 1:
+			return "GuildUpdate";
+		case 10:
+			return "ChannelCreate";
+		case 11:
+			return "ChannelUpdate";
+		case 12:
+			return "ChannelDelete";
+		case 13:
+			return "ChannelOverwriteCreate";
+		case 14:
+			return "ChannelOverwriteUpdate";
+		case 15:
+			return "ChannelOverwriteDelete";
+		case 20:
+			return "MemberKick";
+		case 21:
+			return "MemberPrune";
+		case 22:
+			return "MemberBanAdd";
+		case 23:
+			return "MemberBanRemove";
+		case 24:
+			return "MemberUpdate";
+		case 25:
+			return "MemberRoleUpdate";
+		case 26:
+			return "MemberMove";
+		case 27:
+			return "MemberDisconnect";
+		case 28:
+			return "BotAdd";
+		case 30:
+			return "RoleCreate";
+		case 31:
+			return "RoleUpdate";
+		case 32:
+			return "RoleDelete";
+		case 40:
+			return "InviteCreate";
+		case 41:
+			return "InviteUpdate";
+		case 42:
+			return "InviteDelete";
+		case 50:
+			return "WebhookCreate";
+		case 51:
+			return "WebhookUpdate";
+		case 52:
+			return "WebhookDelete";
+		case 60:
+			return "EmojiCreate";
+		case 61:
+			return "EmojiUpdate";
+		case 62:
+			return "EmojiDelete";
+		case 72:
+			return "MessageDelete";
+		case 73:
+			return "MessageBulkDelete";
+		case 74:
+			return "MessagePin";
+		case 75:
+			return "MessageUnpin";
+		case 80:
+			return "IntegrationCreate";
+		case 81:
+			return "IntegrationUpdate";
+		case 82:
+			return "IntegrationDelete";
+		case 83:
+			return "StageInstanceCreate";
+		case 84:
+			return "StageInstanceUpdate";
+		case 85:
+			return "StageInstanceDelete";
+		case 90:
+			return "StickerCreate";
+		case 91:
+			return "StickerUpdate";
+		case 92:
+			return "StickerDelete";
+		case 100:
+			return "GuildScheduledEventCreate";
+		case 101:
+			return "GuildScheduledEventUpdate";
+		case 102:
+			return "GuildScheduledEventDelete";
+		case 110:
+			return "ThreadCreate";
+		case 111:
+			return "ThreadUpdate";
+		case 112:
+			return "ThreadDelete";
+		case 121:
+			return "ApplicationCommandPermissionUpdate";
+		case 140:
+			return "AutoModerationRuleCreate";
+		case 141:
+			return "AutoModerationRuleUpdate";
+		case 142:
+			return "AutoModerationRuleDelete";
+		case 143:
+			return "AutoModerationBlockMessage";
+		case 144:
+			return "AutoModerationFlagToChannel";
+		case 145:
+			return "AutoModerationUserCommunicationDisabled";
+		case 150:
+			return "CreatorMonetizationRequestCreated";
+		case 151:
+			return "CreatorMonetizationTermsAccepted";
+		default:
+			return "Unknown";
+	}
+}
+
 module.exports = {
 	RoleAdd,
     getD1,
@@ -742,5 +863,6 @@ module.exports = {
     FrogButtons,
     handleButtonsEmbed,
 	uExist,
-	Seperated
+	Seperated,
+	enumConverter
 };

@@ -211,7 +211,6 @@ function HPLSelectChannel(callback, msgContent)
 
 function HPLSelectDate(callback, msgContent)
 {
-	console.log(msgContent);
 	con.query(`SELECT date as Name, Count(*) as Count, SUM(IF(Accidental = '1', 1, 0)) as Accidental, SUM(IF(Accidental = '1', 1, 0))/COUNT(Accidental) * 100 As Purity FROM haiku 
 	Where `+ searchDate(msgContent) +
 	`Group by date`, function (err, result)
@@ -345,6 +344,34 @@ function HaikuSelection(callback, by, msgContent)
 			query += " WHERE ";
 
 		query += addquery.join(" AND ");
+
+		if (msgContent[5] == "purity")
+		{
+			var pMode = msgContent[6];
+			var queueueueu = "SELECT " + (pMode == "chans" ? "ChannelName" : (pMode == "users" ? "haiku.PersonName" : "date"))
+			queueueueu += " as Name";
+			queueueueu += (pMode == "chans" ? ", haiku.ChannelID as ID" : (pMode == "users" ? ", DiscordID as ID" : ""))
+			queueueueu += ", Count(*) as Count, SUM(IF(Accidental = '1', 1, 0)) as Accidental, SUM(IF(Accidental = '1', 1, 0))/COUNT(Accidental) * 100 As Purity FROM haiku";
+
+			queueueueu += `
+			Left Join userval on haiku.PersonName = userval.PersonName 
+			Left Join channelval on haiku.ChannelID = channelval.ChannelID`;
+
+			if (addquery.length)
+				queueueueu += " WHERE ";
+
+			queueueueu += addquery.join(" AND ");
+
+			queueueueu += " " + (pMode == "chans" ? "Group by haiku.ChannelID" : (pMode == "users" ? "Group by haiku.PersonName" : "Group by date order by count desc, purity desc, name desc"));
+
+			console.log(queueueueu);
+			con.query(queueueueu, function (err, result) 
+			{
+				if (err) throw err;
+				return callback(result);
+			});
+			return;
+		}
 	}
 	else if (by == 5)
 	{
@@ -679,6 +706,30 @@ function cacheDOW()
 			return;
 		}
   	});
+
+	global.channelCache = {};
+	con.query(`Select * from channelval`,
+		function (err, result)
+		{
+			for (var i = 0; i < result.length; i++)
+			{
+				var res = result[i];
+				global.channelCache[res.ChannelID] = res.ChannelName;
+			}
+		}
+	);
+
+	global.userCache = {};
+	con.query(`Select * from userval`,
+		function (err, result)
+		{
+			for (var i = 0; i < result.length; i++)
+			{
+				var res = result[i];
+				global.userCache[res.DiscordID] = res.PersonName;
+			}
+		}
+	);
 
 	con.query(`Select * from dow`,
 	function (err, result)

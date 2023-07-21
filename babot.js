@@ -10,12 +10,13 @@ const txtCommands = require('./textCommands.js');
 const { voiceChannelChange, startUpChecker } = require("./voice.js");
 const { cacheOpts, handleDisconnect, eventDB } = require('./database');
 const { dailyCallStart } = require('./dailycall.js');
-const { contextInfo, modalInfo } = require('./contextMenu');
+const { contextInfo, modalInfo, buttonInfo, stringSelectInfo, userSelectInfo, channelSelectInfo } = require('./contextMenu');
 
 global.dbAccess = [!process.argv.includes("-db"), process.argv.includes("-db") ? false : true];
 global.starttime = new Date();
 
 global.toke = babadata.token;
+global.interactions = {};
 
 
 // Initialize Discord Bot
@@ -114,6 +115,27 @@ bot.on('interactionCreate', async interaction => {
 		modalInfo(interaction, bot);
 		return;
 	}
+	else if (interaction.isButton())
+	{
+		buttonInfo(interaction, bot);
+		return;
+	}
+	else if (interaction.isStringSelectMenu())
+	{
+		stringSelectInfo(interaction, bot);
+		return;
+	}
+	else if (interaction.isUserSelectMenu())
+	{
+		userSelectInfo(interaction, bot);
+		return;
+	}
+	else if (interaction.isChannelSelectMenu())
+	{
+		channelSelectInfo(interaction, bot);
+		return;
+	}
+		
 
 	if(!interaction.isCommand()) return;
 

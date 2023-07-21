@@ -273,7 +273,7 @@ function EmbedHaikuGen(haiku, simnames)
         };
 
 		var obj = {content: "BABA MAKE HAIKU"};
-        var bad = new Discord.MessageEmbed() // embed for the haiku
+        var bad = new Discord.EmbedBuilder() // embed for the haiku
         .setColor("#" + (Math.random() < .5 ? "0" : "F") + (Math.random() < .5 ? "0" : "F") + (Math.random() < .5 ? "0" : "F") + (Math.random() < .5 ? "0" : "F") + (Math.random() < .5 ? "0" : "F") + (Math.random() < .5 ? "0" : "F"))
         .setDescription("No Haikus Found!")
         .setFooter(footobj);
@@ -290,11 +290,11 @@ function EmbedHaikuGen(haiku, simnames)
 		{
 			var ovb = SingleHaiku(haiku[e], simnames, e, haiku.length);
 			
-			var row = new Discord.MessageActionRow();
+			var row = new Discord.ActionRowBuilder();
 
 			if (haiku.length > 100) 
 			{
-				var p100btn = new Discord.MessageButton().setCustomId("page"+(e - 100)).setLabel("-100").setStyle("PRIMARY");
+				var p100btn = new Discord.ButtonBuilder().setCustomId("page"+(e - 100)).setLabel("-100").setStyle(1);
 				if (e < 100)
 				{
 					p100btn.setDisabled(true);
@@ -302,8 +302,8 @@ function EmbedHaikuGen(haiku, simnames)
 				row.addComponents(p100btn);
 			}
 
-			var pButton = new Discord.MessageButton().setCustomId("page"+(e - 1)).setLabel("Previous").setStyle("PRIMARY");
-			var nButton = new Discord.MessageButton().setCustomId("page"+(1 + e)).setLabel("Next").setStyle("PRIMARY");
+			var pButton = new Discord.ButtonBuilder().setCustomId("page"+(e - 1)).setLabel("Previous").setStyle(1);
+			var nButton = new Discord.ButtonBuilder().setCustomId("page"+(1 + e)).setLabel("Next").setStyle(1);
 
 			if (e == 0)
 			{
@@ -318,7 +318,7 @@ function EmbedHaikuGen(haiku, simnames)
 			
 			if (haiku.length > 100) 
 			{
-				var n100btn = new Discord.MessageButton().setCustomId("page"+(e + 100)).setLabel("+100").setStyle("PRIMARY");
+				var n100btn = new Discord.ButtonBuilder().setCustomId("page"+(e + 100)).setLabel("+100").setStyle(1);
 				if (e >= haiku.length - 100)
 				{
 					n100btn.setDisabled(true);
@@ -484,6 +484,37 @@ async function checkHurricaneStuff(hurricanename, isFirst, eye)
 		return false;
 }
 
+function monthFromInt(mint)
+{
+	switch(mint)
+	{
+		case 1:
+			return "January";
+		case 2:
+			return "Febuary";
+		case 3:
+			return "March";
+		case 4:
+			return "April";
+		case 5:
+			return "May";
+		case 6:
+			return "June";
+		case 7:
+			return "July";
+		case 8:
+			return "August";
+		case 9:
+			return "September";
+		case 10:
+			return "October";
+		case 11:
+			return "November";
+		default:
+			return "December";
+	}
+}
+
 module.exports = {
     getErrorFlag,
     MakeImage,
@@ -492,5 +523,6 @@ module.exports = {
     EmbedHaikuGen,
     CheckHoliday,
 	loadHurricaneHelpers,
-	checkHurricaneStuff
+	checkHurricaneStuff,
+	monthFromInt
 };
