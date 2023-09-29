@@ -614,14 +614,12 @@ function preformEasterEggs(message, msgContent, bot)
 			if (!(message.author.bot && msgContent == "# indeed, adam please!"))
 				message.channel.send("# Indeed, Adam Please!");
 		}
-		else
-		{
-			var num = Math.floor(Math.random() * 100); //pick a random one
-			if (num < 2)
-				message.channel.send("<:adam:995385148331802634>");
-			if (num < 25)
-				message.react("995385148331802634").catch(console.error);
-		}
+		
+		var num = Math.floor(Math.random() * 100); //pick a random one
+		if (num < 2)
+			message.channel.send("<:adam:995385148331802634>");
+
+		message.react("995385148331802634").catch(console.error);
 	}
 
 	if(ames.includes('sami'))
@@ -631,17 +629,40 @@ function preformEasterEggs(message, msgContent, bot)
 			if (!(message.author.bot && msgContent == "indeed, sami please!"))
 				message.channel.send("Indeed, Sami Please!");
 		}
-		else
+
+		var num = Math.floor(Math.random() * 100);
+		if (num < 2)
+			message.channel.send("<:sami:1105524011854729237>");
+
+		message.react("1105524011854729237").catch(console.error);
+	}
+
+	if(ames.includes('ryan'))
+	{
+		if(ames.includes("please"))
 		{
-			var num = Math.floor(Math.random() * 100);
-			if (num < 2)
-				message.channel.send("<:sami:1105524011854729237>");
-			if (num < 25)
-				message.react("1105524011854729237").catch(console.error);
+			if (!(message.author.bot && msgContent == "indeed, ryan please!"))
+				message.channel.send("Indeed, Ryan Please!");
+		}
+	}
+	if(ames.includes('isaac'))
+	{
+		if(ames.includes("please"))
+		{
+			if (!(message.author.bot && msgContent == "indeed, isaac please!"))
+				message.channel.send("Indeed, Isaac Please!");
+		}
+	}
+	if(ames.includes('amanda'))
+	{
+		if(ames.includes("please"))
+		{
+			if (!(message.author.bot && msgContent == "indeed, amanda please!"))
+				message.channel.send("Indeed, Amanda Please!");
 		}
 	}
 
-	if (ames.includes("frog") || msgContent.includes("🐸"))
+	if (ames.includes("frog") || msgContent.includes("🐸") || ames.includes("toad"))
 	{
 		message.react("🐸");
 	}
