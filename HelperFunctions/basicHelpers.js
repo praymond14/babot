@@ -397,7 +397,6 @@ function CreateChannel(server, name, d1)
 			{
 				if (chan.name.toLowerCase() === name)
 				{
-					console.log(server);
 					const tempo1 = server.channels.create(
 					{
 						name: 'Temp Holiday Channel',
