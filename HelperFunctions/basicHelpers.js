@@ -269,7 +269,8 @@ function SetHolidayChan(guild, name, resetid = -1)
 	console.log("SetHolidayChan: " + name + " " + resetid);
 
 	let to = 0;
-	let rawdata = fs.readFileSync(__dirname + '/babotdata.json');
+	var dirni = __dirname.replace("HelperFunctions", "");
+	let rawdata = fs.readFileSync(dirni + 'babotdata.json');
 	let baadata = JSON.parse(rawdata);
 
 	var rename = name.indexOf("-n") <= 0;
@@ -377,7 +378,8 @@ function SetHolidayChan(guild, name, resetid = -1)
 	setTimeout(function()
 	{
 		let n = JSON.stringify(baadata)
-		fs.writeFileSync(__dirname + '/babotdata.json', n);
+		var dirni = __dirname.replace("HelperFunctions", "");
+		fs.writeFileSync(dirni + 'babotdata.json', n);
 	}, to)
 	babadata = baadata;
 }
@@ -395,16 +397,23 @@ function CreateChannel(server, name, d1)
 			{
 				if (chan.name.toLowerCase() === name)
 				{
-					const tempo1 = server.channels.create('Temp Holiday Channel',{
-						type: 'GUILD_TEXT',
-						topic: 'Holidays brought to you by Baba!',
+					const tempo1 = server.channels.create(
+					{
+						name: 'Temp Holiday Channel',
+						type: Discord.ChannelType.GuildText,
 						parent: chan,
-						position: 3
-					}).then(result => {
+						position: 3,
+						topic: "Holidays Brought to you by Baba!",
+						reason: 'Baba Plase',
+						defaultReactionEmoji: "🎄"
+					}
+					).then(result => {
 						console.log('Here is channel id', result.id)
 						SetHolidayChan(server, "null", result.id)
-						setTimeout(function(){MonthsPlus(server, d1)}, 100);
+						setTimeout(function(){MonthsPlus(server, d1)}, 200);
 					})
+
+					return;
 				}
 			}
 		});
@@ -605,14 +614,12 @@ function preformEasterEggs(message, msgContent, bot)
 			if (!(message.author.bot && msgContent == "# indeed, adam please!"))
 				message.channel.send("# Indeed, Adam Please!");
 		}
-		else
-		{
-			var num = Math.floor(Math.random() * 100); //pick a random one
-			if (num < 2)
-				message.channel.send("<:adam:995385148331802634>");
-			if (num < 25)
-				message.react("995385148331802634").catch(console.error);
-		}
+		
+		var num = Math.floor(Math.random() * 100); //pick a random one
+		if (num < 2)
+			message.channel.send("<:adam:995385148331802634>");
+
+		message.react("995385148331802634").catch(console.error);
 	}
 
 	if(ames.includes('sami'))
@@ -622,17 +629,40 @@ function preformEasterEggs(message, msgContent, bot)
 			if (!(message.author.bot && msgContent == "indeed, sami please!"))
 				message.channel.send("Indeed, Sami Please!");
 		}
-		else
+
+		var num = Math.floor(Math.random() * 100);
+		if (num < 2)
+			message.channel.send("<:sami:1105524011854729237>");
+
+		message.react("1105524011854729237").catch(console.error);
+	}
+
+	if(ames.includes('ryan'))
+	{
+		if(ames.includes("please"))
 		{
-			var num = Math.floor(Math.random() * 100);
-			if (num < 2)
-				message.channel.send("<:sami:1105524011854729237>");
-			if (num < 25)
-				message.react("1105524011854729237").catch(console.error);
+			if (!(message.author.bot && msgContent == "indeed, ryan please!"))
+				message.channel.send("Indeed, Ryan Please!");
+		}
+	}
+	if(ames.includes('isaac'))
+	{
+		if(ames.includes("please"))
+		{
+			if (!(message.author.bot && msgContent == "indeed, isaac please!"))
+				message.channel.send("Indeed, Isaac Please!");
+		}
+	}
+	if(ames.includes('amanda'))
+	{
+		if(ames.includes("please"))
+		{
+			if (!(message.author.bot && msgContent == "indeed, amanda please!"))
+				message.channel.send("Indeed, Amanda Please!");
 		}
 	}
 
-	if (ames.includes("frog") || msgContent.includes("🐸"))
+	if (ames.includes("frog") || msgContent.includes("🐸") || ames.includes("toad"))
 	{
 		message.react("🐸");
 	}
@@ -839,6 +869,8 @@ function enumConverter(int)
 			return "CreatorMonetizationRequestCreated";
 		case 151:
 			return "CreatorMonetizationTermsAccepted";
+		case 192:
+			return "GuildVoiceStatusUpdate";
 		default:
 			return "Unknown";
 	}

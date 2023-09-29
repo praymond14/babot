@@ -157,7 +157,7 @@ function dailyCall(bot, guild)
 	let rawdataBB = fs.readFileSync(__dirname + '/babotdata.json');
 	babadata = JSON.parse(rawdataBB);
 
-	var dateoveride = [false, 1, 1]; //allows for overiding date manually (testing)
+	var dateoveride = [false, 10, 1]; //allows for overiding date manually (testing)
 
 	var yr = new Date().getFullYear(); //get this year
 	var dy = dateoveride[0] ? dateoveride[2] : new Date().getDate(); //get this day
