@@ -362,7 +362,8 @@ function HaikuSelection(callback, by, msgContent)
 
 			queueueueu += addquery.join(" AND ");
 
-			queueueueu += " " + (pMode == "chans" ? "Group by haiku.ChannelID" : (pMode == "users" ? "Group by haiku.PersonName" : "Group by date order by count desc, purity desc, name desc"));
+			queueueueu += " " + (pMode == "chans" ? "Group by haiku.ChannelID" : (pMode == "users" ? "Group by haiku.PersonName" : "Group by date"));
+			queueueueu += " order by count desc, purity desc, name desc";
 
 			console.log(queueueueu);
 			con.query(queueueueu, function (err, result) 

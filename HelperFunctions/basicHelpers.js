@@ -269,7 +269,8 @@ function SetHolidayChan(guild, name, resetid = -1)
 	console.log("SetHolidayChan: " + name + " " + resetid);
 
 	let to = 0;
-	let rawdata = fs.readFileSync(__dirname + '/babotdata.json');
+	var dirni = __dirname.replace("HelperFunctions", "");
+	let rawdata = fs.readFileSync(dirni + 'babotdata.json');
 	let baadata = JSON.parse(rawdata);
 
 	var rename = name.indexOf("-n") <= 0;
@@ -377,7 +378,8 @@ function SetHolidayChan(guild, name, resetid = -1)
 	setTimeout(function()
 	{
 		let n = JSON.stringify(baadata)
-		fs.writeFileSync(__dirname + '/babotdata.json', n);
+		var dirni = __dirname.replace("HelperFunctions", "");
+		fs.writeFileSync(dirni + 'babotdata.json', n);
 	}, to)
 	babadata = baadata;
 }
@@ -395,16 +397,24 @@ function CreateChannel(server, name, d1)
 			{
 				if (chan.name.toLowerCase() === name)
 				{
-					const tempo1 = server.channels.create('Temp Holiday Channel',{
-						type: 'GUILD_TEXT',
-						topic: 'Holidays brought to you by Baba!',
+					console.log(server);
+					const tempo1 = server.channels.create(
+					{
+						name: 'Temp Holiday Channel',
+						type: Discord.ChannelType.GuildText,
 						parent: chan,
-						position: 3
-					}).then(result => {
+						position: 3,
+						topic: "Holidays Brought to you by Baba!",
+						reason: 'Baba Plase',
+						defaultReactionEmoji: "🎄"
+					}
+					).then(result => {
 						console.log('Here is channel id', result.id)
 						SetHolidayChan(server, "null", result.id)
-						setTimeout(function(){MonthsPlus(server, d1)}, 100);
+						setTimeout(function(){MonthsPlus(server, d1)}, 200);
 					})
+
+					return;
 				}
 			}
 		});
@@ -839,6 +849,8 @@ function enumConverter(int)
 			return "CreatorMonetizationRequestCreated";
 		case 151:
 			return "CreatorMonetizationTermsAccepted";
+		case 192:
+			return "GuildVoiceStatusUpdate";
 		default:
 			return "Unknown";
 	}

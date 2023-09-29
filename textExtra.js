@@ -533,12 +533,16 @@ function TextCommandBackup(bot, message, sentvalid, msgContent, g)
 						case "GUILD":
 							outpiut += " " + target.id;
 							break;
+						case "UNKNOWN":
+							if (actTxt == "GuildVoiceStatusUpdate")
+								outpiut += " <#" + target.id + ">";
+							break;
 					}
-					  
+					// future == add more things here + voicestatusupdate
 
 					outpiut += " at `" + k.createdAt + "`";
 					
-					if (!showmusic && act == "CHANNEL_UPDATE" && user == "887854244567334973")
+					if (!showmusic && act == "ChannelUpdate" && user == "887854244567334973")
 					{
 						odd.push(outpiut);
 						continue;
