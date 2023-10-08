@@ -2,7 +2,6 @@ var babadata = require('../babotdata.json'); //baba configuration file
 // var request = require('node-fetch');
 const Discord = require('discord.js'); //discord module for interation with discord api
 const fs = require('fs');
-const images = require('images');
 const Jimp = require('jimp');
 const fetch = require('node-fetch');
 
@@ -14,10 +13,10 @@ function getErrorFlag()
 	return babadata.datalocation + "Flags/" + "error.png";
 }
 
-function MakeImage(templocal, base, wednesdayoverlay, weeks, outputname, holidayinfo, textoverlay) //Image Creation is now function
+async function MakeImage(templocal, base, wednesdayoverlay, weeks, outputname, holidayinfo, textoverlay) //Image Creation is now function
 {
 	var plu = false;
-	if (weeks > 999999) 
+	if (weeks > 999999)
 	{
 		plu = true;
 		weeks = 999999;
@@ -31,45 +30,41 @@ function MakeImage(templocal, base, wednesdayoverlay, weeks, outputname, holiday
 		bonus = Math.floor(weeks / 100);
 		weeks = weeks % 100;
 	}
+
+	Jimp.read(templocal + base).catch((err) => {base = "date_base.png";});
 	
-	var im = images(templocal + base) //creates the image using secified overlays
-		.draw(images(templocal + "mydudes.png"), 0, 0)
-		.draw(images(templocal + wednesdayoverlay), 0, 0);
+	var baseImg = await Jimp.read(templocal + base).catch((err) => {base = "date_base.png"; textoverlay = true;});
+
+	if (base == "date_base.png") baseImg = await Jimp.read(templocal + base);
+
+	var mydudes = await Jimp.read(templocal + "mydudes.png");
+	var wednesday = await Jimp.read(templocal + wednesdayoverlay);
+	baseImg.composite(mydudes, 0, 0);
 
 	if (!(bonus > 0 && weeks == 0)) //if weeks is 0 and bonus is real - no printing zero
 	{
-		im = im.draw(images(templocal + weeks + ".png"), 0, 0)
-			   .draw(images(templocal + wednesdayoverlay), 0, 0);
+		var week = await Jimp.read(templocal + weeks + ".png");
+		baseImg.composite(week, 0, 0);
 	}
 
-	var res = BonusGenerator(bonus, im, templocal, weeks, 1, 1, plu);
-	im = res[0];
+	baseImg.composite(wednesday, 0, 0);
+
+	var res = await BonusGenerator(bonus, baseImg, templocal, weeks, 1, 1, plu);
+	baseImg = res[0];
 	var textlocal = res[1];
 
-	im.save(templocal + outputname); //save the image
-
-	setTimeout(function()
+	if (holidayinfo.name == "date" || textoverlay || yeartop)
 	{
-		if (holidayinfo.name == "date" || textoverlay || yeartop) //overide the image with text if a date
-		{
-			Jimp.read(templocal + outputname)
-				.then(function (image) {
-					loadedImage = image;
-					return Jimp.loadFont(Jimp.FONT_SANS_32_BLACK);
-				})
-				.then(function (font) {
-					loadedImage.print(font, 
-									yeartop ? 10 : (textoverlay ? 50 : 90),
-									textlocal + (yeartop ? 35 : 0),
-									yeartop ? holidayinfo.year : holidayinfo.safename,
-									textoverlay ? 367 : 467)
-									.write(templocal + outputname);
-				})
-				.catch(function (err) {
-					console.error(err);
-				});
-		}
-	}, 500);
+		var font = await Jimp.loadFont(Jimp.FONT_SANS_32_BLACK);
+
+		baseImg.print(font, 
+						yeartop ? 10 : (textoverlay ? 50 : 90),
+						textlocal + (yeartop ? 35 : 0),
+						yeartop ? holidayinfo.year : holidayinfo.safename,
+						textoverlay ? 367 : 467);
+	}
+
+	baseImg.write(templocal + outputname);
 }
 
 function GetWhite(weekct) //For frogs more than 100 weeks; "Retarded Lookup Table" - Hank 2021
@@ -104,7 +99,7 @@ function GetWhite(weekct) //For frogs more than 100 weeks; "Retarded Lookup Tabl
 	return "8";
 }
 
-function BonusGenerator(bonus, im, templocal, weeks, ct, ln, moere) //for more than 100 weeks
+async function BonusGenerator(bonus, im, templocal, weeks, ct, ln, moere) //for more than 100 weeks
 {
 	var mult = (40 * ln); //for text output
 	var textlocal = 93 + mult - 38; //numbwr
@@ -137,7 +132,7 @@ function BonusGenerator(bonus, im, templocal, weeks, ct, ln, moere) //for more t
 		if (!kip) //not skipped
 		{
 			textlocal += 38; //move down text
-			var ni = images(427, 512 + mult); //new imgre
+			var ni = new Jimp(427, 512 + mult, "#FFFFFF"); //new imgre
 		
 			var h = Math.pow(10, (ct + 1) % 4) * bonus; // value of the image
 			
@@ -145,18 +140,26 @@ function BonusGenerator(bonus, im, templocal, weeks, ct, ln, moere) //for more t
 				h = 1000;
 
 			var whitenm = "White" + GetWhite(Math.pow(100, (ct - 1) % 4) * weeks) + ".png"; //white overaly because otherwise there will be 1000 image
+			var whiteImg = await Jimp.read(templocal + whitenm);
+			var Twight = await Jimp.read(templocal + "TopWhite.png");
 			
 			if (h == 900 && moere) h = h + "+";
 
 			if (ct != 3 && weeks != 0) //only block white on values where last line wasnt 1000
-				im.draw(images(templocal + whitenm), 0, 0);
+				im.composite(whiteImg, 0, 0);
 
-			ni.draw(images(templocal + h + ".png"), 0, 0) //make new image with hundred mult and old image
-				.draw(im, 0, (ln == 0 ? 0 : 40)) // redraw img
-				.draw(images(templocal + h + ".png"), 0, 0);//make new image with hundred mult and old image
+			var him = await Jimp.read(templocal + h + ".png");
+
+			ni.composite(him, 0, 0) //draw image
+				.composite(im, 0, (ln == 0 ? 0 : 40)) // redraw img
+				.composite(him, 0, 0); //make new image with hundred mult and old image
+
+			// ni.draw(images(templocal + h + ".png"), 0, 0) //make new image with hundred mult and old image
+			// 	.draw(im, 0, (ln == 0 ? 0 : 40)) // redraw img
+			// 	.draw(images(templocal + h + ".png"), 0, 0);//make new image with hundred mult and old image
 			
 			if (ln != 0)
-				ni.draw(images(templocal + "TopWhite.png"), 0, 0);//get rid of black spots
+				ni.composite(Twight, 0, 0); //get rid of black spots
 		
 			im = ni;
 		}
@@ -169,7 +172,7 @@ function BonusGenerator(bonus, im, templocal, weeks, ct, ln, moere) //for more t
 			bonusbonus = (bonusbonus * 10) + bonus;
 		}
 
-		var res = BonusGenerator(bonusbonus, im, templocal, (kip ? weeks : bonus), (ct == 3 ? ct + 2 : ct + 1), ln + (kip ? 0 : 1), moere); //do it again
+		var res = await BonusGenerator(bonusbonus, im, templocal, (kip ? weeks : bonus), (ct == 3 ? ct + 2 : ct + 1), ln + (kip ? 0 : 1), moere); //do it again
 		
 		im = res[0];
 		textlocal = res[1];

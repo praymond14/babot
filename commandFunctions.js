@@ -8,7 +8,6 @@ var babadata = require('./babotdata.json'); //baba configuration file
 var data = require(babadata.datalocation + 'data.json'); //extra data
 const Discord = require('discord.js'); //discord module for interation with discord api
 const fs = require('fs');
-const images = require('images');
 const Jimp = require('jimp');
 const https = require('https');
 
@@ -502,7 +501,7 @@ function babaWednesday(msgContent, author, callback)
 
     if (!(global.dbAccess[1] && global.dbAccess[0])) return callback([{content: funnyDOWText(3, author.id) }]);
 
-    ObtainDBHolidays(function(holidays)
+    ObtainDBHolidays(async function(holidays)
     {
         let d1 = getD1(); //get today
         var yr = d1.getFullYear();
@@ -685,7 +684,7 @@ function babaWednesday(msgContent, author, callback)
     
                     if (custom)
                     {
-                        images(templocal + outputname).save(templocal + "outputfrog_0.png");
+                        // images(templocal + outputname).save(templocal + "outputfrog_0.png");
     
                         Jimp.read(templocal + outputname)
                             .then(function (image) {
@@ -710,11 +709,11 @@ function babaWednesday(msgContent, author, callback)
     
                     try 
                     {
-                        MakeImage(templocal, base, wednesdayoverlay, weeks, outputname, holidayinfo, false);
+                        await MakeImage(templocal, base, wednesdayoverlay, weeks, outputname, holidayinfo, false);
                     }
-                    catch(err)
+                    catch(err) // probably not nessisary
                     {
-                        MakeImage(templocal, "date_base.png", wednesdayoverlay, weeks, outputname, holidayinfo, true);
+                        await MakeImage(templocal, "date_base.png", wednesdayoverlay, weeks, outputname, holidayinfo, true);
                     }
                     
                 }

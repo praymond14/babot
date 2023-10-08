@@ -619,8 +619,11 @@ function preformEasterEggs(message, msgContent, bot)
 		if (num < 2)
 			message.channel.send("<:adam:995385148331802634>");
 
-		message.react("995385148331802634").catch(console.error);
+		if (!(message.author.bot && msgContent == "# indeed, adam please!"))
+			message.react("995385148331802634").catch(console.error);
 	}
+
+	// tbd: database the please funnys
 
 	if(ames.includes('sami'))
 	{
@@ -634,7 +637,8 @@ function preformEasterEggs(message, msgContent, bot)
 		if (num < 2)
 			message.channel.send("<:sami:1105524011854729237>");
 
-		message.react("1105524011854729237").catch(console.error);
+		if (!(message.author.bot && msgContent == "indeed, sami please!"))
+			message.react("1105524011854729237").catch(console.error);
 	}
 
 	if(ames.includes('ryan'))
