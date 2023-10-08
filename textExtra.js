@@ -542,7 +542,7 @@ function TextCommandBackup(bot, message, sentvalid, msgContent, g)
 
 					outpiut += " at `" + k.createdAt + "`";
 					
-					if (!showmusic && act == "ChannelUpdate" && user == "887854244567334973")
+					if (!showmusic && actTxt == "ChannelUpdate" && user == "887854244567334973")
 					{
 						odd.push(outpiut);
 						continue;

@@ -20,7 +20,6 @@
     "discord.js": "^14.13.0",
     "fs": "^0.0.1-security",
     "https": "^1.0.0",
-    "images": "^3.2.4",
     "jimp": "^0.16.13",
     "mysql2": "^2.3.3",
     "node-fetch": "^2.6.9"
