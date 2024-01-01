@@ -147,6 +147,7 @@ function TextCommandBackup(bot, message, sentvalid, msgContent, g)
 {
 	if (sentvalid) // put in own file or something eventually
 	{
+		message.channel.sendTyping();
 		if (msgContent.includes("🐸 debug")) //0 null, 1 spook, 2 thanks, 3 crimbo, 4 defeat
 		{
 			if (msgContent.includes("---"))
@@ -323,6 +324,10 @@ function TextCommandBackup(bot, message, sentvalid, msgContent, g)
 					}
 
 					reverseDelay(message, hiddenChan, mess, delay);
+				}
+				else if (msgContent.includes("tnt"))
+				{
+					hiddenChan.sendTyping();
 				}
 				else
 				{

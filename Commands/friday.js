@@ -13,7 +13,7 @@ module.exports = {
 		{
 			if (Math.random() < .05)
 			{
-				await interaction.editReply(babaFriday());
+				await interaction.editReply(babaFriday(true));
 				var message = await interaction.fetchReply();
 
 				setTimeout(function()

@@ -2,6 +2,7 @@ var babadata = require('../babotdata.json'); //baba configuration file
 // var request = require('node-fetch');
 // const Discord = require('discord.js'); //discord module for interation with discord api
 const fs = require('fs');
+const { NameFromUserIDID } = require('../database');
 // const images = require('images');
 // const Jimp = require('jimp');
 // const fetch = require('node-fetch');
@@ -139,18 +140,96 @@ function funnyDOWText(dowNum, authorID)
 	text = text.replaceAll("[intDAY<-]", idayN);
 	text = text.replaceAll("[intDAY+1<-]", idayPplus1);
 
+	if (text.includes("[TS-"))
+	{
+		subtext = "";
+		pickedDay = nextActualDOW;
+		if (text.includes("<-"))
+		{
+			pickedDay = prevActualDOW;
+			subtext = "<-";
+		}
+		else if (text.includes("->"))
+			subtext = "->";
 
-	text = text.replaceAll("[TS-R<-]", "<t:" + Math.floor(prevActualDOW.getTime() / 1000) + ":R>");
-	text = text.replaceAll("[TS-R->]", "<t:" + Math.floor(nextActualDOW.getTime() / 1000) + ":R>");
-	text = text.replaceAll("[TS-D<-]", "<t:" + Math.floor(prevActualDOW.getTime() / 1000) + ":D>");
-	text = text.replaceAll("[TS-D->]", "<t:" + Math.floor(nextActualDOW.getTime() / 1000) + ":D>");
-	text = text.replaceAll("[TS-F]", "<t:" + Math.floor(nextActualDOW.getTime() / 1000) + ":F>");
-	text = text.replaceAll("[td TS-D]", "<t:" + Math.floor(tod.getTime() / 1000) + ":D>");
-	text = text.replaceAll("[td TS-R]", "<t:" + Math.floor(tod.getTime() / 1000) + ":R>");
-	text = text.replaceAll("[td TS-F]", "<t:" + Math.floor(tod.getTime() / 1000) + ":F>");
-	text = text.replaceAll("[tdMid TS-R]", "<t:" + Math.floor(todOnlyDate.getTime() / 1000) + ":R>");
-	text = text.replaceAll("[tdMid TS-D]", "<t:" + Math.floor(todOnlyDate.getTime() / 1000) + ":D>");
-	text = text.replaceAll("[tdMid TS-F]", "<t:" + Math.floor(todOnlyDate.getTime() / 1000) + ":F>");
+		if (text.includes("E59"))
+		{
+			subtext += "E59";
+			pickedDay = new Date(pickedDay.getFullYear(), pickedDay.getMonth(), pickedDay.getDate(), 23, 59, 59, 999);
+		}
+
+		if (text.includes("-R"))
+			text = text.replaceAll("[TS-R" + subtext + "]", "<t:" + Math.floor(pickedDay.getTime() / 1000) + ":R>");
+		else if (text.includes("-D"))
+			text = text.replaceAll("[TS-D" + subtext + "]", "<t:" + Math.floor(pickedDay.getTime() / 1000) + ":D>");
+		else if (text.includes("-F"))
+			text = text.replaceAll("[TS-F" + subtext + "]", "<t:" + Math.floor(pickedDay.getTime() / 1000) + ":F>");
+	}
+
+	// text = text.replaceAll("[TS-R<-]", "<t:" + Math.floor(prevActualDOW.getTime() / 1000) + ":R>");
+	// text = text.replaceAll("[TS-R->]", "<t:" + Math.floor(nextActualDOW.getTime() / 1000) + ":R>");
+	// text = text.replaceAll("[TS-D<-]", "<t:" + Math.floor(prevActualDOW.getTime() / 1000) + ":D>");
+	// text = text.replaceAll("[TS-D->]", "<t:" + Math.floor(nextActualDOW.getTime() / 1000) + ":D>");
+	// text = text.replaceAll("[TS-F]", "<t:" + Math.floor(nextActualDOW.getTime() / 1000) + ":F>");
+	
+	if (text.includes("[SENDER]"))
+	{
+		if (!(global.dbAccess[1] && global.dbAccess[0]))
+		{
+			text = text.replaceAll("[SENDER]", "BUDDY");
+		}
+		else
+		{
+			uname = NameFromUserIDID(
+			function(result)
+			{
+				if (result.length == 0)
+				{
+					console.log(`Whomst lookup for id ${id} returned no results`)
+					text = text.replaceAll("[SENDER]", "BUDDY");
+				}
+				else
+				{
+					text = text.replaceAll("[SENDER]", result[0].PersonName);
+				}
+			},
+			authorID);
+		}
+	}
+
+
+	if (text.includes("[td"))
+	{
+		subtext = "";
+		pickedDay = tod;
+		if (text.includes("Mid"))
+		{
+			pickedDay = todOnlyDate;
+			subtext = "Mid";
+		}
+		else if (text.includes("EOD"))
+		{
+			pickedDay = new Date(tod.getFullYear(), tod.getMonth(), tod.getDate(), 23, 59, 59, 999);
+			subtext = "EOD";
+		}
+		
+		if (text.includes("-R"))
+			text = text.replaceAll("[td" + subtext + " TS-R]", "<t:" + Math.floor(pickedDay.getTime() / 1000) + ":R>");
+		else if (text.includes("-D"))
+			text = text.replaceAll("[td" + subtext + " TS-D]", "<t:" + Math.floor(pickedDay.getTime() / 1000) + ":D>");
+		else if (text.includes("-F"))
+			text = text.replaceAll("[td" + subtext + " TS-F]", "<t:" + Math.floor(pickedDay.getTime() / 1000) + ":F>");
+	}
+
+	// text = text.replaceAll("[td TS-D]", "<t:" + Math.floor(tod.getTime() / 1000) + ":D>");
+	// text = text.replaceAll("[td TS-R]", "<t:" + Math.floor(tod.getTime() / 1000) + ":R>");
+	// text = text.replaceAll("[td TS-F]", "<t:" + Math.floor(tod.getTime() / 1000) + ":F>");
+	// text = text.replaceAll("[tdMid TS-R]", "<t:" + Math.floor(todOnlyDate.getTime() / 1000) + ":R>");
+	// text = text.replaceAll("[tdMid TS-D]", "<t:" + Math.floor(todOnlyDate.getTime() / 1000) + ":D>");
+	// text = text.replaceAll("[tdMid TS-F]", "<t:" + Math.floor(todOnlyDate.getTime() / 1000) + ":F>");
+	// text = text.replaceAll("[tdEOD TS-R]", "<t:" + Math.floor(todOnlyDate.getTime() / 1000) + ":R>");
+	// text = text.replaceAll("[tdEOD TS-D]", "<t:" + Math.floor(todOnlyDate.getTime() / 1000) + ":D>");
+	// text = text.replaceAll("[tdEOD TS-F]", "<t:" + Math.floor(todOnlyDate.getTime() / 1000) + ":F>");
 	
 	var replaced = true;
 	var replacements = global.replacements;

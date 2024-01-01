@@ -1,6 +1,6 @@
 const { FormatPurityList, HPLGenChannel, HPLGenUsers, HPLSelectChannel, HPLSelectUser, HPLSelectDate, HaikuSelection, ObtainDBHolidays, NameFromUserID, HPLGenD8 } = require("./database.js");
-const { getD1, FindDate, GetDate, dateDiffInDays, uExist } = require("./HelperFunctions/basicHelpers.js");
-const { CheckHoliday, FindNextHoliday, MakeImage, EmbedHaikuGen, loadHurricaneHelpers, checkHurricaneStuff, monthFromInt } = require("./HelperFunctions/commandHelpers.js");
+const { getD1, FindDate, GetDate, dateDiffInDays, uExist, getTimeFromString } = require("./HelperFunctions/basicHelpers.js");
+const { CheckHoliday, FindNextHoliday, MakeImage, EmbedHaikuGen, loadHurricaneHelpers, checkHurricaneStuff, monthFromInt, reverseDelay } = require("./HelperFunctions/commandHelpers.js");
 const { normalizeMSG } = require("./HelperFunctions/dbHelpers.js");
 const { funnyDOWText } = require("./HelperFunctions/slashFridayHelpers.js");
 
@@ -13,10 +13,11 @@ const https = require('https');
 
 const options = { year: 'numeric', month: 'long', day: 'numeric' }; // for date parsing to string
 
-function babaFriday()
+function babaFriday(isFake = false)
 {
+    alttext = isFake ? "YOU THINK IT IS FRIDAY??" : "Baba Friday Image, As it is ALWAYS Friday!"
     var templocal = babadata.datalocation + "FrogHolidays/"; //creates the output frog image
-    var newFile = new Discord.AttachmentBuilder(templocal + "/Friday.jpg", { name: 'Friday.jpg', description : "Baba Friday Image, As it is ALWAYS Friday!" });
+    var newFile = new Discord.AttachmentBuilder(templocal + "/Friday.jpg", { name: 'Friday.jpg', description : alttext });
     return { content: "FRIDAY!", files: [newFile] };
 }
 
@@ -214,7 +215,7 @@ function babaHaikuEmbed(purity, list, chans, mye, buy, msgContent, pagestuff, ca
             }
             else
             {
-                if (buy == 4)
+                if (buy == 4) // THIS IS THE ONLY CODE THAT RUNS I THINK, MAYBE ONE DAY REMOVE ALL OTHER STUFF (at least runs for purity)
                 {
                     bonust = " List for ";
                     bonust += (msgContent[6] == "chans" ? "Channels" : (msgContent[6] == "dates" ? "Dates" : "Users"));
@@ -270,6 +271,11 @@ function babaHaikuEmbed(purity, list, chans, mye, buy, msgContent, pagestuff, ca
                     d1 = new Date(IsDate.year, IsDate.month - 1, IsDate.day);
                     var mpre = d1.getMonth() + 1 < 10 ? 0 : "";
                     var dpre = d1.getUTCDate() < 10 ? 0 : "";
+                        
+                    retY = IsDate.year == 0 ? 0 : d1.getFullYear();
+                    retM = IsDate.month == 0 ? 0 : d1.getMonth() + 1;
+                    retD = IsDate.day == 0 ? 0 : d1.getUTCDate();
+
                     HPLSelectDate(function(result)
                     {
                         hpl = FormatPurityList(result, 2, pagestuff);
@@ -279,7 +285,7 @@ function babaHaikuEmbed(purity, list, chans, mye, buy, msgContent, pagestuff, ca
                             return callback(EmbedPurityGen(hpl, bonust, bonupr, pagestuff));
                         }
                         else hpl = {"retstring": ["No Haiku Purity Found!"], "total": 1};
-                    }, `${d1.getFullYear()}-${mpre}${d1.getMonth() + 1}-${dpre}${d1.getUTCDate()}`);
+                    }, `${retY}-${mpre}${retM}-${dpre}${retD}`);
                 }
 
                 HPLSelectChannel(function(result)
@@ -955,6 +961,47 @@ function babaWeather(mode, city, callback)
     });
 }
 
+async function babaRemind(message, time, date, interaction)
+{
+    var theTime = getTimeFromString(time);
+    var theDate = null;
+    if (date != null)
+    {
+        theDate = FindDate(date);
+        theDate = new Date(theDate.year, theDate.month - 1, theDate.day);
+    }
+
+    // add the offset of midnight to theTime onto theDate if theDate is not null
+    // else add the offset of now to theTime onto now
+
+    var now = new Date();
+    // convert now to correct timezone
+	now = new Date(now.getTime() - (now.getTimezoneOffset() * 60000));
+
+    var timeuntilTheTimeFromNow = theTime.getTime() - now.getTime();
+    var timeuntilthetimefromMidnight = theTime.getTime() - new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+    
+    if (timeuntilTheTimeFromNow < 0) timeuntilTheTimeFromNow = 0;
+    if (timeuntilthetimefromMidnight < 0) timeuntilthetimefromMidnight = 0;
+
+    if (theDate == null)
+    {
+        theDate = theTime;
+    }
+    else theDate.setTime(theDate.getTime() + timeuntilthetimefromMidnight);
+
+    var newTimeFromNow = theDate.getTime() - now.getTime();
+
+    var fullmsg = "<@" + interaction.user.id + "> Baba Reminds You: \n" + message;
+
+    // obtain channel
+    var channel = await interaction.guild.channels.fetch(interaction.channelId);
+
+    reverseDelay(null, channel, fullmsg, newTimeFromNow);
+
+    return theDate;
+}
+
 module.exports = {
     babaFriday, 
     babaHelp, 
@@ -972,5 +1019,6 @@ module.exports = {
     babaWhomst,
     babaHurricane,
     babaCat,
-    babaWeather
+    babaWeather,
+    babaRemind
 };

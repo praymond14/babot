@@ -276,11 +276,15 @@ function HaikuSelection(callback, by, msgContent)
 		var addquery = [];
 
 		if (sd != null)
-			startDate = FindDate(sd);
+			startDate = FindDate(sd, true);
 		if (ed != null)
-			endDate = FindDate(ed);
+			endDate = FindDate(ed, true);
 
-		if (startDate == null && endDate != null) startDate = endDate;
+		if (startDate == null && endDate != null) 
+		{
+			startDate = endDate;
+			endDate = null;
+		}
 
 		if (startDate != null)
 		{
@@ -289,6 +293,12 @@ function HaikuSelection(callback, by, msgContent)
 			var dpre1 = d1.getUTCDate() < 10 ? 0 : "";
 			if (endDate != null)
 			{
+				startDate = FindDate(sd);
+				endDate = FindDate(ed);
+				d1 = new Date(startDate.year, startDate.month - 1, startDate.day);
+				mpre1 = d1.getMonth() + 1 < 10 ? 0 : "";
+				dpre1 = d1.getUTCDate() < 10 ? 0 : "";
+
 				var d2 = new Date(endDate.year, endDate.month - 1, endDate.day);
 				var mpre2 = d2.getMonth() + 1 < 10 ? 0 : "";
 				var dpre2 = d2.getUTCDate() < 10 ? 0 : "";
@@ -308,7 +318,40 @@ function HaikuSelection(callback, by, msgContent)
 			}
 			else
 			{
-				addquery.push("(" + searchDate(`${d1.getFullYear()}-${mpre1}${d1.getMonth() + 1}-${dpre1}${d1.getUTCDate()}`) + ")");
+				mpre1 = startDate.month < 10 ? 0 : "";
+				dpre1 = startDate.day < 10 ? 0 : "";
+				
+				vosl = [];
+				if (startDate.year != 0)
+					vosl.push(`${startDate.year}-`);
+				
+				if (startDate.month != 0)
+					vosl.push(`-${mpre1}${startDate.month}_`);
+
+				if (startDate.day != 0)
+					vosl.push(`_${dpre1}${startDate.day}`);
+
+				volsconct = vosl.join("");
+
+				volsconct = volsconct.replace(/--/g, "-");
+				volsconct = volsconct.replace(/__/g, "_");
+				volsconct = volsconct.replace(/_/g, "-");
+
+				var volsplit = volsconct.split("--");
+
+				if (volsplit.length > 1)
+				{
+					volsplit[0] += "-";
+					volsplit[1] = "-" + volsplit[1];
+				}
+
+				//add all to query
+				for (var x in volsplit)
+				{
+					addquery.push("(" + searchDate(volsplit[x]) + ")");
+				}
+				
+				// addquery.push("(" + searchDate(`${d1.getFullYear()}-${mpre1}${d1.getMonth() + 1}-${dpre1}${d1.getUTCDate()}`) + ")");
 			}
 		}
 		else if (sd != null)
@@ -379,6 +422,8 @@ function HaikuSelection(callback, by, msgContent)
 		query += " WHERE (" + searchKeyword(msgContent) + ")";
 	}
 
+	// query += " Where haiku.Index = 540";
+
 	console.log(query);
 
 	con.query(query, function (err, result)
@@ -398,8 +443,17 @@ function HaikuSelection(callback, by, msgContent)
 
 			for (var x in result)
 			{
+				result[x].HaikuFormatted = result[x].HaikuFormatted.replace(/(\r\n|\n|\r)/gm, "\r\n");
+
 				//split on \r\n
 				var lines = result[x].HaikuFormatted.split("\r\n");
+
+				// trim start and end whitespace
+				for (var i = 0; i < lines.length; i++)
+				{
+					lines[i] = lines[i].trim();
+				}
+				
 				// remove blank lines
 				lines = lines.filter(function (el) {
 					return el != "";
@@ -475,6 +529,19 @@ function ObtainDBHolidays(callback)
 		}
 		return callback(retme);
 	});
+}
+
+function NameFromUserIDID(callback, id)
+{
+	con.query(
+		`SELECT PersonName FROM userval
+		 WHERE DiscordID = "${id}"`,
+		function (err, result)
+		{
+			if (err) throw err;
+			return callback(result);
+		}
+	);
 }
 
 function NameFromUserID(callback, user)
@@ -1106,6 +1173,7 @@ module.exports = {
 	HaikuSelection,
 	ObtainDBHolidays,
 	NameFromUserID,
+	NameFromUserIDID,
 	userJoinedVoice,
 	userLeftVoice,
 	checkUserVoiceCrash,
