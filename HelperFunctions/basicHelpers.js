@@ -6,6 +6,7 @@ const fs = require('fs');
 // const Jimp = require('jimp');
 const https = require('https')
 const fetch = require('node-fetch');
+const { PermissionsBitField } = require('discord.js');
 
 const options = { year: 'numeric', month: 'long', day: 'numeric' }; // for date parsing to string
 
@@ -135,13 +136,17 @@ function MonthsPlus(guild, d1)
 		hi.month = 11;
 
 		var tgday = GetDate(d1, yr, hi);
+
+		var d0 = new Date(yr, 10, 1);
+		var tgdayThisYearAlways = GetDate(d0, yr, hi);
+
 		var tday = new Date().getDate(); //get this day
 
 		if (tgday.getFullYear() == yr && babadata.holidayval != "thanks")
 		{
 			SetHolidayChan(guild, "thanks");
 		}
-		else if (tgday.getDate() < tday)
+		else if (tgdayThisYearAlways.getDate() < tday)
 		{
 			if (babadata.holidayval != "crimbo")
 			{
@@ -289,28 +294,28 @@ function SetHolidayChan(guild, name, resetid = -1)
 			switch(name)
 			{
 				case "spook": //Spooky
-					chanyu.setName("🎃💀 ℌ𝔞𝔩𝔩𝔬𝔴𝔢𝔢𝔫 𝔬𝔣 𝔖𝔭𝔬𝔬𝔨𝔰 🕸️👻")
+					chanyu.setName("🎃👻💀🕸️ 𝔊𝔥𝔬𝔰𝔱𝔶 👻 𝔗𝔦𝔪𝔢 🕸️💀👻🎃")
 						.then((newChannel) =>
 						console.log(`The channel's new name is ${newChannel.name}`),
 					)
 					.catch(console.error);
 					break;
 				case "thanks": //Thanks
-					chanyu.setName("🦃 𝒯𝓊𝓇𝓀𝓎 𝒯𝒾𝓂𝑒 𝒮𝓉𝓇𝒾𝓀𝑒𝓈 𝒜𝑔𝒶𝒾𝓃! 🦃")
+					chanyu.setName("🦃 𝑻𝒉𝒂𝒏𝒌𝒔𝑻𝑨𝑲𝑰𝑵𝑮! 🦃")
 						.then((newChannel) =>
 						console.log(`The channel's new name is ${newChannel.name}`),
 					)
 					.catch(console.error);
 					break;
 				case "crimbo": //Crimbo
-					chanyu.setName("🎄 𓀒 𝙼𝚎𝚛𝚛𝚢 𝙼𝚊𝚗 𝙵𝚊𝚕𝚕𝚒𝚗𝚐-𝚖𝚊𝚜 𓀒🎄")
+					chanyu.setName("🎄 𓀒 ＣＲＩＭＢＯ 𓀒🎄")
 						.then((newChannel) =>
 						console.log(`The channel's new name is ${newChannel.name}`),
 					)
 					.catch(console.error);
 					break;
 				case "defeat": //New Year
-					chanyu.setName("🎉 ʟᴀꜱᴛ ʏᴇᴀʀ➕➕ 🎉")
+					chanyu.setName("🎉 ᴺᵉʷ ʸᵉᵃʳ ᴵ ʰᵃʳᵈˡʸ ᵏⁿᵒʷ ʰᵉʳ 🎉")
 						.then((newChannel) =>
 						console.log(`The channel's new name is ${newChannel.name}`),
 					)
@@ -336,7 +341,12 @@ function SetHolidayChan(guild, name, resetid = -1)
 							if (chan.name.toLowerCase() === "archive")
 							{
 								holidaychan.setParent(chan);
-								holidaychan.permissionOverwrites.edit(guild.roles.everyone, { SEND_MESSAGES: false });
+								holidaychan.permissionOverwrites.set([
+									{
+									  id: guild.roles.everyone,
+									  deny: [PermissionsBitField.Flags.SendMessages],
+									}
+								  ]);
 								baadata.holidaychan = "0";
 							}
 						}
@@ -668,10 +678,23 @@ function preformEasterEggs(message, msgContent, bot)
 
 	if (ames.includes("frog") || msgContent.includes("🐸") || ames.includes("toad"))
 	{
-		message.react("🐸");
+		if (ames.includes("1181988742270038106") && ames.includes("frogfrontmartin"))
+		{
+			var num = Math.floor(Math.random() * 100); //pick a random one
+			
+			if (num < 2)
+			{
+				message.react("1181988742270038106").catch((error) => {
+					message.react("🐸");
+					console.error(error);
+				});
+			}
+		}
+		else
+			message.react("🐸");
 	}
 
-	if ((ames.includes("among") && ames.includes("us")) || msgContent.includes("sus") || msgContent.includes("ඞ"))
+	if ((ames.includes("among") && ames.includes("us")) || msgContent.includes("sus") || msgContent.includes("ඞ") || msgContent.includes("amogus"))
 	{
 		message.react("990701351258443797").catch(console.error);
 	}
@@ -880,6 +903,138 @@ function enumConverter(int)
 	}
 }
 
+function getTimeFromString(timestring)
+{
+	var currentTime = new Date();
+	
+	var time = timestring.split(":");
+	var hour = 0;
+	var minute = 0;
+	var second = 0;
+
+	if (time.length == 3)
+	{
+		hour = parseInt(time[0]);
+		minute = parseInt(time[1]);
+		second = parseInt(time[2]);
+	}
+	else if (time.length == 2)
+	{
+		hour = parseInt(time[0]);
+		minute = parseInt(time[1]);
+	}
+	else if (time.length == 1)
+	{
+		hour = parseInt(time[0]);
+	}
+
+	var timepossibles = [];
+	var newTime;
+	var hourtime = null;
+	if (!isNaN(hour))
+	{
+		newTime = new Date(currentTime.getFullYear(), currentTime.getMonth(), currentTime.getDate(), hour, minute, second);
+		// if time is in the past, add a day
+
+		// if contians am or pm convert to 24 hour time
+		if (timestring.toLowerCase().includes("pm"))
+		{
+			newTime.setHours(newTime.getHours() + 12);
+		}
+
+		if (newTime.getTime() < currentTime.getTime())
+		{
+			newTime.setDate(newTime.getDate() + 1);
+		}
+
+		hourtime = newTime;
+		timepossibles.push(newTime);
+	}
+	
+	if (timestring.toLowerCase().includes("tonight"))
+	{
+		// generate random time from 7pm to 11pm
+		var hour = Math.floor(Math.random() * 5) + 19;
+		newTime = new Date(currentTime.getFullYear(), currentTime.getMonth(), currentTime.getDate(), hour, 0, 0);
+		newTime = GambaRoll(newTime);
+		timepossibles.push(newTime);
+	}
+	else if (timestring.toLowerCase().includes("tomorrow"))
+	{
+		// generate random time from 7am to 11pm
+		var hour = Math.floor(Math.random() * 17) + 7;
+		newTime = new Date(currentTime.getFullYear(), currentTime.getMonth(), currentTime.getDate() + 1, hour, 0, 0);
+		newTime = GambaRoll(newTime);
+		timepossibles.push(newTime);
+	}
+	else if (timestring.toLowerCase().includes("later"))
+	{
+		// generate random time from 7am to 11pm
+		var hour = Math.floor(Math.random() * 17) + 7;
+		newTime = new Date(currentTime.getFullYear(), currentTime.getMonth(), currentTime.getDate(), hour, 0, 0);
+		newTime = GambaRoll(newTime);
+		timepossibles.push(newTime);
+	}
+	else if (timestring.toLowerCase().includes("sometime"))
+	{
+		// generate random time from 7am to 11pm for a random day in next 10 days
+		var hour = Math.floor(Math.random() * 17) + 7;
+		var day = Math.floor(Math.random() * 10);
+		newTime = new Date(currentTime.getFullYear(), currentTime.getMonth(), currentTime.getDate() + day, hour, 0, 0);
+		newTime = GambaRoll(newTime);
+		timepossibles.push(newTime);
+	}
+	else if (timestring.toLowerCase().includes("midnight"))
+	{
+		newTime = new Date(currentTime.getFullYear(), currentTime.getMonth(), currentTime.getDate() + 1, 0, 0, 0);
+		timepossibles.push(newTime);
+	}
+	else if (timestring.toLowerCase().includes("noon"))
+	{
+		var day = currentTime.getDate();
+		if (currentTime.getHours() >= 12)
+			day += 1;
+		newTime = new Date(currentTime.getFullYear(), currentTime.getMonth(), day, 12, 0, 0);
+		timepossibles.push(newTime);
+	}
+	else if (timestring.toLowerCase().includes("morning"))
+	{
+		// generate random time from 7am to 11am
+		var hour = Math.floor(Math.random() * 5) + 7;
+		newTime = new Date(currentTime.getFullYear(), currentTime.getMonth(), currentTime.getDate(), hour, 0, 0);
+		newTime = GambaRoll(newTime);
+		timepossibles.push(newTime);
+	}
+	else if (timestring.toLowerCase().includes("afternoon"))
+	{
+		// generate random time from 12pm to 5pm
+		var hour = Math.floor(Math.random() * 5) + 12;
+		newTime = new Date(currentTime.getFullYear(), currentTime.getMonth(), currentTime.getDate(), hour, 0, 0);
+		newTime = GambaRoll(newTime);
+		timepossibles.push(newTime);
+	}
+
+	// pick a random time from the possible times
+	var time = timepossibles[Math.floor(Math.random() * timepossibles.length)];
+	// convert to current timezone
+	time = new Date(time.getTime() - (time.getTimezoneOffset() * 60000));
+
+	hourtime = new Date(hourtime.getTime() - (hourtime.getTimezoneOffset() * 60000));
+
+	return time;
+}
+
+function GambaRoll(time)
+{
+	var roll = Math.floor(Math.random() * 20) + 1;
+	if (roll > 10)
+		time.setMinutes(Math.floor(Math.random() * 60));
+	if (roll > 16)
+		time.setSeconds(Math.floor(Math.random() * 60));
+
+	return time;
+}
+
 module.exports = {
 	RoleAdd,
     getD1,
@@ -900,5 +1055,6 @@ module.exports = {
     handleButtonsEmbed,
 	uExist,
 	Seperated,
-	enumConverter
+	enumConverter,
+	getTimeFromString
 };

@@ -8,6 +8,8 @@ const fetch = require('node-fetch');
 const options = { year: 'numeric', month: 'long', day: 'numeric' }; // for date parsing to string
 const { dateDiffInDays, antiDelay, GetDate, GetSimilarName, uExist } = require('./basicHelpers.js');
 
+var to = null;
+
 function getErrorFlag()
 {
 	return babadata.datalocation + "Flags/" + "error.png";
@@ -210,7 +212,11 @@ function reverseDelay(message, hiddenChan, mess, delay)
 	if (delay < 0)
 		antiDelay(message);
 	else
-		setTimeout(function(){hiddenChan.send(mess);}, delay);
+		to = setTimeout(function()
+		{
+			hiddenChan.sendTyping();
+			hiddenChan.send(mess);
+		}, delay);
 }
 
 function SingleHaiku(haiku, simnames, page, pagetotal)
@@ -517,6 +523,16 @@ function monthFromInt(mint)
 			return "December";
 	}
 }
+
+var cleanupFn = function cleanup() 
+{
+	console.log("Ending Delayed Messages");
+	if (to != null)  
+		clearTimeout(to);
+}
+
+process.on('SIGINT', cleanupFn);
+process.on('SIGTERM', cleanupFn);
 
 module.exports = {
     getErrorFlag,

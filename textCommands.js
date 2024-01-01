@@ -158,6 +158,7 @@ function babaMessage(bot, message)
 
 	if(msgContent.includes('!baba')) //if message contains baba and is not from bot
 	{
+		message.channel.sendTyping();
 		if (msgContent.includes("baba is help") && message.author.bot)
 			return
 		
@@ -173,6 +174,7 @@ function babaMessage(bot, message)
 
 		if (msgContent.includes("friday"))
 		{
+			message.channel.sendTyping();
 			var tod = new Date();
 			if (tod.getDay() != 5)
 			{
@@ -189,6 +191,7 @@ function babaMessage(bot, message)
 
 		if (msgContent.includes("please")) //this could do something better but its ok for now
 		{
+			message.channel.sendTyping();
 			var cont = babaPlease()
 			if (cont != null)
 			{
@@ -198,11 +201,13 @@ function babaMessage(bot, message)
 
 		if (msgContent.includes("order pizza"))
 		{
+			message.channel.sendTyping();
 			message.channel.send(babaPizza());
 		}
 
 		if (msgContent.includes("hurricane"))
 		{
+			message.channel.sendTyping();
 			babaHurricane("", function(val)
 			{
 				message.channel.send(val);
@@ -211,6 +216,7 @@ function babaMessage(bot, message)
 
 		if (msgContent.includes("repost"))
 		{
+			message.channel.sendTyping();
 			message.channel.send(babaRepost());
 		}
 
@@ -226,6 +232,7 @@ function babaMessage(bot, message)
 
 		if (msgContent.includes("weather"))
 		{
+			message.channel.sendTyping();
 			babaWeather("deets", "Apex NC", function(val)
 			{
 				message.channel.send(val);
@@ -234,11 +241,13 @@ function babaMessage(bot, message)
 
 		if(msgContent.includes('help')) //reply with help text is baba help
 		{
+			message.channel.sendTyping();
 			message.channel.send(babaHelp());
 		}
 
 		if (msgContent.includes('flag') && (msgContent.includes('night shift') || msgContent.includes('vibe time')))
 		{
+			message.channel.sendTyping();
 			var flagcontent = babaVibeFlag();
 			message.channel.send(flagcontent).catch(error => {
 
@@ -259,11 +268,13 @@ function babaMessage(bot, message)
 */
 		if(msgContent.includes('make yugo'))
 		{
+			message.channel.sendTyping();
 			message.channel.send(babaYugo());
 		}
 
 		if (msgContent.includes('haiku')) // add custom haiku search term?
 		{
+			message.channel.sendTyping();
 			var purity = msgContent.includes("purity");
 			var list = msgContent.includes("list");
 			var chans = msgContent.includes("channels");
@@ -285,6 +296,7 @@ function babaMessage(bot, message)
 
 		if (msgContent.includes('wednesday') || msgContent.includes('days until') || msgContent.includes('when is') || msgContent.includes('day of week'))
 		{
+			message.channel.sendTyping();
 			if (msgContent.includes('days until next wednesday'))
 				message.channel.send(babaDayNextWed());
 
@@ -304,6 +316,7 @@ function babaMessage(bot, message)
 	}
 	if(msgContent.includes('!bdelete')) //code to del and move to log
 	{
+		message.channel.sendTyping();
 		if(message.channel.type != 1 && message.member.roles.cache.has(babadata.adminId)) //check if admin
 		{
 			var message_id = message.content.replace(/\D/g,''); //get message id
@@ -337,6 +350,7 @@ function babaMessage(bot, message)
 	// move messsage to politics channel
 	if(msgContent.includes('!political'))
 	{
+		message.channel.sendTyping();
 		if(message.channel.type != 1 && message.member.roles.cache.has(babadata.adminId)) //check if admin
 		{
 			var message_id = message.content.replace(/\D/g,''); //get message id
@@ -369,6 +383,7 @@ function babaMessage(bot, message)
 	}
 	if(msgContent.includes('!setvote')) //code to set vote
 	{
+		message.channel.sendTyping();
 		if(message.channel.type != 1 && message.member.roles.cache.has(babadata.adminId)) //check if admin
 		{
 			var message_id = message.content.replace(/\D/g,''); //get message id
@@ -401,6 +416,7 @@ function babaMessage(bot, message)
 	}
 	if(msgContent.includes('!bsetstatus')) //code to set game
 	{
+		message.channel.sendTyping();
 		if(message.channel.type != 1 && message.member.roles.cache.has(babadata.adminId)) //check if admin
 		{
 			var text = msgContent;
@@ -430,6 +446,7 @@ function babaMessage(bot, message)
 	}
 	if(msgContent.includes('!bsetgame')) //code to set game
 	{
+		message.channel.sendTyping();
 		if(message.channel.type != 1 && message.member.roles.cache.has(babadata.adminId)) //check if admin
 		{
 			var text = msgContent;
@@ -463,6 +480,7 @@ function babaMessage(bot, message)
 	}
 	if(msgContent.includes('!banhammer')) //code to set ban hammer
 	{
+		message.channel.sendTyping();
 		if(message.channel.type != 1 && message.member.roles.cache.has(babadata.adminId)) //check if admin
 		{
 			var message_id = message.content.replace(/\D/g,''); //get message id
@@ -495,6 +513,7 @@ function babaMessage(bot, message)
 	}
 	if(msgContent.includes('!grole')) //code to set game role
 	{
+		message.channel.sendTyping();
 		if(message.channel.type != 1 && message.member.roles.cache.has(babadata.adminId)) //check if admin
 		{
 			role_name = message.content.split(' ').slice(0, 2).join(' ').substring(6).replace(' ',''); //get the name for the role
@@ -526,6 +545,12 @@ function babaMessage(bot, message)
 				});
 			});
 		}
+	}
+
+	if (msgContent.includes("robot") && global.ResetDaily)
+	{
+		message.channel.sendTyping();
+		global.ResetDaily = false;
 	}
 };
 

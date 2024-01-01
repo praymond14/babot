@@ -52,8 +52,9 @@ function userOptOut(guild, userID, val)
     guild.channels.fetch(babadata.botchan).then(channel => {
         channel.send("<@" + userID + "> would you like to opt in for baba voice activity data analysis?\n"
         + "Type `/optin` to opt in, or `/optout` to opt out (default).\n" + 
-        "This data will be used to create fun charts and do predictive analysis of voice activity." +
-        "If you don't want to see this message, call one of the commands");
+        "This data will be used to create fun charts and do predictive analysis of voice activity.\n" +
+        "If you don't want to see this message, call one of the commands.\n" +
+        "Check out <#1069025445162524792> to see some cool charts that were made over the years.");
     })
     .catch(console.error);
 

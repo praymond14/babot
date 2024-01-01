@@ -10,6 +10,7 @@ const { cacheDOW, ObtainDBHolidays } = require('./database');
 
 var to = null;
 var toWed = null;
+var toTyp = null;
 
 function dailyCallStart(bot)
 {
@@ -43,6 +44,7 @@ function DisplayBirthdays(guild)
 					}
 					if (names.length > 0)
 					{
+						channel.sendTyping();
 						console.log("Celebrating: " + names.join(" and "))
 						channel.send("!baba wednesday " + names.join(" and "));
 					}
@@ -51,6 +53,29 @@ function DisplayBirthdays(guild)
 			.catch(console.error);
 		});
 	}
+}
+
+function BabaTyping(guild, now)
+{
+	var eightAM = new Date();
+	eightAM.setHours(8);
+
+	var tenPM = new Date();
+	tenPM.setHours(23);
+
+	var timeToEightAM = Math.max(eightAM.getTime() - now.getTime(), 0);
+	var timeToTenPM = Math.max(tenPM.getTime() - now.getTime(), 0);
+
+	var rndTime = Math.floor(Math.random() * (timeToTenPM - timeToEightAM)) + timeToEightAM;
+
+	toTyp = setTimeout(function()
+	{
+		var generalChan = guild.channels.fetch(babadata.generalchan).then(channel => {
+			channel.sendTyping();
+		})
+		.catch(console.error);
+		toTyp = null;
+	}, rndTime);
 }
 
 function genMessages(itemlist)
@@ -108,8 +133,8 @@ function todayDay(dow, guild, now)
 		{
 			console.log(`There are ${channels.size} channels.`)
 			bannedCats = ["955141276574035988", "955251220057047110", "587298042068074526"]; // categories to not post in
-			bannedKittens = ["826320007675641876", "917516043583361034", "1064319655872827432", "882681066127777792"]; // channels to not post in			
-			coolCats = ["915351407287222403"]; // allowed channels, add exceptions manually
+			bannedKittens = ["826320007675641876", "917516043583361034", "1064319655872827432", "882681066127777792", "1072288299361763378"]; // channels to not post in			
+			coolCats = ["915351407287222403", "979881683790733333", "1069025445162524792", "1072635694167634032", ]; // allowed channels, add exceptions manually
 			for (let currenter of channels) 
 			{
 				if (currenter[1] != null && currenter[1].type == 0 && !bannedKittens.includes(currenter[1].id))
@@ -179,6 +204,7 @@ function dailyCall(bot, guild)
 	var g = bot.guilds.resolve(frogdata.froghelp.mainfrog);
 
 	holidayDaily(d1, g);
+	global.ResetDaily = true;
 
 	if ((global.dbAccess[1] && global.dbAccess[0]))
 	{
@@ -186,6 +212,7 @@ function dailyCall(bot, guild)
 	}
 
 	DisplayBirthdays(guild);
+	BabaTyping(guild, now);
 
 	if (d1.getDay() == 5)
 		console.log("FRIDAY!");
@@ -228,6 +255,8 @@ var cleanupFn = function cleanup()
 		clearTimeout(to);
 	if (toWed != null)  
 		clearTimeout(toWed);
+	if (toTyp != null)
+		clearTimeout(toTyp);
 }
 
 process.on('SIGINT', cleanupFn);
