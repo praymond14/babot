@@ -87,7 +87,7 @@ function babaMessage(bot, message)
 	var my = dateoveride[0] ? dateoveride[1] - 1 : new Date().getMonth(); //get this month
 	var d1 = new Date(yr, my, dy) //todayish
 
-	if(msgContent.includes(yr - 1) && msgContent.includes("560231259842805770") && msgContent.includes("563063109422415872") && !message.author.bot) //if message contains baba and is not from bot
+	if(msgContent.includes(yr - 1) && msgContent.includes("560231259842805770") && msgContent.includes("563063109422415872") && !message.author.bot && message.author.id == "360228104997961740") //if message contains baba and is not from bot
 	{
 		let rawdata = fs.readFileSync(__dirname + '/babotdata.json');
 		let baadata = JSON.parse(rawdata);

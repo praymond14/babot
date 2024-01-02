@@ -375,7 +375,12 @@ function SetHolidayChan(guild, name, resetid = -1)
 							{
 								holidaychan.setParent(chan);
 								holidaychan.setPosition(3);
-								holidaychan.permissionOverwrites.edit(guild.roles.everyone, { SEND_MESSAGES: true });
+								holidaychan.permissionOverwrites.set([
+									{
+									  id: guild.roles.everyone,
+									  allow: [PermissionsBitField.Flags.SendMessages],
+									}
+								  ]);
 							}
 						}
 					});
