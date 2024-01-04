@@ -664,6 +664,15 @@ function preformEasterEggs(message, msgContent, bot)
 				message.channel.send("Indeed, Ryan Please!");
 		}
 	}
+
+	if(ames.includes('hank'))
+	{
+		if(ames.includes("please"))
+		{
+			if (!(message.author.bot && msgContent == "indeed, hank please!"))
+				message.channel.send("Indeed, Hank Please!");
+		}
+	}
 	if(ames.includes('isaac'))
 	{
 		if(ames.includes("please"))
