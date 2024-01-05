@@ -63,6 +63,11 @@ function handleDisconnect(print)
 			handleDisconnect(err.code);
 		}
 	});
+
+	if (global.dbAccess[1] && global.dbAccess[0])
+	{
+		clearVCCList();
+	}
 }
 
 function compare( a, b ) 
@@ -142,7 +147,11 @@ function HPLGenChannel(callback)
 {
 	con.query("SELECT ChannelName as Name, haiku.ChannelID as ID, Count(*) as Count, SUM(IF(Accidental = '1', 1, 0)) as Accidental, SUM(IF(Accidental = '1', 1, 0))/COUNT(Accidental) * 100 As Purity FROM haiku Left Join channelval on haiku.ChannelID = channelval.ChannelID Group by haiku.ChannelID", function (err, result) 
 	{
-		if (err) throw err;
+		if (err) 
+		{
+			console.log(err);
+			throw err;
+		}
 		return callback(result);
 	});
 }
@@ -151,7 +160,16 @@ function HPLGenUsers(callback)
 {
 	con.query("SELECT haiku.PersonName as Name, DiscordID as ID, Count(*) as Count, SUM(IF(Accidental = '1', 1, 0)) as Accidental, SUM(IF(Accidental = '1', 1, 0))/COUNT(Accidental) * 100 As Purity FROM haiku Left Join userval on haiku.PersonName = userval.PersonName Group by haiku.PersonName", function (err, result) 
 	{
-		if (err) throw err;
+		if (err)
+		{
+			if ("ETIMEDOUT" == err.code)
+			{
+				EnterDisabledMode();
+				return;
+			}
+			else
+				throw err;
+		}
 		return callback(result);
 	});
 }
@@ -160,7 +178,16 @@ function HPLGenD8(callback)
 {
 	con.query("SELECT date as Name, Count(*) as Count, SUM(IF(Accidental = '1', 1, 0)) as Accidental, SUM(IF(Accidental = '1', 1, 0))/COUNT(Accidental) * 100 As Purity FROM haiku Group by date order by count desc, purity desc, name desc", function (err, result) 
 	{
-		if (err) throw err;
+		if (err)
+		{
+			if ("ETIMEDOUT" == err.code)
+			{
+				EnterDisabledMode();
+				return;
+			}
+			else
+				throw err;
+		}
 		return callback(result);
 	});
 }
@@ -204,7 +231,16 @@ function HPLSelectChannel(callback, msgContent)
 	Where ` + searchChannel(msgContent) + 
 	` Group by haiku.ChannelID`, function (err, result)
 	{
-		if (err) throw err;
+		if (err)
+		{
+			if ("ETIMEDOUT" == err.code)
+			{
+				EnterDisabledMode();
+				return;
+			}
+			else
+				throw err;
+		}
 		return callback(result);
 	});
 }
@@ -215,7 +251,16 @@ function HPLSelectDate(callback, msgContent)
 	Where `+ searchDate(msgContent) +
 	`Group by date`, function (err, result)
 	{
-		if (err) throw err;
+		if (err)
+		{
+			if ("ETIMEDOUT" == err.code)
+			{
+				EnterDisabledMode();
+				return;
+			}
+			else
+				throw err;
+		}
 		return callback(result);
 	});
 }
@@ -227,7 +272,16 @@ function HPLSelectUser(callback, msgContent)
 	Where ` + searchPerson(msgContent) +
 	` Group by haiku.PersonName`, function (err, result)
 	{
-		if (err) throw err;
+		if (err)
+		{
+			if ("ETIMEDOUT" == err.code)
+			{
+				EnterDisabledMode();
+				return;
+			}
+			else
+				throw err;
+		}
 		return callback(result);
 	});
 }
@@ -411,7 +465,16 @@ function HaikuSelection(callback, by, msgContent)
 			console.log(queueueueu);
 			con.query(queueueueu, function (err, result) 
 			{
-				if (err) throw err;
+				if (err)
+				{
+					if ("ETIMEDOUT" == err.code)
+					{
+						EnterDisabledMode();
+						return;
+					}
+					else
+						throw err;
+				}
 				return callback(result);
 			});
 			return;
@@ -474,7 +537,16 @@ function HaikuSelection(callback, by, msgContent)
 			return callback([object], null);
 		}
 
-		if (err) throw err;
+		if (err)
+		{
+			if ("ETIMEDOUT" == err.code)
+			{
+				EnterDisabledMode();
+				return;
+			}
+			else
+				throw err;
+		}
 		if (result.length == 0) return callback(null);
 
         var num = Math.floor(Math.random() * result.length);
@@ -501,7 +573,16 @@ function ObtainDBHolidays(callback)
 {
 	con.query("SELECT * FROM event left join alteventnames on event.EventID = alteventnames.EventID;", function (err, result) 
 	{
-		if (err) throw err;
+		if (err)
+		{
+			if ("ETIMEDOUT" == err.code)
+			{
+				EnterDisabledMode();
+				return;
+			}
+			else
+				throw err;
+		}
 		var retme = {};
 		for (var i = 0; i < result.length; i++)
 		{
@@ -538,7 +619,16 @@ function NameFromUserIDID(callback, id)
 		 WHERE DiscordID = "${id}"`,
 		function (err, result)
 		{
-			if (err) throw err;
+			if (err)
+			{
+				if ("ETIMEDOUT" == err.code)
+				{
+					EnterDisabledMode();
+					return;
+				}
+				else
+					throw err;
+			}
 			return callback(result);
 		}
 	);
@@ -551,7 +641,16 @@ function NameFromUserID(callback, user)
 		 WHERE DiscordID = "${user.id}"`,
 		function (err, result)
 		{
-			if (err) throw err;
+			if (err)
+			{
+				if ("ETIMEDOUT" == err.code)
+				{
+					EnterDisabledMode();
+					return;
+				}
+				else
+					throw err;
+			}
 			return callback(result);
 		}
 	);
@@ -612,21 +711,35 @@ function userVoiceChange(queryz, userID, channelID, guild)
 				}))
 				.catch(console.error);
 			}
-			else if (err) throw err;
+			else
+			{
+				if (err)
+				{
+					if ("ETIMEDOUT" == err.code)
+					{
+						EnterDisabledMode();
+						return;
+					}
+					else
+						throw err;
+				}
+			}		
 		}
 	);
 }
 
-function userJoinedVoice(newUserID, newUserChannel, guild)
+function userJoinedVoice(newUserID, newUserChannel, guild, overideDate = null)
 {
-	var dtsrart = new Date().toISOString().slice(0, 19).replace('T', ' ');
+	var dt = overideDate == null ? new Date() : overideDate;
+	var dtsrart = dt.toISOString().slice(0, 19).replace('T', ' ');
 	var q = `INSERT INTO voiceactivity (ChannelID, UserID, StartTime) VALUES ("${newUserChannel}", "${newUserID}", "${dtsrart}")`;
 	userVoiceChange(q, newUserID, newUserChannel, guild);
 }
 
-function userLeftVoice(oldUserID, oldUserChannel, guild)
+function userLeftVoice(oldUserID, oldUserChannel, guild, overideDate = null)
 {
-	var dtsrart = new Date().toISOString().slice(0, 19).replace('T', ' ');
+	var dt = overideDate == null ? new Date() : overideDate;
+	var dtsrart = dt.toISOString().slice(0, 19).replace('T', ' ');
 	var q = `UPDATE voiceactivity SET EndTime = "${dtsrart}" WHERE UserID = "${oldUserID}" AND ChannelID = "${oldUserChannel}" AND EndTime IS NULL`;
 	userVoiceChange(q, oldUserID, oldUserChannel, guild);
 }
@@ -636,7 +749,16 @@ function checkUserVoiceCrash(userID, channelID, guild)
 	con.query(`Select * from voiceactivity where UserID = "${userID}" AND ChannelID = "${channelID}" AND EndTime IS NULL`,
 		function (err, result)
 		{
-			if (err) throw err;
+			if (err)
+			{
+				if ("ETIMEDOUT" == err.code)
+				{
+					EnterDisabledMode();
+					return;
+				}
+				else
+					throw err;
+			}
 			if (result.length == 0)
 			{
 				userJoinedVoice(userID, channelID, guild);
@@ -650,7 +772,16 @@ function checkAndCreateUser(userID, userName, callback)
 	con.query(`Select * from userval where DiscordID = "${userID}"`,
 		function (err, result)
 		{
-			if (err) throw err;
+			if (err)
+			{
+				if ("ETIMEDOUT" == err.code)
+				{
+					EnterDisabledMode();
+					return;
+				}
+				else
+					throw err;
+			}
 			if (result.length == 0)
 			{
 				con.query(`INSERT INTO userval (DiscordID, PersonName) VALUES ("${userID}", "${userName}")`,
@@ -671,7 +802,16 @@ function checkAndCreateChannel(channelID, channelName, callback)
 	con.query(`Select * from channelval where ChannelID = "${channelID}"`,
 		function (err, result)
 		{
-			if (err) throw err;
+			if (err)
+			{
+				if ("ETIMEDOUT" == err.code)
+				{
+					EnterDisabledMode();
+					return;
+				}
+				else
+					throw err;
+			}
 			if (result.length == 0)
 			{
 				console.log("Creating channel: " + channelID + " " + channelName);
@@ -679,7 +819,16 @@ function checkAndCreateChannel(channelID, channelName, callback)
 					`INSERT INTO channelval (ChannelID, ChannelName, Type) VALUES ("${channelID}", "${channelName}", "Voice")`,
 					function (err, result)
 					{
-						if (err) throw err;
+						if (err)
+						{
+							if ("ETIMEDOUT" == err.code)
+							{
+								EnterDisabledMode();
+								return;
+							}
+							else
+								throw err;
+						}
 						return callback();
 					}
 				);
@@ -694,14 +843,32 @@ function optIn(user, type, callback)
 		`UPDATE opting Set Val='in' WHERE DiscordID = "${user.id}" AND ItemToRemove = "${type}"`,
 		function (err, result)
 		{
-			if (err) throw err;
+			if (err)
+			{
+				if ("ETIMEDOUT" == err.code)
+				{
+					EnterDisabledMode();
+					return;
+				}
+				else
+					throw err;
+			}
 			if (result.affectedRows == 0)
 			{
 				con.query(
 					`INSERT INTO opting (DiscordID, ItemToRemove, Val) VALUES ("${user.id}", "${type}", "in")`,
 					function (err, result)
 					{
-						if (err) throw err;
+						if (err)
+						{
+							if ("ETIMEDOUT" == err.code)
+							{
+								EnterDisabledMode();
+								return;
+							}
+							else
+								throw err;
+						}
 						cacheOpts();
 						return callback();
 					}
@@ -722,7 +889,16 @@ function optOut(user, type, callback)
 		`UPDATE opting Set Val='out' WHERE DiscordID = "${user.id}" AND ItemToRemove = "${type}"`,
 		function (err, result)
 		{
-			if (err) throw err;
+			if (err)
+			{
+				if ("ETIMEDOUT" == err.code)
+				{
+					EnterDisabledMode();
+					return;
+				}
+				else
+					throw err;
+			}
 
 			if (result.affectedRows == 0)
 			{
@@ -730,7 +906,16 @@ function optOut(user, type, callback)
 					`INSERT INTO opting (DiscordID, ItemToRemove, Val) VALUES ("${user.id}", "${type}", "out")`,
 					function (err, result)
 					{
-						if (err) throw err;
+						if (err)
+						{
+							if ("ETIMEDOUT" == err.code)
+							{
+								EnterDisabledMode();
+								return;
+							}
+							else
+								throw err;
+						}
 						cacheOpts();
 						return callback();
 					}
@@ -750,7 +935,16 @@ function endLeftUsersCrash(onlineusers, guild)
 	con.query(`Select * from voiceactivity where EndTime IS NULL`,
 	function (err, result)
 	{
-		if (err) throw err;
+		if (err)
+		{
+			if ("ETIMEDOUT" == err.code)
+			{
+				EnterDisabledMode();
+				return;
+			}
+			else
+				throw err;
+		}
 		for (var i = 0; i < result.length; i++)
 		{
 			var res = result[i];
@@ -779,6 +973,17 @@ function cacheDOW()
 	con.query(`Select * from channelval`,
 		function (err, result)
 		{
+			if (err)
+			{
+				if ("ETIMEDOUT" == err.code)
+				{
+					EnterDisabledMode();
+					return;
+				}
+				else
+					throw err;
+			}
+
 			for (var i = 0; i < result.length; i++)
 			{
 				var res = result[i];
@@ -791,6 +996,17 @@ function cacheDOW()
 	con.query(`Select * from userval`,
 		function (err, result)
 		{
+			if (err)
+			{
+				if ("ETIMEDOUT" == err.code)
+				{
+					EnterDisabledMode();
+					return;
+				}
+				else
+					throw err;
+			}
+			
 			for (var i = 0; i < result.length; i++)
 			{
 				var res = result[i];
@@ -802,7 +1018,16 @@ function cacheDOW()
 	con.query(`Select * from dow`,
 	function (err, result)
 		{
-			if (err) throw err;
+			if (err)
+			{
+				if ("ETIMEDOUT" == err.code)
+				{
+					EnterDisabledMode();
+					return;
+				}
+				else
+					throw err;
+			}
 			var adam = {};
 			for (var i = 0; i < result.length; i++)
 			{
@@ -817,7 +1042,16 @@ function cacheDOW()
 			con.query(`Select * from dowitems`,
 			function (err, result)
 				{
-					if (err) throw err;
+					if (err)
+					{
+						if ("ETIMEDOUT" == err.code)
+						{
+							EnterDisabledMode();
+							return;
+						}
+						else
+							throw err;
+					}
 					for (var i = 0; i < result.length; i++)
 					{
 						var res = result[i];
@@ -839,7 +1073,16 @@ function cacheDOW()
 	function (err, result)
 		{
 			var opts = [];
-			if (err) throw err;
+			if (err)
+			{
+				if ("ETIMEDOUT" == err.code)
+				{
+					EnterDisabledMode();
+					return;
+				}
+				else
+					throw err;
+			}
 			for (var i = 0; i < result.length; i++)
 			{
 				var res = result[i];
@@ -893,7 +1136,16 @@ function cacheDOW()
 	function (err, result)
 		{
 			var opts = [];
-			if (err) throw err;
+			if (err)
+			{
+				if ("ETIMEDOUT" == err.code)
+				{
+					EnterDisabledMode();
+					return;
+				}
+				else
+					throw err;
+			}
 			for (var i = 0; i < result.length; i++)
 			{
 				var res = result[i];
@@ -918,7 +1170,16 @@ function cacheDOW()
 	function (err, result)
 		{
 			var opts = [];
-			if (err) throw err;
+			if (err)
+			{
+				if ("ETIMEDOUT" == err.code)
+				{
+					EnterDisabledMode();
+					return;
+				}
+				else
+					throw err;
+			}
 			for (var i = 0; i < result.length; i++)
 			{
 				var res = result[i];
@@ -951,7 +1212,16 @@ function cacheDOW()
 	function (err, result)
 		{
 			var opts = [];
-			if (err) throw err;
+			if (err)
+			{
+				if ("ETIMEDOUT" == err.code)
+				{
+					EnterDisabledMode();
+					return;
+				}
+				else
+					throw err;
+			}
 			for (var i = 0; i < result.length; i++)
 			{
 				var res = result[i];
@@ -975,7 +1245,16 @@ function cacheDOW()
 	function (err, result)
 		{
 			var opts = [];
-			if (err) throw err;
+			if (err)
+			{
+				if ("ETIMEDOUT" == err.code)
+				{
+					EnterDisabledMode();
+					return;
+				}
+				else
+					throw err;
+			}
 			for (var i = 0; i < result.length; i++)
 			{
 				var res = result[i];
@@ -1002,13 +1281,31 @@ function controlDOW(id, level, prefix)
 	con.query(`Select * from ${lcx}control where ID${prefix}Control = "${id}"`,
 	function (err, result)
 		{
-			if (err) throw err;
+			if (err)
+			{
+				if ("ETIMEDOUT" == err.code)
+				{
+					EnterDisabledMode();
+					return;
+				}
+				else
+					throw err;
+			}
 			if (result.length == 0)
 			{
 				con.query(`INSERT INTO ${lcx}control (ID${prefix}Control, controlLevel) VALUES ("${id}", "${level}")`,
 				function (err, result)
 					{
-						if (err) throw err;
+						if (err)
+						{
+							if ("ETIMEDOUT" == err.code)
+							{
+								EnterDisabledMode();
+								return;
+							}
+							else
+								throw err;
+						}
 						cacheDOW();
 					}
 				);
@@ -1018,7 +1315,16 @@ function controlDOW(id, level, prefix)
 				con.query(`UPDATE ${lcx}control Set controlLevel = "${level}" WHERE ID${prefix}Control = "${id}"`,
 				function (err, result)
 					{
-						if (err) throw err;
+						if (err)
+						{
+							if ("ETIMEDOUT" == err.code)
+							{
+								EnterDisabledMode();
+								return;
+							}
+							else
+								throw err;
+						}
 						cacheDOW();
 					}
 				);
@@ -1033,7 +1339,17 @@ function cacheOpts(callback)
 		function (err, result)
 		{
 			var opts = [];
-			if (err) throw err;
+			if (err)
+			{
+				if ("ETIMEDOUT" == err.code)
+				{
+					EnterDisabledMode();
+					return;
+				}
+				else
+					throw err;
+			}
+			
 			for (var i = 0; i < result.length; i++)
 			{
 				var res = result[i];
@@ -1105,7 +1421,16 @@ function eventDB(event, change, user)
 			con.query(`INSERT INTO scheduleevent (eventID, creatorID, name, channelID, description, StartTime, EndTime, status, Location) VALUES ("${eid}", "${cid}", "${name}", "${chanid}", "${desc}", "${start}", "${end}", "${status}", "${loc}")`,
 			function (err, result)
 			{
-				if (err) throw err;
+				if (err)
+				{
+					if ("ETIMEDOUT" == err.code)
+					{
+						EnterDisabledMode();
+						return;
+					}
+					else
+						throw err;
+				}
 			});
 		}
 		else if (change == "delete")
@@ -1113,7 +1438,16 @@ function eventDB(event, change, user)
 			con.query(`UPDATE scheduleevent Set status = "CANCELED" WHERE eventID = "${eid}"`,
 			function (err, result)
 			{
-				if (err) throw err;
+				if (err)
+				{
+					if ("ETIMEDOUT" == err.code)
+					{
+						EnterDisabledMode();
+						return;
+					}
+					else
+						throw err;
+				}
 			});
 		}
 		else if (change == "update")
@@ -1121,7 +1455,16 @@ function eventDB(event, change, user)
 			con.query(`UPDATE scheduleevent Set creatorID = "${cid}", name = "${name}", channelID = "${chanid}", description = "${desc}", StartTime = "${start}", EndTime = "${end}", status = "${status}", Location = "${loc}" WHERE eventID = "${eid}"`,
 			function (err, result)
 			{
-				if (err) throw err;
+				if (err)
+				{
+					if ("ETIMEDOUT" == err.code)
+					{
+						EnterDisabledMode();
+						return;
+					}
+					else
+						throw err;
+				}
 			});
 		}
 	}
@@ -1137,14 +1480,32 @@ function eventDB(event, change, user)
 			con.query(`UPDATE eventpurity SET flaked = 0, timesrejoined = timesrejoined + 1, joined = 1, latestjointime = "${jtime}", flaketime = null WHERE eventID = "${eid}" AND userID = "${uid}"`,
 			function (err, result)
 			{
-				if (err) throw err;
+				if (err)
+				{
+					if ("ETIMEDOUT" == err.code)
+					{
+						EnterDisabledMode();
+						return;
+					}
+					else
+						throw err;
+				}
 
 				if (result.affectedRows == 0)
 				{
 					con.query(`INSERT INTO eventpurity (eventID, userID, flaked, timesrejoined, joined, latestjointime, initjointime) VALUES ("${eid}", "${uid}", 0, 0, 1, "${jtime}", "${jtime}")`,
 					function (err, result)
 					{
-						if (err) throw err;
+						if (err)
+						{
+							if ("ETIMEDOUT" == err.code)
+							{
+								EnterDisabledMode();
+								return;
+							}
+							else
+								throw err;
+						}
 					});
 				}
 			});
@@ -1154,14 +1515,138 @@ function eventDB(event, change, user)
 			con.query(`UPDATE eventpurity SET flaked = 1, joined = 0, flaketime = "${jtime}", latestjointime = null WHERE eventID = "${eid}" AND userID = "${uid}"`,
 			function (err, result)
 			{
-				if (err) throw err;
+				if (err)
+				{
+					if ("ETIMEDOUT" == err.code)
+					{
+						EnterDisabledMode();
+						return;
+					}
+					else
+						throw err;
+				}
 			});
 		}
 	}
 }
 
+function EnterDisabledMode()
+{
+	console.log("Entering Disabled Mode");
+	
+}
+
 process.on('SIGINT', cleanupFn);
 process.on('SIGTERM', cleanupFn);
+
+
+// VOICE DATA SECTION
+
+
+function voiceChannelChange(newMember, oldMember, overideTime = null)
+{
+    let newUserID = newMember.id;
+	let oldUserID = oldMember.id;
+    let newUserChannel = newMember.channelId;
+	let oldUserChannel = oldMember.channelId;
+
+    var guild = newMember.guild;
+
+    //console.log(newUserID + " joined vc with id " + newUserChannel);
+    //console.log(newUserID + " left vc with id " + oldUserChannel);
+
+    
+    if (newUserChannel != null && newUserChannel != oldUserChannel && userOptOut(guild, newUserID, "voice"))
+    {
+        userJoinedVoice(newUserID, newUserChannel, guild, overideTime);
+    }
+    if (oldUserChannel != null && newUserChannel != oldUserChannel)
+    {
+        userLeftVoice(oldUserID, oldUserChannel, guild, overideTime);
+    }
+}
+
+function userOptOut(guild, userID, val)
+{
+    let rawdata = fs.readFileSync(babadata.datalocation + "/optscache.json");
+    let optscache = JSON.parse(rawdata);
+
+    for (var i = 0 ; i < optscache.length; i++)
+    {
+        var opt = optscache[i];
+        if (opt.DiscordID == userID && opt.Item == val)
+        {
+            return opt.Opt == "in";
+        }
+    }
+    
+    var zopt = val
+    guild.members.fetch(userID)
+    .then(user => checkAndCreateUser(userID, user.user.username, function() 
+    {
+        if (babadata.testing != undefined)
+            optIn(user, val, function(){zopt = true});
+        else
+            optOut(user, val, function(){zopt = false});
+    }))
+    
+    guild.channels.fetch(babadata.botchan).then(channel => {
+        channel.send("<@" + userID + "> would you like to opt in for baba voice activity data analysis?\n"
+        + "Type `/optin` to opt in, or `/optout` to opt out (default).\n" + 
+        "This data will be used to create fun charts and do predictive analysis of voice activity.\n" +
+        "If you don't want to see this message, call one of the commands.\n" +
+        "Check out <#1069025445162524792> to see some cool charts that were made over the years.");
+    })
+    .catch(console.error);
+
+    // do the @ of person and add to opt out first
+    console.log("No In"); 
+
+    return zopt;
+}
+
+function startUpChecker(client)
+{
+    client.guilds.cache.forEach(guild => {
+        var onlineusers = [];
+        guild.voiceStates.cache.forEach(voiceState => {
+            if(voiceState.channel)
+            {
+                if (userOptOut(guild, voiceState.member.id, "voice"))
+                {
+                    var channelID = voiceState.channel.id;
+                    var userID = voiceState.member.id;
+    
+                    var up = userID + "-" + channelID;
+                    checkUserVoiceCrash(userID, channelID, guild);
+                    onlineusers.push(up);
+                }
+            }
+        });
+        endLeftUsersCrash(onlineusers, guild);
+    });  
+}
+
+function logVCC(newMember, oldMember, time)
+{
+    global.logVCC.push([newMember, oldMember, time]);
+}
+
+function clearVCCList()
+{
+	var lsit = global.loggedVCC;
+	for (var x in lsit)
+	{
+		var item = lsit[x];
+		voiceChannelChange(item[0], item[1], item[2]);
+	}
+}
+
+
+
+
+
+
 
 module.exports = {
 	FormatPurityList,
@@ -1187,5 +1672,9 @@ module.exports = {
 	handleDisconnect,
 	cacheDOW,
 	controlDOW,
-	eventDB
+	eventDB,
+	
+	voiceChannelChange,
+    startUpChecker,
+    logVCC
 }

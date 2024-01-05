@@ -1,5 +1,5 @@
 var babadata = require('./babotdata.json'); //baba configuration file
-const { controlDOW, cacheDOW } = require("./database");
+const { controlDOW, cacheDOW } = require("./databaseandvoice");
 const fs = require('fs');
 const https = require('https');
 const fetch = require('node-fetch');

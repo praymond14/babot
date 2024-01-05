@@ -6,7 +6,7 @@ const { loadInDBFSV } = require('./HelperFunctions/dbHelpers.js');
 const { SetHolidayChan, CreateChannel, MonthsPlus, getD1 } = require('./HelperFunctions/basicHelpers.js');
 const { FindNextHoliday, CheckHoliday } = require('./HelperFunctions/commandHelpers.js');
 
-const { cacheDOW, ObtainDBHolidays } = require('./database');
+const { cacheDOW, ObtainDBHolidays } = require('./databaseandvoice');
 
 var to = null;
 var toWed = null;

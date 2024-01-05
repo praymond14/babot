@@ -7,16 +7,18 @@ var babadata = require('./babotdata.json'); //baba configuration file
 const txtCommands = require('./textCommands.js');
 //const { setCommandRoles } = require('./helperFunc');
 
-const { voiceChannelChange, startUpChecker } = require("./voice.js");
-const { cacheOpts, handleDisconnect, eventDB } = require('./database');
+const { cacheOpts, handleDisconnect, eventDB, voiceChannelChange, startUpChecker, logVCC } = require('./databaseandvoice');
 const { dailyCallStart } = require('./dailycall.js');
 const { contextInfo, modalInfo, buttonInfo, stringSelectInfo, userSelectInfo, channelSelectInfo } = require('./contextMenu');
+const { log } = require('console');
 
 global.dbAccess = [!process.argv.includes("-db"), process.argv.includes("-db") ? false : true];
 global.starttime = new Date();
 
 global.toke = babadata.token;
 global.interactions = {};
+
+global.loggedVCC = [];
 
 
 // Initialize Discord Bot
@@ -93,6 +95,12 @@ bot.on('voiceStateUpdate', (oldMember, newMember) =>
 	// if (babadata.testing === undefined && (global.dbAccess[1] && global.dbAccess[0]))
 	if (global.dbAccess[1] && global.dbAccess[0])
 		voiceChannelChange(newMember, oldMember);
+
+	if (!global.dbAccess[1] && global.dbAccess[0])
+	{
+		var time = new Date();
+		logVCC(newMember, oldMember, time);	
+	}
 });
 
 // v14 works

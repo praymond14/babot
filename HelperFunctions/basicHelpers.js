@@ -375,7 +375,12 @@ function SetHolidayChan(guild, name, resetid = -1)
 							{
 								holidaychan.setParent(chan);
 								holidaychan.setPosition(3);
-								holidaychan.permissionOverwrites.edit(guild.roles.everyone, { SEND_MESSAGES: true });
+								holidaychan.permissionOverwrites.set([
+									{
+									  id: guild.roles.everyone,
+									  allow: [PermissionsBitField.Flags.SendMessages],
+									}
+								  ]);
 							}
 						}
 					});
@@ -657,6 +662,15 @@ function preformEasterEggs(message, msgContent, bot)
 		{
 			if (!(message.author.bot && msgContent == "indeed, ryan please!"))
 				message.channel.send("Indeed, Ryan Please!");
+		}
+	}
+
+	if(ames.includes('hank'))
+	{
+		if(ames.includes("please"))
+		{
+			if (!(message.author.bot && msgContent == "indeed, hank please!"))
+				message.channel.send("Indeed, Hank Please!");
 		}
 	}
 	if(ames.includes('isaac'))
