@@ -63,6 +63,11 @@ function handleDisconnect(print)
 			handleDisconnect(err.code);
 		}
 	});
+
+	if (global.dbAccess[1] && global.dbAccess[0])
+	{
+		clearVCCList();
+	}
 }
 
 function compare( a, b ) 
@@ -723,16 +728,18 @@ function userVoiceChange(queryz, userID, channelID, guild)
 	);
 }
 
-function userJoinedVoice(newUserID, newUserChannel, guild)
+function userJoinedVoice(newUserID, newUserChannel, guild, overideDate = null)
 {
-	var dtsrart = new Date().toISOString().slice(0, 19).replace('T', ' ');
+	var dt = overideDate == null ? new Date() : overideDate;
+	var dtsrart = dt.toISOString().slice(0, 19).replace('T', ' ');
 	var q = `INSERT INTO voiceactivity (ChannelID, UserID, StartTime) VALUES ("${newUserChannel}", "${newUserID}", "${dtsrart}")`;
 	userVoiceChange(q, newUserID, newUserChannel, guild);
 }
 
-function userLeftVoice(oldUserID, oldUserChannel, guild)
+function userLeftVoice(oldUserID, oldUserChannel, guild, overideDate = null)
 {
-	var dtsrart = new Date().toISOString().slice(0, 19).replace('T', ' ');
+	var dt = overideDate == null ? new Date() : overideDate;
+	var dtsrart = dt.toISOString().slice(0, 19).replace('T', ' ');
 	var q = `UPDATE voiceactivity SET EndTime = "${dtsrart}" WHERE UserID = "${oldUserID}" AND ChannelID = "${oldUserChannel}" AND EndTime IS NULL`;
 	userVoiceChange(q, oldUserID, oldUserChannel, guild);
 }
@@ -1532,6 +1539,115 @@ function EnterDisabledMode()
 process.on('SIGINT', cleanupFn);
 process.on('SIGTERM', cleanupFn);
 
+
+// VOICE DATA SECTION
+
+
+function voiceChannelChange(newMember, oldMember, overideTime = null)
+{
+    let newUserID = newMember.id;
+	let oldUserID = oldMember.id;
+    let newUserChannel = newMember.channelId;
+	let oldUserChannel = oldMember.channelId;
+
+    var guild = newMember.guild;
+
+    //console.log(newUserID + " joined vc with id " + newUserChannel);
+    //console.log(newUserID + " left vc with id " + oldUserChannel);
+
+    
+    if (newUserChannel != null && newUserChannel != oldUserChannel && userOptOut(guild, newUserID, "voice"))
+    {
+        userJoinedVoice(newUserID, newUserChannel, guild, overideTime);
+    }
+    if (oldUserChannel != null && newUserChannel != oldUserChannel)
+    {
+        userLeftVoice(oldUserID, oldUserChannel, guild, overideTime);
+    }
+}
+
+function userOptOut(guild, userID, val)
+{
+    let rawdata = fs.readFileSync(babadata.datalocation + "/optscache.json");
+    let optscache = JSON.parse(rawdata);
+
+    for (var i = 0 ; i < optscache.length; i++)
+    {
+        var opt = optscache[i];
+        if (opt.DiscordID == userID && opt.Item == val)
+        {
+            return opt.Opt == "in";
+        }
+    }
+    
+    var zopt = val
+    guild.members.fetch(userID)
+    .then(user => checkAndCreateUser(userID, user.user.username, function() 
+    {
+        if (babadata.testing != undefined)
+            optIn(user, val, function(){zopt = true});
+        else
+            optOut(user, val, function(){zopt = false});
+    }))
+    
+    guild.channels.fetch(babadata.botchan).then(channel => {
+        channel.send("<@" + userID + "> would you like to opt in for baba voice activity data analysis?\n"
+        + "Type `/optin` to opt in, or `/optout` to opt out (default).\n" + 
+        "This data will be used to create fun charts and do predictive analysis of voice activity.\n" +
+        "If you don't want to see this message, call one of the commands.\n" +
+        "Check out <#1069025445162524792> to see some cool charts that were made over the years.");
+    })
+    .catch(console.error);
+
+    // do the @ of person and add to opt out first
+    console.log("No In"); 
+
+    return zopt;
+}
+
+function startUpChecker(client)
+{
+    client.guilds.cache.forEach(guild => {
+        var onlineusers = [];
+        guild.voiceStates.cache.forEach(voiceState => {
+            if(voiceState.channel)
+            {
+                if (userOptOut(guild, voiceState.member.id, "voice"))
+                {
+                    var channelID = voiceState.channel.id;
+                    var userID = voiceState.member.id;
+    
+                    var up = userID + "-" + channelID;
+                    checkUserVoiceCrash(userID, channelID, guild);
+                    onlineusers.push(up);
+                }
+            }
+        });
+        endLeftUsersCrash(onlineusers, guild);
+    });  
+}
+
+function logVCC(newMember, oldMember, time)
+{
+    global.logVCC.push([newMember, oldMember, time]);
+}
+
+function clearVCCList()
+{
+	var lsit = global.loggedVCC;
+	for (var x in lsit)
+	{
+		var item = lsit[x];
+		voiceChannelChange(item[0], item[1], item[2]);
+	}
+}
+
+
+
+
+
+
+
 module.exports = {
 	FormatPurityList,
 	HPLGenChannel,
@@ -1556,5 +1672,9 @@ module.exports = {
 	handleDisconnect,
 	cacheDOW,
 	controlDOW,
-	eventDB
+	eventDB,
+	
+	voiceChannelChange,
+    startUpChecker,
+    logVCC
 }
