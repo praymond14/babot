@@ -52,6 +52,11 @@ function handleDisconnect(print)
 					timeoutCT = 0; 
 					global.dbAccess[0] = true; 
 					console.log("Database Access Restored");
+
+					if (global.dbAccess[1] && global.dbAccess[0])
+					{
+						clearVCCList();
+					}
 				}, 90000);
 			}
 			else
@@ -63,11 +68,6 @@ function handleDisconnect(print)
 			handleDisconnect(err.code);
 		}
 	});
-
-	if (global.dbAccess[1] && global.dbAccess[0])
-	{
-		clearVCCList();
-	}
 }
 
 function compare( a, b ) 
@@ -1640,6 +1640,7 @@ function clearVCCList()
 		var item = lsit[x];
 		voiceChannelChange(item[0], item[1], item[2]);
 	}
+	global.loggedVCC = [];
 }
 
 
