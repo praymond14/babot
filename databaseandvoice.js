@@ -22,6 +22,11 @@ function handleDisconnect(print)
 
 		timeoutDisconnect = null;
 		timeoutClear = null;
+		
+		if (global.dbAccess[1] && global.dbAccess[0])
+		{
+			clearVCCList();
+		}
 	}
 
 	console.log(print + " - Starting Database Connection");
