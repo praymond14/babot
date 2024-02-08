@@ -19,7 +19,7 @@ const { NameFromUserIDID } = require('../databaseandvoice');
 // const localesz = ["in class", "in bed", "at Adam's House", "in the car driving to [l2]", "waiting for the bus", "playing slots", "doing cocaine", "in the bathroom", "in the shower", "in your walls ;),"];
 // const l2 = ["the store", "New York", "Adam's House", "nowhere", "school", "a bacon festival", "somewhere under the sea"]
 
-function funnyDOWText(dowNum, authorID)
+async function funnyDOWText(dowNum, authorID)
 {
 	let path = babadata.datalocation + "/DOWcache.json";
 
@@ -121,6 +121,60 @@ function funnyDOWText(dowNum, authorID)
 	if (prevActualDOW.getDate() + 1 < 10) idayPplus1 = "0" + (prevActualDOW.getDate() + 1);
 	else idayPplus1 = prevActualDOW.getDate() + 1;
 
+	// text = text.replaceAll("[td TS-D]", "<t:" + Math.floor(tod.getTime() / 1000) + ":D>");
+	// text = text.replaceAll("[td TS-R]", "<t:" + Math.floor(tod.getTime() / 1000) + ":R>");
+	// text = text.replaceAll("[td TS-F]", "<t:" + Math.floor(tod.getTime() / 1000) + ":F>");
+	// text = text.replaceAll("[tdMid TS-R]", "<t:" + Math.floor(todOnlyDate.getTime() / 1000) + ":R>");
+	// text = text.replaceAll("[tdMid TS-D]", "<t:" + Math.floor(todOnlyDate.getTime() / 1000) + ":D>");
+	// text = text.replaceAll("[tdMid TS-F]", "<t:" + Math.floor(todOnlyDate.getTime() / 1000) + ":F>");
+	// text = text.replaceAll("[tdEOD TS-R]", "<t:" + Math.floor(todOnlyDate.getTime() / 1000) + ":R>");
+	// text = text.replaceAll("[tdEOD TS-D]", "<t:" + Math.floor(todOnlyDate.getTime() / 1000) + ":D>");
+	// text = text.replaceAll("[tdEOD TS-F]", "<t:" + Math.floor(todOnlyDate.getTime() / 1000) + ":F>");
+	
+	var replaced = true;
+	var replacements = global.replacements;
+
+	while (replaced)
+	{
+		replaced = false;
+
+		// loop throught replacements
+		for (var i = 0; i < Object.keys(replacements).length; i++)
+		{
+			var key = Object.keys(replacements)[i];
+			var value = replacements[key];
+
+			var regex = new RegExp("\\[" + key + "\\]", "g");
+
+			if (text.match(regex))
+			{
+				while (text.match(regex))
+				{
+					var numbo = Math.floor(Math.random() * value.length);
+					text = text.replace("[" + key + "]", value[numbo]);
+				}
+				replaced = true;
+			}
+		}
+	}
+
+	
+	// if contains {RECURSIVE} then replace with result of funnyDOWText(dowNum, authorID) -- loop until no more {RECURSIVE}
+	// if contains <RECURSIVE> then replace with result of funnyDOWText(dowNum, authorID) but made URL safe -- loop until no more <RECURSIVE>
+
+	while (text.includes("{RECURSIVE}") || text.includes("<RECURSIVE>"))
+	{
+		if (text.includes("{RECURSIVE}"))
+		{
+			text = text.replace("{RECURSIVE}", await funnyDOWText(dowNum, authorID));
+		}
+
+		if (text.includes("<RECURSIVE>"))
+		{
+			text = text.replace("<RECURSIVE>", onlyLettersNumbers(await funnyDOWText(dowNum, authorID)));
+		}
+	}
+
 	// fix: today stated x ago is not correct (displays current time not midnight)
 
 	text = text.replaceAll("[d]", num);
@@ -180,20 +234,23 @@ function funnyDOWText(dowNum, authorID)
 		}
 		else
 		{
-			uname = NameFromUserIDID(
-			function(result)
+			console.log("Whomst lookup for id " + authorID);
+
+			// make sure to replace [SENDER] with the name of the user who called the command, needs to wait for the result
+			
+			var res = await NameFromUserIDID(authorID);
+
+			// res is an object promise, need to get the value from it
+
+			if (res.length == 0)
 			{
-				if (result.length == 0)
-				{
-					console.log(`Whomst lookup for id ${id} returned no results`)
-					text = text.replaceAll("[SENDER]", "BUDDY");
-				}
-				else
-				{
-					text = text.replaceAll("[SENDER]", result[0].PersonName);
-				}
-			},
-			authorID);
+				console.log(`Whomst lookup for id ${id} returned no results`)
+				text = text.replaceAll("[SENDER]", "BUDDY");
+			}
+			else
+			{
+				text = text.replaceAll("[SENDER]", res[0].PersonName);
+			}			
 		}
 	}
 
@@ -219,43 +276,6 @@ function funnyDOWText(dowNum, authorID)
 			text = text.replaceAll("[td" + subtext + " TS-D]", "<t:" + Math.floor(pickedDay.getTime() / 1000) + ":D>");
 		else if (text.includes("-F"))
 			text = text.replaceAll("[td" + subtext + " TS-F]", "<t:" + Math.floor(pickedDay.getTime() / 1000) + ":F>");
-	}
-
-	// text = text.replaceAll("[td TS-D]", "<t:" + Math.floor(tod.getTime() / 1000) + ":D>");
-	// text = text.replaceAll("[td TS-R]", "<t:" + Math.floor(tod.getTime() / 1000) + ":R>");
-	// text = text.replaceAll("[td TS-F]", "<t:" + Math.floor(tod.getTime() / 1000) + ":F>");
-	// text = text.replaceAll("[tdMid TS-R]", "<t:" + Math.floor(todOnlyDate.getTime() / 1000) + ":R>");
-	// text = text.replaceAll("[tdMid TS-D]", "<t:" + Math.floor(todOnlyDate.getTime() / 1000) + ":D>");
-	// text = text.replaceAll("[tdMid TS-F]", "<t:" + Math.floor(todOnlyDate.getTime() / 1000) + ":F>");
-	// text = text.replaceAll("[tdEOD TS-R]", "<t:" + Math.floor(todOnlyDate.getTime() / 1000) + ":R>");
-	// text = text.replaceAll("[tdEOD TS-D]", "<t:" + Math.floor(todOnlyDate.getTime() / 1000) + ":D>");
-	// text = text.replaceAll("[tdEOD TS-F]", "<t:" + Math.floor(todOnlyDate.getTime() / 1000) + ":F>");
-	
-	var replaced = true;
-	var replacements = global.replacements;
-
-	while (replaced)
-	{
-		replaced = false;
-
-		// loop throught replacements
-		for (var i = 0; i < Object.keys(replacements).length; i++)
-		{
-			var key = Object.keys(replacements)[i];
-			var value = replacements[key];
-
-			var regex = new RegExp("\\[" + key + "\\]", "g");
-
-			if (text.match(regex))
-			{
-				while (text.match(regex))
-				{
-					var numbo = Math.floor(Math.random() * value.length);
-					text = text.replace("[" + key + "]", value[numbo]);
-				}
-				replaced = true;
-			}
-		}
 	}
 
 	// while (text.includes("[emotion]"))
@@ -291,6 +311,52 @@ function funnyDOWText(dowNum, authorID)
 	// text = text.replace("[emoji]", emoji[Math.floor(Math.random() * emoji.length)]);
 
 	text = text.replaceAll("\\n", "\n");
+
+	return text;
+}
+
+function onlyLettersNumbers(text)
+{
+	// remove all non-alphanumeric characters
+	text = text.replace(/[^a-zA-Z0-9]/g, '');
+
+	if (text == "")
+		// set to a random string of 1 to 10 characters
+		text = Math.random().toString(36).substring(2, Math.floor(Math.random() * 10) + 2);
+
+	return text;
+}
+
+function URLSafe(text)
+{
+	text = text.replaceAll(" ", "%20");
+	text = text.replaceAll(":", "%3A");
+	text = text.replaceAll("?", "%3F");
+	text = text.replaceAll("!", "%21");
+	text = text.replaceAll(";", "%3B");
+	text = text.replaceAll("=", "%3D");
+	text = text.replaceAll("&", "%26");
+	text = text.replaceAll("#", "%23");
+	text = text.replaceAll("/", "%2F");
+	text = text.replaceAll("\\", "%5C");
+	text = text.replaceAll("@", "%40");
+	text = text.replaceAll("$", "%24");
+	text = text.replaceAll("%", "%25");
+	text = text.replaceAll("^", "%5E");
+	text = text.replaceAll("*", "%2A");
+	text = text.replaceAll("(", "%28");
+	text = text.replaceAll(")", "%29");
+	text = text.replaceAll("[", "%5B");
+	text = text.replaceAll("]", "%5D");
+	text = text.replaceAll("{", "%7B");
+	text = text.replaceAll("}", "%7D");
+	text = text.replaceAll("|", "%7C");
+	text = text.replaceAll("<", "%3C");
+	text = text.replaceAll(">", "%3E");
+	text = text.replaceAll("`", "%60");
+	text = text.replaceAll("~", "%7E");
+	text = text.replaceAll("'", "%27");
+	text = text.replaceAll("\"", "%22");
 
 	return text;
 }

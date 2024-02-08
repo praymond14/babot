@@ -13,7 +13,7 @@ module.exports = {
 		{
 			if (Math.random() < .05)
 			{
-				await interaction.editReply(babaFriday(true));
+				await interaction.editReply(await babaFriday(true));
 				var message = await interaction.fetchReply();
 
 				setTimeout(function()
@@ -31,7 +31,7 @@ module.exports = {
 			}
 			else
 			{
-				var text = funnyDOWText(5, interaction.user.id);
+				var text = await funnyDOWText(5, interaction.user.id);
 
 				await interaction.editReply(text);
 			}
@@ -40,7 +40,7 @@ module.exports = {
 		{
 			var guild = interaction.guild;
 			removeCountRuin(interaction.user.id, guild);
-			await interaction.editReply(babaFriday());
+			await interaction.editReply(await babaFriday());
 		}
 		
 	},

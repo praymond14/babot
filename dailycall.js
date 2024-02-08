@@ -12,6 +12,8 @@ var to = null;
 var toWed = null;
 var toTyp = null;
 
+global.BirthdayToday = null;
+
 function dailyCallStart(bot)
 {
 	loadInDBFSV();
@@ -30,6 +32,7 @@ function DisplayBirthdays(guild)
 			let d1 = getD1(); //get today
 			var yr = d1.getFullYear();
 			var hols = FindNextHoliday(d1, yr, CheckHoliday("BIRTHDAY", holidays));
+			global.BirthdayToday = null;
 
 			var generalChan = guild.channels.fetch(babadata.generalchan).then(channel => {
 				if (hols.length > 0)
@@ -44,6 +47,7 @@ function DisplayBirthdays(guild)
 					}
 					if (names.length > 0)
 					{
+						global.BirthdayToday = names;
 						channel.sendTyping();
 						console.log("Celebrating: " + names.join(" and "))
 						channel.send("!baba wednesday " + names.join(" and "));

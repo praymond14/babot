@@ -13,11 +13,38 @@ const https = require('https');
 
 const options = { year: 'numeric', month: 'long', day: 'numeric' }; // for date parsing to string
 
-function babaFriday(isFake = false)
+async function babaFriday(isFake = false)
 {
     alttext = isFake ? "YOU THINK IT IS FRIDAY??" : "Baba Friday Image, As it is ALWAYS Friday!"
     var templocal = babadata.datalocation + "FrogHolidays/"; //creates the output frog image
-    var newFile = new Discord.AttachmentBuilder(templocal + "/Friday.jpg", { name: 'Friday.jpg', description : alttext });
+
+    var newFile = null;
+    if (!isFake && global.BirthdayToday != null)
+    {
+        var font = await Jimp.loadFont(Jimp.FONT_SANS_32_BLACK);
+        var image = await Jimp.read(templocal + "Friday.jpg");
+
+        var names = global.BirthdayToday;
+        var name = names.join(" and ");
+        name = name + " Edition!";
+
+        var nameWidth = Jimp.measureText(font, name);
+        var nameHeight = Jimp.measureTextHeight(font, name, 500);
+
+        var nameX = 500 - nameWidth / 2;
+        var nameY = 235 - nameHeight / 2;
+
+        image.print(font, nameX, nameY, name);
+
+        alttext = "Baba Friday Image, As it is ALWAYS Friday!\nCelebrating: " + names.join(" and ") + " Edition!";
+
+        newFile = new Discord.AttachmentBuilder(await image.getBufferAsync(Jimp.MIME_JPEG), { name: 'Friday.jpg', description : alttext });
+    }
+    else
+    {
+        newFile = new Discord.AttachmentBuilder(templocal + "Friday.jpg", { name: 'Friday.jpg', description : alttext });
+    }
+
     return { content: "FRIDAY!", files: [newFile] };
 }
 
@@ -498,14 +525,14 @@ function babaJeremy()
     return { content: "```" + adjective + animal + "```" };
 }
 
-function babaWednesday(msgContent, author, callback)
+async function babaWednesday(msgContent, author, callback)
 {
     msgContent = normalizeMSG(msgContent);
     var outs = [];
     //let rawdata = fs.readFileSync(babadata.datalocation + "FrogHolidays/" + 'frogholidays.json'); //load file each time of calling wednesday
     //let holidays = JSON.parse(rawdata);
 
-    if (!(global.dbAccess[1] && global.dbAccess[0])) return callback([{content: funnyDOWText(3, author.id) }]);
+    if (!(global.dbAccess[1] && global.dbAccess[0])) return callback([{content: await funnyDOWText(3, author.id) }]);
 
     ObtainDBHolidays(async function(holidays)
     {
@@ -756,7 +783,7 @@ function babaWednesday(msgContent, author, callback)
                 if (msgContent.replace("wednesday", "").replace("when is", "").replace("day of week", "").replace("days until", "").trim() == "next")
                     outs.push({ content: "The definition of insanity is doing the same thing over and over expecting a different result" });
                 else
-                    outs.push({ content: funnyDOWText(3, author.id) });
+                    outs.push({ content: await funnyDOWText(3, author.id) });
             }
         }
 
