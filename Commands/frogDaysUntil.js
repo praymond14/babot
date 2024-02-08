@@ -40,7 +40,7 @@ module.exports = {
         } 
         else 
         {
-            babaWednesday(`${event} days ${til}`, interaction.user, function(texts) 
+            await babaWednesday(`${event} days ${til}`, interaction.user, function(texts) 
             {
                 if (texts.length > 1)
                 {

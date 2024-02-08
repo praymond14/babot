@@ -48,7 +48,7 @@ const { funnyDOWText } = require("./HelperFunctions/slashFridayHelpers.js");
 
 
 //stuff when message is recived.
-function babaMessage(bot, message)
+async function babaMessage(bot, message)
 {
 	let rawdata = fs.readFileSync(babadata.datalocation + "FrogHolidays/" + 'frogholidays.json'); //load file each time of calling wednesday
 	let frogdata = JSON.parse(rawdata);
@@ -179,13 +179,13 @@ function babaMessage(bot, message)
 			if (tod.getDay() != 5)
 			{
 
-				var text = funnyDOWText(5, message.author.id);
+				var text = await funnyDOWText(5, message.author.id);
 
 				message.channel.send(text);
 			}
 			else
 			{
-				message.channel.send(babaFriday());
+				message.channel.send(await babaFriday());
 			}
 		}
 
@@ -300,7 +300,7 @@ function babaMessage(bot, message)
 			if (msgContent.includes('days until next wednesday'))
 				message.channel.send(babaDayNextWed());
 
-			babaWednesday(msgContent, message.author, function(texts)
+			await babaWednesday(msgContent, message.author, function(texts)
 			{
 				var templocal = babadata.datalocation + "FrogHolidays/"; //creates the output frog image
 

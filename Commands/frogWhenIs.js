@@ -19,7 +19,7 @@ module.exports = {
         var event = interaction.options.getString("event");
         var message = await interaction.fetchReply();
         
-        babaWednesday(`${event} when is`, interaction.user, function(texts) 
+        await babaWednesday(`${event} when is`, interaction.user, function(texts) 
         {
             if (texts.length > 1)
             {

@@ -22,7 +22,7 @@ function handleDisconnect(print)
 
 		timeoutDisconnect = null;
 		timeoutClear = null;
-		
+
 		if (global.dbAccess[1] && global.dbAccess[0])
 		{
 			clearVCCList();
@@ -45,7 +45,8 @@ function handleDisconnect(print)
 		if (err.code == "ETIMEDOUT")
 		{
 			timeoutCT++;
-			console.log("Timeout CT: " + timeoutCT);
+			var timestring = new Date().toLocaleTimeString();
+			console.log("Timeout CT: " + timeoutCT + " - " + timestring);
 			if (timeoutCT >= 5)
 			{
 				if (timeoutClear != null) clearTimeout(timeoutClear);
@@ -617,26 +618,31 @@ function ObtainDBHolidays(callback)
 	});
 }
 
-function NameFromUserIDID(callback, id)
+function NameFromUserIDID(id)
 {
-	con.query(
-		`SELECT PersonName FROM userval
-		 WHERE DiscordID = "${id}"`,
-		function (err, result)
-		{
-			if (err)
+	var xxx = "";
+
+	return new Promise((resolve, reject) =>
+	{
+		con.query(
+			`SELECT PersonName FROM userval
+			 WHERE DiscordID = "${id}"`,
+			function (err, result)
 			{
-				if ("ETIMEDOUT" == err.code)
+				if (err)
 				{
-					EnterDisabledMode();
-					return;
+					if ("ETIMEDOUT" == err.code)
+					{
+						EnterDisabledMode();
+						return;
+					}
+					else
+						throw err;
 				}
-				else
-					throw err;
+				resolve(result);
 			}
-			return callback(result);
-		}
-	);
+		);
+	});
 }
 
 function NameFromUserID(callback, user)

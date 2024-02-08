@@ -202,7 +202,7 @@ function TextCommandBackup(bot, message, sentvalid, msgContent, g)
 								{
 									fnd = true;
 									fronge(responseMessage);
-									responseMessage.author.send("SUCC cess");
+									message.author.send("SUCC cess");
 								}).catch(function (err) {});
 							})
 						).catch(function (err) {});
@@ -211,7 +211,7 @@ function TextCommandBackup(bot, message, sentvalid, msgContent, g)
 						{
 							fnd = true;
 							fronge(responseMessage);
-							responseMessage.author.send("SUCC cess");
+							message.author.send("SUCC cess");
 						}).catch(function (err) {}); 
 					}
 				});
@@ -232,8 +232,8 @@ function TextCommandBackup(bot, message, sentvalid, msgContent, g)
 								thr.messages.fetch(message_id).then(mehsage => 
 								{
 									fnd = true;
-									message.delete();
-									mehsage.author.send("SUCC cess");
+									mehsage.delete();
+									message.author.send("SUCC cess");
 								}).catch(function (err) {});
 							})
 						).catch(function (err) {});
@@ -242,7 +242,7 @@ function TextCommandBackup(bot, message, sentvalid, msgContent, g)
 						{
 							fnd = true;
 							mehsage.delete();
-							mehsage.author.send("SUCC cess");
+							message.author.send("SUCC cess");
 						}).catch(function (err) {}); 
 					}
 				});

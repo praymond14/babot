@@ -87,7 +87,7 @@ for(const file of commandFiles) { //adds all commands in the commands folder
 }
 
 // v14 works
-bot.on('messageCreate', async message => {txtCommands.babaMessage(bot, message)}); //baba message handler
+bot.on('messageCreate', async message => {await txtCommands.babaMessage(bot, message)}); //baba message handler
 
 // v14 works
 bot.on('voiceStateUpdate', (oldMember, newMember) => 
@@ -154,7 +154,7 @@ bot.on('interactionCreate', async interaction => {
 	try {
 		await command.execute(interaction, bot);
 		const message = await interaction.fetchReply();
-		txtCommands.babaMessage(bot, message);
+		await txtCommands.babaMessage(bot, message);
 	} catch(error) {
 		console.error(error);
 		await interaction.reply({ content: 'An error occured while executing that command.', ephemeral: true });
