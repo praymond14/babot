@@ -225,6 +225,12 @@ function babaHaikuEmbed(purity, list, chans, mye, buy, msgContent, pagestuff, ca
                 bonust = " List for Channels"
                 HPLGenChannel(function(result)
                 {
+                    if (result == null) 
+                    {
+                        haifou = true;
+                        return callback([{content: "DB Probably not enabled!"}]);
+                    }
+
                     hpl = FormatPurityList(result, true, pagestuff);
                     haifou = true;
                     return callback(EmbedPurityGen(hpl, bonust, bonupr, pagestuff));
@@ -235,6 +241,12 @@ function babaHaikuEmbed(purity, list, chans, mye, buy, msgContent, pagestuff, ca
                 bonust = " List for Dates"
                 HPLGenD8(function(result)
                 {
+                    if (result == null) 
+                    {
+                        haifou = true;
+                        return callback([{content: "DB Probably not enabled!"}]);
+                    }
+
                     hpl = FormatPurityList(result, 2, pagestuff);
                     haifou = true;
                     return callback(EmbedPurityGen(hpl, bonust, bonupr, pagestuff));
@@ -248,6 +260,12 @@ function babaHaikuEmbed(purity, list, chans, mye, buy, msgContent, pagestuff, ca
                     bonust += (msgContent[6] == "chans" ? "Channels" : (msgContent[6] == "dates" ? "Dates" : "Users"));
                     HaikuSelection(function(result)
                     {
+                        if (result == null) 
+                        {
+                            haifou = true;
+                            return callback([{content: "DB Probably not enabled!"}]);
+                        }
+    
                         hpl = FormatPurityList(result, (msgContent[6] == "chans" ? true : (msgContent[6] == "dates" ? 2 : false)), pagestuff);
 
                         if (hpl.retstring.length != 0)
@@ -263,6 +281,12 @@ function babaHaikuEmbed(purity, list, chans, mye, buy, msgContent, pagestuff, ca
                     bonust = " List"
                     HPLGenUsers(function(result)
                     {
+                        if (result == null) 
+                        {
+                            haifou = true;
+                            return callback([{content: "DB Probably not enabled!"}]);
+                        }
+
                         hpl = FormatPurityList(result, false, pagestuff);
                         haifou = true;
                         return callback(EmbedPurityGen(hpl, bonust, bonupr, pagestuff));
@@ -279,6 +303,12 @@ function babaHaikuEmbed(purity, list, chans, mye, buy, msgContent, pagestuff, ca
 
                 HPLSelectUser(function(result)
                 {
+                    if (result == null) 
+                    {
+                        haifou = true;
+                        return callback([{content: "DB Probably not enabled!"}]);
+                    }
+
                     hpl = FormatPurityList(result, false, pagestuff);
 
                     if (hpl.retstring.length != 0)
@@ -305,6 +335,12 @@ function babaHaikuEmbed(purity, list, chans, mye, buy, msgContent, pagestuff, ca
 
                     HPLSelectDate(function(result)
                     {
+                        if (result == null) 
+                        {
+                            haifou = true;
+                            return callback([{content: "DB Probably not enabled!"}]);
+                        }
+
                         hpl = FormatPurityList(result, 2, pagestuff);
                         if (hpl.retstring.length != 0)
                         {
@@ -317,6 +353,12 @@ function babaHaikuEmbed(purity, list, chans, mye, buy, msgContent, pagestuff, ca
 
                 HPLSelectChannel(function(result)
                 {
+                    if (result == null) 
+                    {
+                        haifou = true;
+                        return callback([{content: "DB Probably not enabled!"}]);
+                    }
+
                     hpl = FormatPurityList(result, true, pagestuff);
                     if (hpl.retstring.length != 0)
                     {
@@ -328,6 +370,12 @@ function babaHaikuEmbed(purity, list, chans, mye, buy, msgContent, pagestuff, ca
 
                 HPLSelectUser(function(result)
                 {
+                    if (result == null) 
+                    {
+                        haifou = true;
+                        return callback([{content: "DB Probably not enabled!"}]);
+                    }
+
                     hpl = FormatPurityList(result, false, pagestuff);
 
                     if (hpl.retstring.length != 0)
@@ -351,6 +399,8 @@ function babaHaikuEmbed(purity, list, chans, mye, buy, msgContent, pagestuff, ca
     { 
         HaikuSelection(function(haiku, simnames)
         {
+            if (haiku == null) return callback([{content: "DB Probably not enabled!"}]);
+
             return callback(EmbedHaikuGen(haiku, simnames));
         }, buy, msgContent);
     }

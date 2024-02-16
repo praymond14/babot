@@ -19,7 +19,7 @@ const { NameFromUserIDID } = require('../databaseandvoice');
 // const localesz = ["in class", "in bed", "at Adam's House", "in the car driving to [l2]", "waiting for the bus", "playing slots", "doing cocaine", "in the bathroom", "in the shower", "in your walls ;),"];
 // const l2 = ["the store", "New York", "Adam's House", "nowhere", "school", "a bacon festival", "somewhere under the sea"]
 
-async function funnyDOWText(dowNum, authorID)
+async function funnyDOWText(dowNum, authorID, recrused = 0, ToBeCounted = [], headLevel = 0)
 {
 	let path = babadata.datalocation + "/DOWcache.json";
 
@@ -56,25 +56,38 @@ async function funnyDOWText(dowNum, authorID)
 	for (var i = 0; i < 12; i++)
 		textos.push(pretext.text);
 
-	if (pretext.h1)
+	if (recrused == 0)
 	{
-		for (var i = 0; i < 1; i++)
-			textos.push("# " + pretext.text);
-	}
-
-	if (pretext.h2)
-	{
-		for (var i = 0; i < 2; i++)
-			textos.push("## " + pretext.text);
-	}
-
-	if (pretext.h3)
-	{
-		for (var i = 0; i < 4; i++)
-			textos.push("### " + pretext.text);
+		if (pretext.h1)
+		{
+			for (var i = 0; i < 1; i++)
+				textos.push("# " + pretext.text);
+		}
+	
+		if (pretext.h2)
+		{
+			for (var i = 0; i < 2; i++)
+				textos.push("## " + pretext.text);
+		}
+	
+		if (pretext.h3)
+		{
+			for (var i = 0; i < 4; i++)
+				textos.push("### " + pretext.text);
+		}
 	}
 
 	var text = textos[Math.floor(Math.random() * textos.length)];
+
+	// set headLevel to number of # at start of text
+	if (text.startsWith("#") && recrused == 0)
+	{
+		headLevel = 4 - text.match(/#/g).length;
+	}
+
+	var TBDItem = { "UID": pretext.UID, "LayerDeep": recrused, "Group": 0, "Text": pretext.text, "HeadLevel": headLevel, "Sender": authorID};
+	ToBeCounted.push(TBDItem);
+
 	var num = ((dowNum - tod.getDay()) + 7) % 7;
 
 	var dow = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
@@ -134,6 +147,11 @@ async function funnyDOWText(dowNum, authorID)
 	var replaced = true;
 	var replacements = global.replacements;
 
+	if (replacements == null)
+	{
+		replaced = false;
+	}
+
 	while (replaced)
 	{
 		replaced = false;
@@ -151,7 +169,10 @@ async function funnyDOWText(dowNum, authorID)
 				while (text.match(regex))
 				{
 					var numbo = Math.floor(Math.random() * value.length);
-					text = text.replace("[" + key + "]", value[numbo]);
+					text = text.replace("[" + key + "]", value[numbo].text);
+
+					TBDItem = { "UID": value[numbo].UID, "LayerDeep": recrused, "Group": 1, "Text": value[numbo].text, "HeadLevel": headLevel, "Sender": authorID};
+					ToBeCounted.push(TBDItem);
 				}
 				replaced = true;
 			}
@@ -162,16 +183,22 @@ async function funnyDOWText(dowNum, authorID)
 	// if contains {RECURSIVE} then replace with result of funnyDOWText(dowNum, authorID) -- loop until no more {RECURSIVE}
 	// if contains <RECURSIVE> then replace with result of funnyDOWText(dowNum, authorID) but made URL safe -- loop until no more <RECURSIVE>
 
-	while (text.includes("{RECURSIVE}") || text.includes("<RECURSIVE>"))
+	while (text.includes("{RECURSIVE}") || text.includes("<RECURSIVE>") || text.includes("{REVERSE}"))
 	{
 		if (text.includes("{RECURSIVE}"))
 		{
-			text = text.replace("{RECURSIVE}", await funnyDOWText(dowNum, authorID));
+			text = text.replace("{RECURSIVE}", await funnyDOWText(dowNum, authorID, recrused+1, ToBeCounted, headLevel));
 		}
 
 		if (text.includes("<RECURSIVE>"))
 		{
-			text = text.replace("<RECURSIVE>", onlyLettersNumbers(await funnyDOWText(dowNum, authorID)));
+			text = text.replace("<RECURSIVE>", onlyLettersNumbers(await funnyDOWText(dowNum, authorID, recrused+1, ToBeCounted, headLevel)));
+		}
+
+		if (text.includes("{REVERSE}"))
+		{
+			var res = await funnyDOWText(dowNum, authorID, recrused+1, ToBeCounted, headLevel);
+			text = text.replace("{REVERSE}", res.split("").reverse().join(""));
 		}
 	}
 
@@ -311,6 +338,52 @@ async function funnyDOWText(dowNum, authorID)
 	// text = text.replace("[emoji]", emoji[Math.floor(Math.random() * emoji.length)]);
 
 	text = text.replaceAll("\\n", "\n");
+
+	// if length is greater than 1000, call again
+	if (text.length > 2000)
+	{
+		return funnyDOWText(dowNum, authorID);
+	}
+
+	// if recusion level is 0, save ToBeCounted to file
+	if (recrused == 0)
+	{
+		// console.log("Items in that /DOW call:");
+		// // log ToBeCounted to console
+		// for (var i = 0; i < ToBeCounted.length; i++)
+		// {
+		// 	console.log(ToBeCounted[i]);
+		// }
+		// console.log("");
+
+		// load in global.fridayCounter
+		var fc = global.fridayCounter;
+		for (var i = 0; i < ToBeCounted.length; i++)
+		{
+			// if fc["UID--GROUP"] is not defined, define as 1, else increment
+			if (fc[ToBeCounted[i].UID + "--" + ToBeCounted[i].Group + "--" + ToBeCounted[i].Sender] == null)
+			{
+				fc[ToBeCounted[i].UID + "--" + ToBeCounted[i].Group + "--" + ToBeCounted[i].Sender] = [];
+			}
+
+			if (fc[ToBeCounted[i].UID + "--" + ToBeCounted[i].Group + "--" + ToBeCounted[i].Sender][ToBeCounted[i].LayerDeep] == null)
+			{
+				fc[ToBeCounted[i].UID + "--" + ToBeCounted[i].Group + "--" + ToBeCounted[i].Sender][ToBeCounted[i].LayerDeep] = [];
+			}
+
+			if (fc[ToBeCounted[i].UID + "--" + ToBeCounted[i].Group + "--" + ToBeCounted[i].Sender][ToBeCounted[i].LayerDeep][ToBeCounted[i].HeadLevel] == null)
+			{
+				fc[ToBeCounted[i].UID + "--" + ToBeCounted[i].Group + "--" + ToBeCounted[i].Sender][ToBeCounted[i].LayerDeep][ToBeCounted[i].HeadLevel] = 1;
+			}
+			else
+			{
+				fc[ToBeCounted[i].UID + "--" + ToBeCounted[i].Group + "--" + ToBeCounted[i].Sender][ToBeCounted[i].LayerDeep][ToBeCounted[i].HeadLevel]++;
+			}
+		}
+
+		// save global.fridayCounter to file
+		fs.writeFileSync(babadata.datalocation + "/fridayCounter.json", JSON.stringify(fc));
+	}
 
 	return text;
 }

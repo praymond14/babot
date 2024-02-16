@@ -151,6 +151,8 @@ function GenInfo(line, type)
 
 function HPLGenChannel(callback)
 {
+	if (timeoutCT > 0) return callback(null);
+	
 	con.query("SELECT ChannelName as Name, haiku.ChannelID as ID, Count(*) as Count, SUM(IF(Accidental = '1', 1, 0)) as Accidental, SUM(IF(Accidental = '1', 1, 0))/COUNT(Accidental) * 100 As Purity FROM haiku Left Join channelval on haiku.ChannelID = channelval.ChannelID Group by haiku.ChannelID", function (err, result) 
 	{
 		if (err) 
@@ -164,6 +166,8 @@ function HPLGenChannel(callback)
 
 function HPLGenUsers(callback)
 {
+	if (timeoutCT > 0) return callback(null);
+
 	con.query("SELECT haiku.PersonName as Name, DiscordID as ID, Count(*) as Count, SUM(IF(Accidental = '1', 1, 0)) as Accidental, SUM(IF(Accidental = '1', 1, 0))/COUNT(Accidental) * 100 As Purity FROM haiku Left Join userval on haiku.PersonName = userval.PersonName Group by haiku.PersonName", function (err, result) 
 	{
 		if (err)
@@ -182,6 +186,8 @@ function HPLGenUsers(callback)
 
 function HPLGenD8(callback)
 {
+	if (timeoutCT > 0) return callback(null);
+
 	con.query("SELECT date as Name, Count(*) as Count, SUM(IF(Accidental = '1', 1, 0)) as Accidental, SUM(IF(Accidental = '1', 1, 0))/COUNT(Accidental) * 100 As Purity FROM haiku Group by date order by count desc, purity desc, name desc", function (err, result) 
 	{
 		if (err)
@@ -232,6 +238,8 @@ function searchKeyword(msgContent)
 
 function HPLSelectChannel(callback, msgContent)
 {
+	if (timeoutCT > 0) return callback(null);
+
 	con.query(`SELECT ChannelName as Name, haiku.ChannelID as ID, Count(*) as Count, SUM(IF(Accidental = '1', 1, 0)) as Accidental, SUM(IF(Accidental = '1', 1, 0))/COUNT(Accidental) * 100 As Purity FROM haiku 
 	Left Join channelval on haiku.ChannelID = channelval.ChannelID 
 	Where ` + searchChannel(msgContent) + 
@@ -253,6 +261,8 @@ function HPLSelectChannel(callback, msgContent)
 
 function HPLSelectDate(callback, msgContent)
 {
+	if (timeoutCT > 0) return callback(null);
+	
 	con.query(`SELECT date as Name, Count(*) as Count, SUM(IF(Accidental = '1', 1, 0)) as Accidental, SUM(IF(Accidental = '1', 1, 0))/COUNT(Accidental) * 100 As Purity FROM haiku 
 	Where `+ searchDate(msgContent) +
 	`Group by date`, function (err, result)
@@ -273,6 +283,8 @@ function HPLSelectDate(callback, msgContent)
 
 function HPLSelectUser(callback, msgContent)
 {
+	if (timeoutCT > 0) return callback(null);
+	
 	con.query(`SELECT haiku.PersonName as Name, DiscordID as ID, Count(*) as Count, SUM(IF(Accidental = '1', 1, 0)) as Accidental, SUM(IF(Accidental = '1', 1, 0))/COUNT(Accidental) * 100 As Purity FROM haiku 
 	Left Join userval on haiku.PersonName = userval.PersonName
 	Where ` + searchPerson(msgContent) +
@@ -294,6 +306,8 @@ function HPLSelectUser(callback, msgContent)
 
 function HaikuSelection(callback, by, msgContent)
 {
+	if (timeoutCT > 0) return callback(null);
+	
 	var query = `SELECT * FROM haiku
 	Left Join userval on haiku.PersonName = userval.PersonName 
 	Left Join channelval on haiku.ChannelID = channelval.ChannelID`
@@ -497,6 +511,17 @@ function HaikuSelection(callback, by, msgContent)
 
 	con.query(query, function (err, result)
 	{
+		if (err)
+		{
+			if ("ETIMEDOUT" == err.code)
+			{
+				EnterDisabledMode();
+				return;
+			}
+			else
+				throw err;
+		}
+		
 		if (by == 6)
 		{
 			var object = {};
@@ -543,16 +568,6 @@ function HaikuSelection(callback, by, msgContent)
 			return callback([object], null);
 		}
 
-		if (err)
-		{
-			if ("ETIMEDOUT" == err.code)
-			{
-				EnterDisabledMode();
-				return;
-			}
-			else
-				throw err;
-		}
 		if (result.length == 0) return callback(null);
 
         var num = Math.floor(Math.random() * result.length);
@@ -568,7 +583,16 @@ function HaikuSelection(callback, by, msgContent)
 
 		con.query(qq, function (err2, result2)
 		{
-			if (err2) throw err2;
+			if (err2)
+			{
+				if ("ETIMEDOUT" == err.code)
+				{
+					EnterDisabledMode();
+					return;
+				}
+				else
+					throw err2;
+			}
 			return callback(haiku, result2);
 		});
 	});
@@ -1100,6 +1124,7 @@ function cacheDOW()
 				text = res.text;
 				var resj = 
 				{
+					"UID": res.UID,
 					"text": text,
 					"group": res.group,
 					"weight": res.weight,
@@ -1133,11 +1158,15 @@ function cacheDOW()
 			for (var i = 0; i < fridLoops.length; i++)
 			{
 				gWeight = replacementsWeights[fridLoops[i].group].min;
-				insertCount = gWeight == 1 ? 1 : Math.floor((1 / gWeight) * fridLoops[i].weight);
+				insertCount = gWeight == 1 ? fridLoops[i].weight : Math.floor((1 / gWeight) * fridLoops[i].weight);
 		
 				for (var j = 0; j < insertCount; j++)
-					replacements[fridLoops[i].group].push(fridLoops[i].text);
+					replacements[fridLoops[i].group].push({"text": fridLoops[i].text, "UID": fridLoops[i].UID});
 			}
+
+			// save to a json file -- testing dont delete shane like you love to delete these things, i saw what you did that one time
+			//var data = JSON.stringify(replacements);
+			//fs.writeFileSync(babadata.datalocation + "/FridayLoops.json", data);
 
 			global.replacements = replacements;
 		}
@@ -1202,6 +1231,7 @@ function cacheDOW()
 
 				var resj = 
 				{
+					"UID": res.UID,
 					"text": text,
 					"enabledDef": res.enabled,
 					"IDS": res.overideIDs,
@@ -1382,6 +1412,110 @@ function cacheOpts(callback)
 	);
 }
 
+function saveSlashFridayJson(testingOveride = false)
+{
+	var retVal = "Friday Counter has not been updated, as it is Empty";
+	// if fridayCounter.json doesn't exist, create it
+	if (!fs.existsSync(babadata.datalocation + "/fridayCounter.json"))
+	{
+		fs.writeFileSync(babadata.datalocation + "/fridayCounter.json", "");
+	}
+
+	// check for db access
+	if ((global.dbAccess[1] && global.dbAccess[0]))
+	{
+		// check if /fridayCounter.json has any data
+		// if it does, save it to the database
+		// then clear the file
+		// if it doesn't, do nothing
+
+		var fridayCounterJson = fs.readFileSync(babadata.datalocation + "/fridayCounter.json");
+		if (fridayCounterJson.length > 0)
+		{
+			if (testingOveride && babadata.testing !== undefined)
+			{
+				IncrementFridayCounter(fridayCounterJson);
+				retVal = "Friday Counter Updated (Testing Overide)";
+			}
+
+			// save to database
+			if (babadata.testing === undefined)
+			{
+				console.log("Saving Friday Counter to Database");
+				IncrementFridayCounter(fridayCounterJson);
+				retVal = "Friday Counter Updated";
+				// clear the file
+				fs.writeFileSync(babadata.datalocation + "/fridayCounter.json", "");
+			}
+		}
+	}
+	// set global.fridayCounter to the contents of /fridayCounter.json
+	var fridayCounterJson = fs.readFileSync(babadata.datalocation + "/fridayCounter.json");
+	if (fridayCounterJson.length > 0)
+		global.fridayCounter = JSON.parse(fridayCounterJson);
+	else
+		global.fridayCounter = {};
+
+	return retVal;
+}
+
+
+function IncrementFridayCounter(fridayJson)
+{
+	// parse json
+	var friday = JSON.parse(fridayJson);
+	var qureyStart = "INSERT INTO layersdeep (FridayUID,LoopsOrDOW,LayersDeep,Count,HeadingLevel,Sender) VALUES "
+	var qureyEnd = `AS newDeepLayers ON DUPLICATE KEY UPDATE layersdeep.Count = layersdeep.Count + newDeepLayers.Count;`;
+	var queryMiddle = "";
+	for (var i = 0; i < Object.keys(friday).length; i++)
+	{
+		var key = Object.keys(friday)[i];
+		var layersdeeps = friday[key];
+
+		// uid is key before --, group is key after --
+		var uid = key.split("--")[0];
+		var group = key.split("--")[1];
+		var user = key.split("--")[2];
+
+
+		// update the value in the database for each layer in value, on new entry add it
+		for (var deepness = 0; deepness < layersdeeps.length; deepness++)
+		{
+			var headingLevels = layersdeeps[deepness];
+			if (headingLevels != null)
+			{
+				for (var heding = 0; heding < headingLevels.length; heding++)
+				{
+					var count = headingLevels[heding];
+					if (count != null)
+						queryMiddle += `("${uid}", "${group}", "${deepness}", "${count}", "${heding}", "${user}"),`;
+				}
+			}
+		}
+	}
+
+	// remove last comma
+	queryMiddle = queryMiddle.slice(0, -1);
+
+	// add to database
+	con.query(qureyStart + queryMiddle + qureyEnd,
+		function (err, result)
+		{
+			if (err)
+			{
+				if ("ETIMEDOUT" == err.code)
+				{
+					EnterDisabledMode();
+					return;
+				}
+				else
+					throw err;
+			}
+		}
+	);
+}
+
+
 
 function eventDB(event, change, user)
 {
@@ -1544,7 +1678,6 @@ function eventDB(event, change, user)
 function EnterDisabledMode()
 {
 	console.log("Entering Disabled Mode");
-	
 }
 
 process.on('SIGINT', cleanupFn);
@@ -1685,7 +1818,8 @@ module.exports = {
 	cacheDOW,
 	controlDOW,
 	eventDB,
-	
+	saveSlashFridayJson,
+
 	voiceChannelChange,
     startUpChecker,
     logVCC
