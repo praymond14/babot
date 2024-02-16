@@ -1,5 +1,5 @@
 var babadata = require('./babotdata.json'); //baba configuration file
-const { controlDOW, cacheDOW } = require("./databaseandvoice");
+const { controlDOW, cacheDOW, saveSlashFridayJson } = require("./databaseandvoice");
 const fs = require('fs');
 const https = require('https');
 const fetch = require('node-fetch');
@@ -453,6 +453,13 @@ function TextCommandBackup(bot, message, sentvalid, msgContent, g)
 			g.members.fetch(bot.user.id).then(member => {
 				member.setNickname(name, "Baba Plase");
 			});
+		}
+		// manuela save the fridaycounts
+		else if (msgContent.includes("manuela"))
+		{
+			var toveride = msgContent.includes("overide");
+			var mesg = saveSlashFridayJson(toveride);
+			message.author.send(mesg);
 		}
 		// dm a user via baba
 		else if (msgContent.includes("amhours"))

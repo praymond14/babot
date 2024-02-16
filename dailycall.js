@@ -6,7 +6,7 @@ const { loadInDBFSV } = require('./HelperFunctions/dbHelpers.js');
 const { SetHolidayChan, CreateChannel, MonthsPlus, getD1 } = require('./HelperFunctions/basicHelpers.js');
 const { FindNextHoliday, CheckHoliday } = require('./HelperFunctions/commandHelpers.js');
 
-const { cacheDOW, ObtainDBHolidays } = require('./databaseandvoice');
+const { cacheDOW, ObtainDBHolidays, saveSlashFridayJson } = require('./databaseandvoice');
 
 var to = null;
 var toWed = null;
@@ -223,13 +223,14 @@ function dailyCall(bot, guild)
 	
 	todayDay(d1.getDay(), guild, now);
 
+	saveSlashFridayJson();
+
 	console.log("Calling next command in: " + timeToMidnight / 1000 / 60 + " minutes");
 	to = setTimeout(function()
 	{
 		dailyCall(bot, guild);
 	}, timeToMidnight);
 }
-
 
 
 function holidayDaily(d1, server)
