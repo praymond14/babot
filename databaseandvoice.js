@@ -2,6 +2,7 @@ const fs = require('fs');
 var babadata = require('./babotdata.json'); //baba configuration file
 var mysql = require('mysql2');
 const { FindDate } = require('./HelperFunctions/basicHelpers.js');
+const { error } = require('console');
 
 var con;
 
@@ -9,6 +10,12 @@ var timeoutDisconnect = null;
 var timeoutClear = null;
 
 var timeoutCT = 0;
+
+function validErrorCodes(err)
+{
+	var catchCodes = ["ETIMEDOUT", "ER_HOST_NOT_PRIVILEGED"];
+	return catchCodes.includes(err);
+}
 
 function handleDisconnect(print) 
 {
@@ -42,7 +49,7 @@ function handleDisconnect(print)
 	con.on('error', function(err) 
 	{
 		//console.log('db error', err);
-		if (err.code == "ETIMEDOUT")
+		if (validErrorCodes(err.code))
 		{
 			timeoutCT++;
 			var timestring = new Date().toLocaleTimeString();
@@ -172,7 +179,7 @@ function HPLGenUsers(callback)
 	{
 		if (err)
 		{
-			if ("ETIMEDOUT" == err.code)
+			if (validErrorCodes(err.code))
 			{
 				EnterDisabledMode();
 				return;
@@ -192,7 +199,7 @@ function HPLGenD8(callback)
 	{
 		if (err)
 		{
-			if ("ETIMEDOUT" == err.code)
+			if (validErrorCodes(err.code))
 			{
 				EnterDisabledMode();
 				return;
@@ -247,7 +254,7 @@ function HPLSelectChannel(callback, msgContent)
 	{
 		if (err)
 		{
-			if ("ETIMEDOUT" == err.code)
+			if (validErrorCodes(err.code))
 			{
 				EnterDisabledMode();
 				return;
@@ -269,7 +276,7 @@ function HPLSelectDate(callback, msgContent)
 	{
 		if (err)
 		{
-			if ("ETIMEDOUT" == err.code)
+			if (validErrorCodes(err.code))
 			{
 				EnterDisabledMode();
 				return;
@@ -292,7 +299,7 @@ function HPLSelectUser(callback, msgContent)
 	{
 		if (err)
 		{
-			if ("ETIMEDOUT" == err.code)
+			if (validErrorCodes(err.code))
 			{
 				EnterDisabledMode();
 				return;
@@ -487,7 +494,7 @@ function HaikuSelection(callback, by, msgContent)
 			{
 				if (err)
 				{
-					if ("ETIMEDOUT" == err.code)
+					if (validErrorCodes(err.code))
 					{
 						EnterDisabledMode();
 						return;
@@ -513,7 +520,7 @@ function HaikuSelection(callback, by, msgContent)
 	{
 		if (err)
 		{
-			if ("ETIMEDOUT" == err.code)
+			if (validErrorCodes(err.code))
 			{
 				EnterDisabledMode();
 				return;
@@ -585,7 +592,7 @@ function HaikuSelection(callback, by, msgContent)
 		{
 			if (err2)
 			{
-				if ("ETIMEDOUT" == err.code)
+				if (validErrorCodes(err.code))
 				{
 					EnterDisabledMode();
 					return;
@@ -605,7 +612,7 @@ function ObtainDBHolidays(callback)
 	{
 		if (err)
 		{
-			if ("ETIMEDOUT" == err.code)
+			if (validErrorCodes(err.code))
 			{
 				EnterDisabledMode();
 				return;
@@ -655,7 +662,7 @@ function NameFromUserIDID(id)
 			{
 				if (err)
 				{
-					if ("ETIMEDOUT" == err.code)
+					if (validErrorCodes(err.code))
 					{
 						EnterDisabledMode();
 						return;
@@ -678,7 +685,7 @@ function NameFromUserID(callback, user)
 		{
 			if (err)
 			{
-				if ("ETIMEDOUT" == err.code)
+				if (validErrorCodes(err.code))
 				{
 					EnterDisabledMode();
 					return;
@@ -750,7 +757,7 @@ function userVoiceChange(queryz, userID, channelID, guild)
 			{
 				if (err)
 				{
-					if ("ETIMEDOUT" == err.code)
+					if (validErrorCodes(err.code))
 					{
 						EnterDisabledMode();
 						return;
@@ -786,7 +793,7 @@ function checkUserVoiceCrash(userID, channelID, guild)
 		{
 			if (err)
 			{
-				if ("ETIMEDOUT" == err.code)
+				if (validErrorCodes(err.code))
 				{
 					EnterDisabledMode();
 					return;
@@ -809,7 +816,7 @@ function checkAndCreateUser(userID, userName, callback)
 		{
 			if (err)
 			{
-				if ("ETIMEDOUT" == err.code)
+				if (validErrorCodes(err.code))
 				{
 					EnterDisabledMode();
 					return;
@@ -839,7 +846,7 @@ function checkAndCreateChannel(channelID, channelName, callback)
 		{
 			if (err)
 			{
-				if ("ETIMEDOUT" == err.code)
+				if (validErrorCodes(err.code))
 				{
 					EnterDisabledMode();
 					return;
@@ -856,7 +863,7 @@ function checkAndCreateChannel(channelID, channelName, callback)
 					{
 						if (err)
 						{
-							if ("ETIMEDOUT" == err.code)
+							if (validErrorCodes(err.code))
 							{
 								EnterDisabledMode();
 								return;
@@ -880,7 +887,7 @@ function optIn(user, type, callback)
 		{
 			if (err)
 			{
-				if ("ETIMEDOUT" == err.code)
+				if (validErrorCodes(err.code))
 				{
 					EnterDisabledMode();
 					return;
@@ -896,7 +903,7 @@ function optIn(user, type, callback)
 					{
 						if (err)
 						{
-							if ("ETIMEDOUT" == err.code)
+							if (validErrorCodes(err.code))
 							{
 								EnterDisabledMode();
 								return;
@@ -926,7 +933,7 @@ function optOut(user, type, callback)
 		{
 			if (err)
 			{
-				if ("ETIMEDOUT" == err.code)
+				if (validErrorCodes(err.code))
 				{
 					EnterDisabledMode();
 					return;
@@ -943,7 +950,7 @@ function optOut(user, type, callback)
 					{
 						if (err)
 						{
-							if ("ETIMEDOUT" == err.code)
+							if (validErrorCodes(err.code))
 							{
 								EnterDisabledMode();
 								return;
@@ -972,7 +979,7 @@ function endLeftUsersCrash(onlineusers, guild)
 	{
 		if (err)
 		{
-			if ("ETIMEDOUT" == err.code)
+			if (validErrorCodes(err.code))
 			{
 				EnterDisabledMode();
 				return;
@@ -1010,7 +1017,7 @@ function cacheDOW()
 		{
 			if (err)
 			{
-				if ("ETIMEDOUT" == err.code)
+				if (validErrorCodes(err.code))
 				{
 					EnterDisabledMode();
 					return;
@@ -1033,7 +1040,7 @@ function cacheDOW()
 		{
 			if (err)
 			{
-				if ("ETIMEDOUT" == err.code)
+				if (validErrorCodes(err.code))
 				{
 					EnterDisabledMode();
 					return;
@@ -1055,7 +1062,7 @@ function cacheDOW()
 		{
 			if (err)
 			{
-				if ("ETIMEDOUT" == err.code)
+				if (validErrorCodes(err.code))
 				{
 					EnterDisabledMode();
 					return;
@@ -1079,7 +1086,7 @@ function cacheDOW()
 				{
 					if (err)
 					{
-						if ("ETIMEDOUT" == err.code)
+						if (validErrorCodes(err.code))
 						{
 							EnterDisabledMode();
 							return;
@@ -1110,7 +1117,7 @@ function cacheDOW()
 			var opts = [];
 			if (err)
 			{
-				if ("ETIMEDOUT" == err.code)
+				if (validErrorCodes(err.code))
 				{
 					EnterDisabledMode();
 					return;
@@ -1178,7 +1185,7 @@ function cacheDOW()
 			var opts = [];
 			if (err)
 			{
-				if ("ETIMEDOUT" == err.code)
+				if (validErrorCodes(err.code))
 				{
 					EnterDisabledMode();
 					return;
@@ -1212,7 +1219,7 @@ function cacheDOW()
 			var opts = [];
 			if (err)
 			{
-				if ("ETIMEDOUT" == err.code)
+				if (validErrorCodes(err.code))
 				{
 					EnterDisabledMode();
 					return;
@@ -1255,7 +1262,7 @@ function cacheDOW()
 			var opts = [];
 			if (err)
 			{
-				if ("ETIMEDOUT" == err.code)
+				if (validErrorCodes(err.code))
 				{
 					EnterDisabledMode();
 					return;
@@ -1288,7 +1295,7 @@ function cacheDOW()
 			var opts = [];
 			if (err)
 			{
-				if ("ETIMEDOUT" == err.code)
+				if (validErrorCodes(err.code))
 				{
 					EnterDisabledMode();
 					return;
@@ -1324,7 +1331,7 @@ function controlDOW(id, level, prefix)
 		{
 			if (err)
 			{
-				if ("ETIMEDOUT" == err.code)
+				if (validErrorCodes(err.code))
 				{
 					EnterDisabledMode();
 					return;
@@ -1339,7 +1346,7 @@ function controlDOW(id, level, prefix)
 					{
 						if (err)
 						{
-							if ("ETIMEDOUT" == err.code)
+							if (validErrorCodes(err.code))
 							{
 								EnterDisabledMode();
 								return;
@@ -1358,7 +1365,7 @@ function controlDOW(id, level, prefix)
 					{
 						if (err)
 						{
-							if ("ETIMEDOUT" == err.code)
+							if (validErrorCodes(err.code))
 							{
 								EnterDisabledMode();
 								return;
@@ -1382,7 +1389,7 @@ function cacheOpts(callback)
 			var opts = [];
 			if (err)
 			{
-				if ("ETIMEDOUT" == err.code)
+				if (validErrorCodes(err.code))
 				{
 					EnterDisabledMode();
 					return;
@@ -1503,7 +1510,7 @@ function IncrementFridayCounter(fridayJson)
 		{
 			if (err)
 			{
-				if ("ETIMEDOUT" == err.code)
+				if (validErrorCodes(err.code))
 				{
 					EnterDisabledMode();
 					return;
@@ -1568,7 +1575,7 @@ function eventDB(event, change, user)
 			{
 				if (err)
 				{
-					if ("ETIMEDOUT" == err.code)
+					if (validErrorCodes(err.code))
 					{
 						EnterDisabledMode();
 						return;
@@ -1585,7 +1592,7 @@ function eventDB(event, change, user)
 			{
 				if (err)
 				{
-					if ("ETIMEDOUT" == err.code)
+					if (validErrorCodes(err.code))
 					{
 						EnterDisabledMode();
 						return;
@@ -1602,7 +1609,7 @@ function eventDB(event, change, user)
 			{
 				if (err)
 				{
-					if ("ETIMEDOUT" == err.code)
+					if (validErrorCodes(err.code))
 					{
 						EnterDisabledMode();
 						return;
@@ -1627,7 +1634,7 @@ function eventDB(event, change, user)
 			{
 				if (err)
 				{
-					if ("ETIMEDOUT" == err.code)
+					if (validErrorCodes(err.code))
 					{
 						EnterDisabledMode();
 						return;
@@ -1643,7 +1650,7 @@ function eventDB(event, change, user)
 					{
 						if (err)
 						{
-							if ("ETIMEDOUT" == err.code)
+							if (validErrorCodes(err.code))
 							{
 								EnterDisabledMode();
 								return;
@@ -1662,7 +1669,7 @@ function eventDB(event, change, user)
 			{
 				if (err)
 				{
-					if ("ETIMEDOUT" == err.code)
+					if (validErrorCodes(err.code))
 					{
 						EnterDisabledMode();
 						return;
