@@ -9,7 +9,7 @@ var con;
 var timeoutDisconnect = null;
 var timeoutClear = null;
 
-var timeoutCT = 0;
+var timeoutCT = -1;
 
 function validErrorCodes(err)
 {
@@ -19,23 +19,6 @@ function validErrorCodes(err)
 
 function handleDisconnect(print) 
 {
-	if (timeoutCT == 0) 
-	{
-		console.log("Cleaning Timeouts in handleDisconnect");
-		global.dbAccess[0] = true;
-
-		if (timeoutDisconnect != null) clearTimeout(timeoutDisconnect);
-		if (timeoutClear != null) clearTimeout(timeoutClear);
-
-		timeoutDisconnect = null;
-		timeoutClear = null;
-
-		if (global.dbAccess[1] && global.dbAccess[0])
-		{
-			clearVCCList();
-		}
-	}
-
 	console.log(print + " - Starting Database Connection");
 	con = mysql.createConnection({
 		host: babadata.database.host,
@@ -51,13 +34,21 @@ function handleDisconnect(print)
 		//console.log('db error', err);
 		if (validErrorCodes(err.code))
 		{
-			timeoutCT++;
+			// go into disabled mode after 5 tries (disabled mode is a check every minute)
+			if (timeoutCT == -1)
+				timeoutCT++;
+			timeoutCT++;			
+			
 			var timestring = new Date().toLocaleTimeString();
 			console.log("Timeout CT: " + timeoutCT + " - " + timestring);
+
 			if (timeoutCT >= 5)
 			{
 				if (timeoutClear != null) clearTimeout(timeoutClear);
+				if (timeoutDisconnect != null) clearTimeout(timeoutDisconnect);
+
 				console.log("Too many timeouts, entering minutely check mode");
+
 				global.dbAccess[0] = false;
 				timeoutDisconnect = setTimeout(handleDisconnect, 60000, err.code);
 				timeoutClear = setTimeout(function() 
@@ -1462,6 +1453,13 @@ function saveSlashFridayJson(testingOveride = false)
 		global.fridayCounter = JSON.parse(fridayCounterJson);
 	else
 		global.fridayCounter = {};
+
+	var emojiurl = "https://gist.githubusercontent.com/oliveratgithub/0bf11a9aff0d6da7b46f1490f86a71eb/raw/d8e4b78cfe66862cf3809443c1dba017f37b61db/emojis.json";
+
+	fetch(emojiurl).then(res => res.json()).then(json => {
+		// save to emojiJSONCache
+		fs.writeFileSync(babadata.datalocation + "/emojiJSONCache.json", JSON.stringify(json));
+	});
 
 	return retVal;
 }

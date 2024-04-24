@@ -99,7 +99,7 @@ bot.on('voiceStateUpdate', (oldMember, newMember) =>
 	if (!global.dbAccess[1] && global.dbAccess[0])
 	{
 		var time = new Date();
-		logVCC(newMember, oldMember, time);	
+		logVCC(newMember, oldMember, time);
 	}
 });
 
