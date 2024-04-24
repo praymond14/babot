@@ -470,6 +470,33 @@ function TextCommandBackup(bot, message, sentvalid, msgContent, g)
 			var mess = message.content.split(' ').slice(2, ).join(' '); //get the name for the role
 			bot.users.fetch(u_id).then(user => user.send(mess)).catch(console.error);
 		}
+		else if (msgContent.includes("dontbuy"))
+		{
+			var name = message.content.split(' ').slice(1, ).join(' '); //get the name for the role
+			var count = name.match(/(\d+)/);
+			if (count == null) count = 5;
+			else count = count[0];
+			if (count > 50) count = 50;
+
+			var mesg = global.lastDBErrors;
+
+			// if blank message
+			if (mesg === undefined)
+				message.author.send("No DB Error Message");
+			else
+			{
+				// loop through the first COUNT messages in lastDBError
+				for (var i = 0; i < count; i++)
+				{
+					if (mesg[i] === undefined)
+						break;
+					var timestamp = mesg[i][1];
+					var messageo = mesg[i][0];
+
+					message.author.send("`" + timestamp + "`\n`" + messageo + "`");
+				}
+			}
+		}
 		// read the audit log
 		else if (msgContent.includes("odd"))
 		{

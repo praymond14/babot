@@ -92,14 +92,18 @@ bot.on('messageCreate', async message => {await txtCommands.babaMessage(bot, mes
 // v14 works
 bot.on('voiceStateUpdate', (oldMember, newMember) => 
 {
-	// if (babadata.testing === undefined && (global.dbAccess[1] && global.dbAccess[0]))
-	if (global.dbAccess[1] && global.dbAccess[0])
-		voiceChannelChange(newMember, oldMember);
-
-	if (!global.dbAccess[1] && global.dbAccess[0])
+	console.log(global.dbAccess[0]);
+	console.log(global.dbAccess[1]);
+	if (babadata.testing === undefined)
 	{
-		var time = new Date();
-		logVCC(newMember, oldMember, time);	
+		if (global.dbAccess[1] && global.dbAccess[0])
+			voiceChannelChange(newMember, oldMember);
+
+		if (!global.dbAccess[1] && global.dbAccess[0])
+		{
+			var time = new Date();
+			logVCC(newMember, oldMember, time);
+		}
 	}
 });
 

@@ -9,7 +9,7 @@ var con;
 var timeoutDisconnect = null;
 var timeoutClear = null;
 
-var timeoutCT = 0;
+var timeoutCT = -1;
 
 function validErrorCodes(err)
 {
@@ -19,23 +19,6 @@ function validErrorCodes(err)
 
 function handleDisconnect(print) 
 {
-	if (timeoutCT == 0) 
-	{
-		console.log("Cleaning Timeouts in handleDisconnect");
-		global.dbAccess[0] = true;
-
-		if (timeoutDisconnect != null) clearTimeout(timeoutDisconnect);
-		if (timeoutClear != null) clearTimeout(timeoutClear);
-
-		timeoutDisconnect = null;
-		timeoutClear = null;
-
-		if (global.dbAccess[1] && global.dbAccess[0])
-		{
-			clearVCCList();
-		}
-	}
-
 	console.log(print + " - Starting Database Connection");
 	con = mysql.createConnection({
 		host: babadata.database.host,
@@ -51,19 +34,27 @@ function handleDisconnect(print)
 		//console.log('db error', err);
 		if (validErrorCodes(err.code))
 		{
-			timeoutCT++;
+			// go into disabled mode after 5 tries (disabled mode is a check every minute)
+			if (timeoutCT == -1)
+				timeoutCT++;
+			timeoutCT++;			
+			
 			var timestring = new Date().toLocaleTimeString();
 			console.log("Timeout CT: " + timeoutCT + " - " + timestring);
+
 			if (timeoutCT >= 5)
 			{
 				if (timeoutClear != null) clearTimeout(timeoutClear);
+				if (timeoutDisconnect != null) clearTimeout(timeoutDisconnect);
+
 				console.log("Too many timeouts, entering minutely check mode");
-				global.dbAccess[0] = false;
+
+				global.dbAccess[1] = false;
 				timeoutDisconnect = setTimeout(handleDisconnect, 60000, err.code);
-				timeoutClear = setTimeout(function() 
+				timeoutClear = setTimeout(function()
 				{ 
 					timeoutCT = 0; 
-					global.dbAccess[0] = true; 
+					global.dbAccess[1] = true; 
 					console.log("Database Access Restored");
 
 					if (global.dbAccess[1] && global.dbAccess[0])
@@ -181,7 +172,7 @@ function HPLGenUsers(callback)
 		{
 			if (validErrorCodes(err.code))
 			{
-				EnterDisabledMode();
+				EnterDisabledMode(err);
 				return;
 			}
 			else
@@ -201,7 +192,7 @@ function HPLGenD8(callback)
 		{
 			if (validErrorCodes(err.code))
 			{
-				EnterDisabledMode();
+				EnterDisabledMode(err);
 				return;
 			}
 			else
@@ -256,7 +247,7 @@ function HPLSelectChannel(callback, msgContent)
 		{
 			if (validErrorCodes(err.code))
 			{
-				EnterDisabledMode();
+				EnterDisabledMode(err);
 				return;
 			}
 			else
@@ -278,7 +269,7 @@ function HPLSelectDate(callback, msgContent)
 		{
 			if (validErrorCodes(err.code))
 			{
-				EnterDisabledMode();
+				EnterDisabledMode(err);
 				return;
 			}
 			else
@@ -301,7 +292,7 @@ function HPLSelectUser(callback, msgContent)
 		{
 			if (validErrorCodes(err.code))
 			{
-				EnterDisabledMode();
+				EnterDisabledMode(err);
 				return;
 			}
 			else
@@ -496,7 +487,7 @@ function HaikuSelection(callback, by, msgContent)
 				{
 					if (validErrorCodes(err.code))
 					{
-						EnterDisabledMode();
+						EnterDisabledMode(err);
 						return;
 					}
 					else
@@ -522,7 +513,7 @@ function HaikuSelection(callback, by, msgContent)
 		{
 			if (validErrorCodes(err.code))
 			{
-				EnterDisabledMode();
+				EnterDisabledMode(err);
 				return;
 			}
 			else
@@ -594,7 +585,7 @@ function HaikuSelection(callback, by, msgContent)
 			{
 				if (validErrorCodes(err.code))
 				{
-					EnterDisabledMode();
+					EnterDisabledMode(err);
 					return;
 				}
 				else
@@ -614,7 +605,7 @@ function ObtainDBHolidays(callback)
 		{
 			if (validErrorCodes(err.code))
 			{
-				EnterDisabledMode();
+				EnterDisabledMode(err);
 				return;
 			}
 			else
@@ -664,7 +655,7 @@ function NameFromUserIDID(id)
 				{
 					if (validErrorCodes(err.code))
 					{
-						EnterDisabledMode();
+						EnterDisabledMode(err);
 						return;
 					}
 					else
@@ -687,7 +678,7 @@ function NameFromUserID(callback, user)
 			{
 				if (validErrorCodes(err.code))
 				{
-					EnterDisabledMode();
+					EnterDisabledMode(err);
 					return;
 				}
 				else
@@ -727,19 +718,32 @@ var cleanupFn = function cleanup()
 	}
 }
 
-function userVoiceChange(queryz, userID, channelID, guild)
+function userVoiceChange(queryz, userID, channelID, guild, subtext)
 {
 	con.query(
 		queryz,
 		function (err, result)
 		{
+			if (validErrorCodes(err.code))
+			{
+				EnterDisabledMode(err);
+				var time = new Date();
+				var oCID = subtext == "Joined" ? null : channelID;
+				var nCID = subtext == "Left" ? null : channelID;
+
+				logVCCDATA(userID, userID, nCID, oCID, time, guild.id);
+
+				handleDisconnect("Error");
+				return;
+			}
+
 			if (err && err.sqlMessage.includes("voiceactivity_ibfk_1"))
 			{
 				console.log("Error: " + err.sqlMessage);
 				guild.channels.fetch(channelID)
 				.then(channel => checkAndCreateChannel(channelID, channel.name, function() 
 				{
-					userVoiceChange(queryz, userID, channelID, guild);
+					userVoiceChange(queryz, userID, channelID, guild, subtext);
 				}))
 				.catch(console.error);
 			}
@@ -749,7 +753,7 @@ function userVoiceChange(queryz, userID, channelID, guild)
 				guild.members.fetch(userID)
 				.then(user => checkAndCreateUser(userID, user.user.username, function() 
 				{
-					userVoiceChange(queryz, userID, channelID, guild);
+					userVoiceChange(queryz, userID, channelID, guild, subtext);
 				}))
 				.catch(console.error);
 			}
@@ -757,13 +761,7 @@ function userVoiceChange(queryz, userID, channelID, guild)
 			{
 				if (err)
 				{
-					if (validErrorCodes(err.code))
-					{
-						EnterDisabledMode();
-						return;
-					}
-					else
-						throw err;
+					throw err;
 				}
 			}		
 		}
@@ -775,7 +773,7 @@ function userJoinedVoice(newUserID, newUserChannel, guild, overideDate = null)
 	var dt = overideDate == null ? new Date() : overideDate;
 	var dtsrart = dt.toISOString().slice(0, 19).replace('T', ' ');
 	var q = `INSERT INTO voiceactivity (ChannelID, UserID, StartTime) VALUES ("${newUserChannel}", "${newUserID}", "${dtsrart}")`;
-	userVoiceChange(q, newUserID, newUserChannel, guild);
+	userVoiceChange(q, newUserID, newUserChannel, guild, "Joined");
 }
 
 function userLeftVoice(oldUserID, oldUserChannel, guild, overideDate = null)
@@ -783,23 +781,27 @@ function userLeftVoice(oldUserID, oldUserChannel, guild, overideDate = null)
 	var dt = overideDate == null ? new Date() : overideDate;
 	var dtsrart = dt.toISOString().slice(0, 19).replace('T', ' ');
 	var q = `UPDATE voiceactivity SET EndTime = "${dtsrart}" WHERE UserID = "${oldUserID}" AND ChannelID = "${oldUserChannel}" AND EndTime IS NULL`;
-	userVoiceChange(q, oldUserID, oldUserChannel, guild);
+	userVoiceChange(q, oldUserID, oldUserChannel, guild, "Left");
 }
 
 function checkUserVoiceCrash(userID, channelID, guild)
 {
+	if (timeoutCT > 0)
+	{
+		var time = new Date();
+		logVCCDATA(userID, userID, channelID, null, time, guild.id);
+		return;
+	}
+
 	con.query(`Select * from voiceactivity where UserID = "${userID}" AND ChannelID = "${channelID}" AND EndTime IS NULL`,
 		function (err, result)
 		{
 			if (err)
 			{
-				if (validErrorCodes(err.code))
-				{
-					EnterDisabledMode();
-					return;
-				}
-				else
-					throw err;
+				EnterDisabledMode(err);
+				var time = new Date();
+				logVCCDATA(userID, userID, channelID, null, time, guild.id);
+				return;
 			}
 			if (result.length == 0)
 			{
@@ -818,7 +820,7 @@ function checkAndCreateUser(userID, userName, callback)
 			{
 				if (validErrorCodes(err.code))
 				{
-					EnterDisabledMode();
+					EnterDisabledMode(err);
 					return;
 				}
 				else
@@ -848,7 +850,7 @@ function checkAndCreateChannel(channelID, channelName, callback)
 			{
 				if (validErrorCodes(err.code))
 				{
-					EnterDisabledMode();
+					EnterDisabledMode(err);
 					return;
 				}
 				else
@@ -865,7 +867,7 @@ function checkAndCreateChannel(channelID, channelName, callback)
 						{
 							if (validErrorCodes(err.code))
 							{
-								EnterDisabledMode();
+								EnterDisabledMode(err);
 								return;
 							}
 							else
@@ -889,7 +891,7 @@ function optIn(user, type, callback)
 			{
 				if (validErrorCodes(err.code))
 				{
-					EnterDisabledMode();
+					EnterDisabledMode(err);
 					return;
 				}
 				else
@@ -905,7 +907,7 @@ function optIn(user, type, callback)
 						{
 							if (validErrorCodes(err.code))
 							{
-								EnterDisabledMode();
+								EnterDisabledMode(err);
 								return;
 							}
 							else
@@ -935,7 +937,7 @@ function optOut(user, type, callback)
 			{
 				if (validErrorCodes(err.code))
 				{
-					EnterDisabledMode();
+					EnterDisabledMode(err);
 					return;
 				}
 				else
@@ -952,7 +954,7 @@ function optOut(user, type, callback)
 						{
 							if (validErrorCodes(err.code))
 							{
-								EnterDisabledMode();
+								EnterDisabledMode(err);
 								return;
 							}
 							else
@@ -974,18 +976,18 @@ function optOut(user, type, callback)
 
 function endLeftUsersCrash(onlineusers, guild)
 {
+	if (timeoutCT > 0)
+	{
+		return;
+	}
+
 	con.query(`Select * from voiceactivity where EndTime IS NULL`,
 	function (err, result)
 	{
 		if (err)
 		{
-			if (validErrorCodes(err.code))
-			{
-				EnterDisabledMode();
-				return;
-			}
-			else
-				throw err;
+			EnterDisabledMode(err);
+			return;
 		}
 		for (var i = 0; i < result.length; i++)
 		{
@@ -1019,7 +1021,7 @@ function cacheDOW()
 			{
 				if (validErrorCodes(err.code))
 				{
-					EnterDisabledMode();
+					EnterDisabledMode(err);
 					return;
 				}
 				else
@@ -1042,7 +1044,7 @@ function cacheDOW()
 			{
 				if (validErrorCodes(err.code))
 				{
-					EnterDisabledMode();
+					EnterDisabledMode(err);
 					return;
 				}
 				else
@@ -1064,7 +1066,7 @@ function cacheDOW()
 			{
 				if (validErrorCodes(err.code))
 				{
-					EnterDisabledMode();
+					EnterDisabledMode(err);
 					return;
 				}
 				else
@@ -1088,7 +1090,7 @@ function cacheDOW()
 					{
 						if (validErrorCodes(err.code))
 						{
-							EnterDisabledMode();
+							EnterDisabledMode(err);
 							return;
 						}
 						else
@@ -1119,7 +1121,7 @@ function cacheDOW()
 			{
 				if (validErrorCodes(err.code))
 				{
-					EnterDisabledMode();
+					EnterDisabledMode(err);
 					return;
 				}
 				else
@@ -1187,7 +1189,7 @@ function cacheDOW()
 			{
 				if (validErrorCodes(err.code))
 				{
-					EnterDisabledMode();
+					EnterDisabledMode(err);
 					return;
 				}
 				else
@@ -1221,7 +1223,7 @@ function cacheDOW()
 			{
 				if (validErrorCodes(err.code))
 				{
-					EnterDisabledMode();
+					EnterDisabledMode(err);
 					return;
 				}
 				else
@@ -1264,7 +1266,7 @@ function cacheDOW()
 			{
 				if (validErrorCodes(err.code))
 				{
-					EnterDisabledMode();
+					EnterDisabledMode(err);
 					return;
 				}
 				else
@@ -1297,7 +1299,7 @@ function cacheDOW()
 			{
 				if (validErrorCodes(err.code))
 				{
-					EnterDisabledMode();
+					EnterDisabledMode(err);
 					return;
 				}
 				else
@@ -1333,7 +1335,7 @@ function controlDOW(id, level, prefix)
 			{
 				if (validErrorCodes(err.code))
 				{
-					EnterDisabledMode();
+					EnterDisabledMode(err);
 					return;
 				}
 				else
@@ -1348,7 +1350,7 @@ function controlDOW(id, level, prefix)
 						{
 							if (validErrorCodes(err.code))
 							{
-								EnterDisabledMode();
+								EnterDisabledMode(err);
 								return;
 							}
 							else
@@ -1367,7 +1369,7 @@ function controlDOW(id, level, prefix)
 						{
 							if (validErrorCodes(err.code))
 							{
-								EnterDisabledMode();
+								EnterDisabledMode(err);
 								return;
 							}
 							else
@@ -1391,8 +1393,8 @@ function cacheOpts(callback)
 			{
 				if (validErrorCodes(err.code))
 				{
-					EnterDisabledMode();
-					return;
+					EnterDisabledMode(err);
+					return callback();
 				}
 				else
 					throw err;
@@ -1463,6 +1465,13 @@ function saveSlashFridayJson(testingOveride = false)
 	else
 		global.fridayCounter = {};
 
+	var emojiurl = "https://gist.githubusercontent.com/oliveratgithub/0bf11a9aff0d6da7b46f1490f86a71eb/raw/d8e4b78cfe66862cf3809443c1dba017f37b61db/emojis.json";
+
+	fetch(emojiurl).then(res => res.json()).then(json => {
+		// save to emojiJSONCache
+		fs.writeFileSync(babadata.datalocation + "/emojiJSONCache.json", JSON.stringify(json));
+	});
+
 	return retVal;
 }
 
@@ -1512,7 +1521,7 @@ function IncrementFridayCounter(fridayJson)
 			{
 				if (validErrorCodes(err.code))
 				{
-					EnterDisabledMode();
+					EnterDisabledMode(err);
 					return;
 				}
 				else
@@ -1577,7 +1586,7 @@ function eventDB(event, change, user)
 				{
 					if (validErrorCodes(err.code))
 					{
-						EnterDisabledMode();
+						EnterDisabledMode(err);
 						return;
 					}
 					else
@@ -1594,7 +1603,7 @@ function eventDB(event, change, user)
 				{
 					if (validErrorCodes(err.code))
 					{
-						EnterDisabledMode();
+						EnterDisabledMode(err);
 						return;
 					}
 					else
@@ -1611,7 +1620,7 @@ function eventDB(event, change, user)
 				{
 					if (validErrorCodes(err.code))
 					{
-						EnterDisabledMode();
+						EnterDisabledMode(err);
 						return;
 					}
 					else
@@ -1636,7 +1645,7 @@ function eventDB(event, change, user)
 				{
 					if (validErrorCodes(err.code))
 					{
-						EnterDisabledMode();
+						EnterDisabledMode(err);
 						return;
 					}
 					else
@@ -1652,7 +1661,7 @@ function eventDB(event, change, user)
 						{
 							if (validErrorCodes(err.code))
 							{
-								EnterDisabledMode();
+								EnterDisabledMode(err);
 								return;
 							}
 							else
@@ -1671,7 +1680,7 @@ function eventDB(event, change, user)
 				{
 					if (validErrorCodes(err.code))
 					{
-						EnterDisabledMode();
+						EnterDisabledMode(err);
 						return;
 					}
 					else
@@ -1682,9 +1691,19 @@ function eventDB(event, change, user)
 	}
 }
 
-function EnterDisabledMode()
+function EnterDisabledMode(err)
 {
 	console.log("Entering Disabled Mode");
+
+	if (global.lastDBErrors === undefined)
+		global.lastDBErrors = [];
+
+	var cError = [err, new Date()];
+
+	// add to lastDBErrors at the start, and if it's over 50, remove the last one
+	global.lastDBErrors.unshift(cError);
+	if (global.lastDBErrors.length > 50)
+		global.lastDBErrors.pop();
 }
 
 process.on('SIGINT', cleanupFn);
@@ -1693,9 +1712,31 @@ process.on('SIGTERM', cleanupFn);
 
 // VOICE DATA SECTION
 
+function voiceChannelChangeLOGGED(newMemberID, oldMemberID, newChannelID, oldChannelID, overideTime = null, guildID)
+{
+	bot.guilds.fetch(guildID).then(guild =>
+	{
+		if (newChannelID != null && newChannelID != oldChannelID && userOptOut(guild, newMemberID, "voice"))
+		{
+			userJoinedVoice(newMemberID, newChannelID, guild, overideTime);
+		}
+		if (oldChannelID != null && newChannelID != oldChannelID)
+		{
+			userLeftVoice(oldMemberID, oldChannelID, guild, overideTime);
+		}
+	});
+}
 
 function voiceChannelChange(newMember, oldMember, overideTime = null)
 {
+	if (timeoutCT > 0) 
+	{
+		// log the voice channel change
+		var time = new Date();
+		logVCC(newMember, oldMember, time);
+		return;
+	}
+	
     let newUserID = newMember.id;
 	let oldUserID = oldMember.id;
     let newUserChannel = newMember.channelId;
@@ -1705,7 +1746,6 @@ function voiceChannelChange(newMember, oldMember, overideTime = null)
 
     //console.log(newUserID + " joined vc with id " + newUserChannel);
     //console.log(newUserID + " left vc with id " + oldUserChannel);
-
     
     if (newUserChannel != null && newUserChannel != oldUserChannel && userOptOut(guild, newUserID, "voice"))
     {
@@ -1769,29 +1809,69 @@ function startUpChecker(client)
                     var userID = voiceState.member.id;
     
                     var up = userID + "-" + channelID;
-                    checkUserVoiceCrash(userID, channelID, guild);
+                    //checkUserVoiceCrash(userID, channelID, guild);
                     onlineusers.push(up);
                 }
             }
         });
-        endLeftUsersCrash(onlineusers, guild);
+        //endLeftUsersCrash(onlineusers, guild);
     });  
+}
+
+function logVCCDATA(newMemberID, oldMemberID, newChannelID, oldChannelID, time, guildID)
+{
+	console.log("Logging VCC Data: " + newMemberID + " " + oldMemberID + " " + newChannelID + " " + oldChannelID + " " + time + " " + guildID);
+	// save time as a number
+	time = time.getTime();
+	
+	// save to loggedUsersVCC.json
+	// if file doesn't exist, create it
+	if (!fs.existsSync(babadata.datalocation + "/loggedUsersVCC.csv"))
+	{
+		fs.writeFileSync(babadata.datalocation + "/loggedUsersVCC.csv", "");
+	}
+
+	// save newMember.id, newMember.channelId, oldMember.id, oldMember.channelId, time, guild.id
+	// to loggedUsersVCC.json
+	fs.appendFileSync(babadata.datalocation + "/loggedUsersVCC.csv", newMemberID + "," + newChannelID + "," + oldMemberID + "," + oldChannelID + "," + time + "," + guildID + "\n");
+
+    // global.logVCC.push([newMember, oldMember, time]);
 }
 
 function logVCC(newMember, oldMember, time)
 {
-    global.logVCC.push([newMember, oldMember, time]);
+	// log the voice channel change
+	logVCCDATA(newMember.id, oldMember.id, newMember.channelId, oldMember.channelId, time, newMember.guild.id);
 }
 
 function clearVCCList()
 {
-	var lsit = global.loggedVCC;
-	for (var x in lsit)
+	// load loggedUsersVCC.json
+	var loggedUsersVCC = fs.readFileSync(babadata.datalocation + "/loggedUsersVCC.csv");
+	// clear the file
+	fs.writeFileSync(babadata.datalocation + "/loggedUsersVCC.csv", "");
+	
+	// loop through each line
+	// for each line, get the newMember.id, newMember.channelId, oldMember.id, oldMember.channelId, time
+	// call voiceChannelChangeLOGGED(newMember.id, oldMember.id, newMember.channelId, oldMember.channelId, time)
+	var lines = loggedUsersVCC.split("\n");
+	for (var i = 0; i < lines.length; i++)
 	{
-		var item = lsit[x];
-		voiceChannelChange(item[0], item[1], item[2]);
+		if (lines[i].length > 0)
+		{
+			var line = lines[i].split(",");
+			var newMemberID = line[0];
+			var newChannelID = line[1];
+			var oldMemberID = line[2];
+			var oldChannelID = line[3];
+			var time = line[4];
+			// convert time to Date object
+			time = new Date(parseInt(time));
+			
+			var guildID = line[5];
+			voiceChannelChangeLOGGED(newMemberID, oldMemberID, newChannelID, oldChannelID, time, guildID);
+		}
 	}
-	global.loggedVCC = [];
 }
 
 

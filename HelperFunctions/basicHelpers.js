@@ -8,6 +8,7 @@ const https = require('https')
 const fetch = require('node-fetch');
 const { PermissionsBitField } = require('discord.js');
 
+
 const options = { year: 'numeric', month: 'long', day: 'numeric' }; // for date parsing to string
 
 function FindDate(message, haiku = false) //Not Thanks to Jeremy's Link
@@ -490,7 +491,7 @@ function Seperated(vle)
 
 function getD1()
 {
-	var dateoveride = [false, 3, 4]; //allows for overiding date manually (testing)
+	var dateoveride = [false, 4, 1]; //allows for overiding date manually (testing)
 	var yr = new Date().getFullYear(); //get this year
 	var dy = dateoveride[0] ? dateoveride[2] : new Date().getDate(); //get this day
 	var my = dateoveride[0] ? dateoveride[1] - 1 : new Date().getMonth(); //get this month
@@ -622,8 +623,10 @@ function preformEasterEggs(message, msgContent, bot)
 		message.reply("# 🎅🏻🎁 Christmas is GREAT! 🎄❄️");
 	}
 
+	var rct = 0;
 	if(ames.includes('adam') || ames.includes("aikus"))
 	{
+		rct++;
 		if(ames.includes("please") || ames.includes("pikus"))
 		{
 			if (!(message.author.bot && msgContent == "# indeed, adam please!"))
@@ -639,9 +642,9 @@ function preformEasterEggs(message, msgContent, bot)
 	}
 
 	// tbd: database the please funnys
-
 	if(ames.includes('sami'))
 	{
+		rct++;
 		if(ames.includes("please"))
 		{
 			if (!(message.author.bot && msgContent == "indeed, sami please!"))
@@ -692,12 +695,15 @@ function preformEasterEggs(message, msgContent, bot)
 
 	if (ames.includes("frog") || msgContent.includes("🐸") || ames.includes("toad"))
 	{
+		rct++;
 		if (ames.includes("1181988742270038106") && ames.includes("frogfrontmartin"))
 		{
+			rct--;
 			var num = Math.floor(Math.random() * 100); //pick a random one
 			
 			if (num < 2)
 			{
+				rct++;
 				message.react("1181988742270038106").catch((error) => {
 					message.react("🐸");
 					console.error(error);
@@ -706,6 +712,15 @@ function preformEasterEggs(message, msgContent, bot)
 		}
 		else
 			message.react("🐸");
+	}
+
+	//console.log("rct: " + rct);
+	var d1 = getD1();
+	// if april 1st run extremeEmoji(message, msgContent);
+	if (d1.getMonth() == 3 && d1.getDate() == 1)
+	{
+		var maxemoji = 20;
+		extremeEmoji(message, msgContent, maxemoji-rct);
 	}
 
 	if ((ames.includes("among") && ames.includes("us")) || msgContent.includes("sus") || msgContent.includes("ඞ") || msgContent.includes("amogus"))
@@ -1036,6 +1051,164 @@ function getTimeFromString(timestring)
 	hourtime = new Date(hourtime.getTime() - (hourtime.getTimezoneOffset() * 60000));
 
 	return time;
+}
+
+
+async function extremeEmoji(message, msgContent, reactneeded=0)
+{
+	// load babadata.datalocation + "/emojiJSONCache.json
+	var rawdata = fs.readFileSync(babadata.datalocation + "/emojiJSONCache.json");
+	var emojis = JSON.parse(rawdata).emojis;
+
+	var goodfellas = {};
+
+	// loop through emoji list length
+	for (var i = 0; i < emojis.length; i++) //
+	{
+		var eName = emojis[i].name;
+		var eShortName = emojis[i].shortname;
+		var eCategory = emojis[i].category;
+		var eChar = emojis[i].emoji;
+
+		// replace _ in shortname with space
+		eShortName = eShortName.replace(/_/g, " ");
+
+		// allow name to only have a-z 0-9 and space (force lowercase)
+		eName = eName.toLowerCase().replace(/[^a-z0-9 ]/g, "");
+		eShortName = eShortName.toLowerCase().replace(/[^a-z0-9 ]/g, "");
+
+		var subValues = [];
+		var subValueseName = eName.split(" ");
+		var subValueseShortName = eShortName.split(" ");
+
+		// add all sub values to array
+		subValues = subValues.concat(subValueseName);
+		subValues = subValues.concat(subValueseShortName);
+
+		// remove duplicates
+		subValues = subValues.filter((v, i, a) => a.indexOf(v) === i);
+
+		subValues.push(eChar);
+
+		// skip emoji if it has skin tone in it
+		if (eName.includes("skin tone") || eShortName.includes("skin tone"))
+			continue;
+
+		// check if any sub values are in the message
+		var found = false;
+		for (var j = 0; j < subValues.length; j++)
+		{
+			// skip if sub value is < 3 characters
+			if (subValues[j].length < 3 && subValues[j] != eChar)
+				continue;
+			if (msgContent.toLowerCase().includes(subValues[j]))
+			{
+				found = true;
+				break;
+			}
+		}
+
+		// if found add to list
+		if (found)
+		{
+			// add new category to goodfellas if it doesn't exist
+			if (goodfellas[eCategory] == null)
+				goodfellas[eCategory] = [];
+
+			// if name already exists in category, skip
+			var exists = false;
+			for (var j = 0; j < goodfellas[eCategory].length; j++)
+			{
+				if (goodfellas[eCategory][j].name == eName)
+				{
+					exists = true;
+					break;
+				}
+			}
+
+			// add emoji to category
+			if (!exists)
+				goodfellas[eCategory].push({name: eName, shortname: eShortName, char: eChar});
+		}
+	}
+
+	// if goodfellas is empty, return
+	if (Object.keys(goodfellas).length == 0)
+	{
+		return;
+	}
+
+	// console.log("goodfellas: " + Object.keys(goodfellas).length);
+	
+	var slightlyusedcategories = {};
+
+	reactEmoji(goodfellas, slightlyusedcategories, message, reactneeded);
+}
+
+async function reactEmoji(goodfellas, slightlyusedcategories, message, reactneeded)
+{
+	// while reactcount is less than maxemoji
+	while (reactneeded > 0)
+	{
+		// if no categories left and slightlyusedcategories is empty, return
+		if (Object.keys(goodfellas).length == 0)
+		{
+			if (Object.keys(slightlyusedcategories).length == 0)
+			{
+				console.log("No emojis remaining.");
+				return;
+			}
+			else
+			{
+				goodfellas = slightlyusedcategories;
+				slightlyusedcategories = {};
+			}
+		}
+		
+		// get random category
+		var categories = Object.keys(goodfellas);
+		var category = categories[Math.floor(Math.random() * categories.length)];
+
+		// get category emojis
+		var categoryemojis = goodfellas[category];
+
+		// get random emoji
+		var emoji = categoryemojis[Math.floor(Math.random() * categoryemojis.length)];
+
+		// remove emoji from category
+		var index = categoryemojis.indexOf(emoji);
+		categoryemojis.splice(index, 1);
+
+		// if category is empty, remove category
+		if (categoryemojis.length == 0)
+			delete goodfellas[category];
+		// else move category to slightlyusedcategories
+		else
+		{
+			slightlyusedcategories[category] = categoryemojis;
+			delete goodfellas[category];
+		}
+
+		reactneeded--;
+		// react with emoji
+		// console.log("Reacting with: " + emoji.char + " -- " + emoji.name);
+		await message.react(emoji.char).catch(
+			function(error)
+			{
+				// if unknown message, skip all emojis
+				if (error.code == 10008)
+				{
+					reactneeded = 0;
+					return;
+				}
+				console.error(error);
+				reactneeded++;
+			}
+		);
+
+		// console.log("reactneeded: " + reactneeded);
+		// console.log("-----------------");
+	}
 }
 
 function GambaRoll(time)
