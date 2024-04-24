@@ -172,7 +172,7 @@ function HPLGenUsers(callback)
 		{
 			if (validErrorCodes(err.code))
 			{
-				EnterDisabledMode();
+				EnterDisabledMode(err);
 				return;
 			}
 			else
@@ -192,7 +192,7 @@ function HPLGenD8(callback)
 		{
 			if (validErrorCodes(err.code))
 			{
-				EnterDisabledMode();
+				EnterDisabledMode(err);
 				return;
 			}
 			else
@@ -247,7 +247,7 @@ function HPLSelectChannel(callback, msgContent)
 		{
 			if (validErrorCodes(err.code))
 			{
-				EnterDisabledMode();
+				EnterDisabledMode(err);
 				return;
 			}
 			else
@@ -269,7 +269,7 @@ function HPLSelectDate(callback, msgContent)
 		{
 			if (validErrorCodes(err.code))
 			{
-				EnterDisabledMode();
+				EnterDisabledMode(err);
 				return;
 			}
 			else
@@ -292,7 +292,7 @@ function HPLSelectUser(callback, msgContent)
 		{
 			if (validErrorCodes(err.code))
 			{
-				EnterDisabledMode();
+				EnterDisabledMode(err);
 				return;
 			}
 			else
@@ -487,7 +487,7 @@ function HaikuSelection(callback, by, msgContent)
 				{
 					if (validErrorCodes(err.code))
 					{
-						EnterDisabledMode();
+						EnterDisabledMode(err);
 						return;
 					}
 					else
@@ -513,7 +513,7 @@ function HaikuSelection(callback, by, msgContent)
 		{
 			if (validErrorCodes(err.code))
 			{
-				EnterDisabledMode();
+				EnterDisabledMode(err);
 				return;
 			}
 			else
@@ -585,7 +585,7 @@ function HaikuSelection(callback, by, msgContent)
 			{
 				if (validErrorCodes(err.code))
 				{
-					EnterDisabledMode();
+					EnterDisabledMode(err);
 					return;
 				}
 				else
@@ -605,7 +605,7 @@ function ObtainDBHolidays(callback)
 		{
 			if (validErrorCodes(err.code))
 			{
-				EnterDisabledMode();
+				EnterDisabledMode(err);
 				return;
 			}
 			else
@@ -655,7 +655,7 @@ function NameFromUserIDID(id)
 				{
 					if (validErrorCodes(err.code))
 					{
-						EnterDisabledMode();
+						EnterDisabledMode(err);
 						return;
 					}
 					else
@@ -678,7 +678,7 @@ function NameFromUserID(callback, user)
 			{
 				if (validErrorCodes(err.code))
 				{
-					EnterDisabledMode();
+					EnterDisabledMode(err);
 					return;
 				}
 				else
@@ -726,7 +726,7 @@ function userVoiceChange(queryz, userID, channelID, guild, subtext)
 		{
 			if (validErrorCodes(err.code))
 			{
-				EnterDisabledMode();
+				EnterDisabledMode(err);
 				var time = new Date();
 				var oCID = subtext == "Joined" ? null : channelID;
 				var nCID = subtext == "Left" ? null : channelID;
@@ -798,7 +798,7 @@ function checkUserVoiceCrash(userID, channelID, guild)
 		{
 			if (err)
 			{
-				EnterDisabledMode();
+				EnterDisabledMode(err);
 				var time = new Date();
 				logVCCDATA(userID, userID, channelID, null, time, guild.id);
 				return;
@@ -820,7 +820,7 @@ function checkAndCreateUser(userID, userName, callback)
 			{
 				if (validErrorCodes(err.code))
 				{
-					EnterDisabledMode();
+					EnterDisabledMode(err);
 					return;
 				}
 				else
@@ -850,7 +850,7 @@ function checkAndCreateChannel(channelID, channelName, callback)
 			{
 				if (validErrorCodes(err.code))
 				{
-					EnterDisabledMode();
+					EnterDisabledMode(err);
 					return;
 				}
 				else
@@ -867,7 +867,7 @@ function checkAndCreateChannel(channelID, channelName, callback)
 						{
 							if (validErrorCodes(err.code))
 							{
-								EnterDisabledMode();
+								EnterDisabledMode(err);
 								return;
 							}
 							else
@@ -891,7 +891,7 @@ function optIn(user, type, callback)
 			{
 				if (validErrorCodes(err.code))
 				{
-					EnterDisabledMode();
+					EnterDisabledMode(err);
 					return;
 				}
 				else
@@ -907,7 +907,7 @@ function optIn(user, type, callback)
 						{
 							if (validErrorCodes(err.code))
 							{
-								EnterDisabledMode();
+								EnterDisabledMode(err);
 								return;
 							}
 							else
@@ -937,7 +937,7 @@ function optOut(user, type, callback)
 			{
 				if (validErrorCodes(err.code))
 				{
-					EnterDisabledMode();
+					EnterDisabledMode(err);
 					return;
 				}
 				else
@@ -954,7 +954,7 @@ function optOut(user, type, callback)
 						{
 							if (validErrorCodes(err.code))
 							{
-								EnterDisabledMode();
+								EnterDisabledMode(err);
 								return;
 							}
 							else
@@ -986,7 +986,7 @@ function endLeftUsersCrash(onlineusers, guild)
 	{
 		if (err)
 		{
-			EnterDisabledMode();
+			EnterDisabledMode(err);
 			return;
 		}
 		for (var i = 0; i < result.length; i++)
@@ -1021,7 +1021,7 @@ function cacheDOW()
 			{
 				if (validErrorCodes(err.code))
 				{
-					EnterDisabledMode();
+					EnterDisabledMode(err);
 					return;
 				}
 				else
@@ -1044,7 +1044,7 @@ function cacheDOW()
 			{
 				if (validErrorCodes(err.code))
 				{
-					EnterDisabledMode();
+					EnterDisabledMode(err);
 					return;
 				}
 				else
@@ -1066,7 +1066,7 @@ function cacheDOW()
 			{
 				if (validErrorCodes(err.code))
 				{
-					EnterDisabledMode();
+					EnterDisabledMode(err);
 					return;
 				}
 				else
@@ -1090,7 +1090,7 @@ function cacheDOW()
 					{
 						if (validErrorCodes(err.code))
 						{
-							EnterDisabledMode();
+							EnterDisabledMode(err);
 							return;
 						}
 						else
@@ -1121,7 +1121,7 @@ function cacheDOW()
 			{
 				if (validErrorCodes(err.code))
 				{
-					EnterDisabledMode();
+					EnterDisabledMode(err);
 					return;
 				}
 				else
@@ -1189,7 +1189,7 @@ function cacheDOW()
 			{
 				if (validErrorCodes(err.code))
 				{
-					EnterDisabledMode();
+					EnterDisabledMode(err);
 					return;
 				}
 				else
@@ -1223,7 +1223,7 @@ function cacheDOW()
 			{
 				if (validErrorCodes(err.code))
 				{
-					EnterDisabledMode();
+					EnterDisabledMode(err);
 					return;
 				}
 				else
@@ -1266,7 +1266,7 @@ function cacheDOW()
 			{
 				if (validErrorCodes(err.code))
 				{
-					EnterDisabledMode();
+					EnterDisabledMode(err);
 					return;
 				}
 				else
@@ -1299,7 +1299,7 @@ function cacheDOW()
 			{
 				if (validErrorCodes(err.code))
 				{
-					EnterDisabledMode();
+					EnterDisabledMode(err);
 					return;
 				}
 				else
@@ -1335,7 +1335,7 @@ function controlDOW(id, level, prefix)
 			{
 				if (validErrorCodes(err.code))
 				{
-					EnterDisabledMode();
+					EnterDisabledMode(err);
 					return;
 				}
 				else
@@ -1350,7 +1350,7 @@ function controlDOW(id, level, prefix)
 						{
 							if (validErrorCodes(err.code))
 							{
-								EnterDisabledMode();
+								EnterDisabledMode(err);
 								return;
 							}
 							else
@@ -1369,7 +1369,7 @@ function controlDOW(id, level, prefix)
 						{
 							if (validErrorCodes(err.code))
 							{
-								EnterDisabledMode();
+								EnterDisabledMode(err);
 								return;
 							}
 							else
@@ -1393,7 +1393,7 @@ function cacheOpts(callback)
 			{
 				if (validErrorCodes(err.code))
 				{
-					EnterDisabledMode();
+					EnterDisabledMode(err);
 					return callback();
 				}
 				else
@@ -1521,7 +1521,7 @@ function IncrementFridayCounter(fridayJson)
 			{
 				if (validErrorCodes(err.code))
 				{
-					EnterDisabledMode();
+					EnterDisabledMode(err);
 					return;
 				}
 				else
@@ -1586,7 +1586,7 @@ function eventDB(event, change, user)
 				{
 					if (validErrorCodes(err.code))
 					{
-						EnterDisabledMode();
+						EnterDisabledMode(err);
 						return;
 					}
 					else
@@ -1603,7 +1603,7 @@ function eventDB(event, change, user)
 				{
 					if (validErrorCodes(err.code))
 					{
-						EnterDisabledMode();
+						EnterDisabledMode(err);
 						return;
 					}
 					else
@@ -1620,7 +1620,7 @@ function eventDB(event, change, user)
 				{
 					if (validErrorCodes(err.code))
 					{
-						EnterDisabledMode();
+						EnterDisabledMode(err);
 						return;
 					}
 					else
@@ -1645,7 +1645,7 @@ function eventDB(event, change, user)
 				{
 					if (validErrorCodes(err.code))
 					{
-						EnterDisabledMode();
+						EnterDisabledMode(err);
 						return;
 					}
 					else
@@ -1661,7 +1661,7 @@ function eventDB(event, change, user)
 						{
 							if (validErrorCodes(err.code))
 							{
-								EnterDisabledMode();
+								EnterDisabledMode(err);
 								return;
 							}
 							else
@@ -1680,7 +1680,7 @@ function eventDB(event, change, user)
 				{
 					if (validErrorCodes(err.code))
 					{
-						EnterDisabledMode();
+						EnterDisabledMode(err);
 						return;
 					}
 					else
@@ -1691,9 +1691,19 @@ function eventDB(event, change, user)
 	}
 }
 
-function EnterDisabledMode()
+function EnterDisabledMode(err)
 {
 	console.log("Entering Disabled Mode");
+
+	if (global.lastDBErrors === undefined)
+		global.lastDBErrors = [];
+
+	var cError = [err, new Date()];
+
+	// add to lastDBErrors at the start, and if it's over 50, remove the last one
+	global.lastDBErrors.unshift(cError);
+	if (global.lastDBErrors.length > 50)
+		global.lastDBErrors.pop();
 }
 
 process.on('SIGINT', cleanupFn);
