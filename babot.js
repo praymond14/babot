@@ -66,7 +66,7 @@ bot.on('ready', function (evt)
 
 		cacheOpts(function()
 		{
-			if (babadata.testing !== undefined)
+			if (babadata.testing === undefined)
 			{
 				startUpChecker(bot);
 			}
@@ -94,8 +94,8 @@ bot.on('voiceStateUpdate', (oldMember, newMember) =>
 {
 	console.log(global.dbAccess[0]);
 	console.log(global.dbAccess[1]);
-	// if (babadata.testing !== undefined)
-	// {
+	if (babadata.testing === undefined)
+	{
 		if (global.dbAccess[1] && global.dbAccess[0])
 			voiceChannelChange(newMember, oldMember);
 
@@ -104,7 +104,7 @@ bot.on('voiceStateUpdate', (oldMember, newMember) =>
 			var time = new Date();
 			logVCC(newMember, oldMember, time);
 		}
-	// }
+	}
 });
 
 // v14 works
