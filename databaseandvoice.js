@@ -1718,17 +1718,13 @@ function voiceChannelChangeLOGGED(newMemberID, oldMemberID, newChannelID, oldCha
 	{
 		if (newChannelID != null && newChannelID != oldChannelID && userOptOut(guild, newMemberID, "voice"))
 		{
-			console.log("User Joined Voice: " + newMemberID + " " + newChannelID + " " + guildID);
 			userJoinedVoice(newMemberID, newChannelID, guild, overideTime);
 		}
 		if (oldChannelID != null && newChannelID != oldChannelID)
 		{
-			console.log("User Left Voice: " + oldMemberID + " " + oldChannelID + " " + guildID);
 			userLeftVoice(oldMemberID, oldChannelID, guild, overideTime);
 		}
 	});
-
-	console.log("Logged");
 }
 
 function voiceChannelChange(newMember, oldMember, overideTime = null)
@@ -1871,7 +1867,6 @@ function saveStuff(lineWhole, i)
 {
 	setTimeout(function() 
 	{
-		console.log("Clearing VCC List: " + i);
 		if (lineWhole.length > 0)
 		{
 			var line = lineWhole.split(",");
