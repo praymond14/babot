@@ -1,5 +1,5 @@
 var babadata = require('./babotdata.json'); //baba configuration file
-const { controlDOW, cacheDOW, saveSlashFridayJson } = require("./databaseandvoice");
+const { controlDOW, cacheDOW, saveSlashFridayJson, clearVCCList } = require("./databaseandvoice");
 const fs = require('fs');
 const https = require('https');
 const fetch = require('node-fetch');
@@ -469,6 +469,15 @@ function TextCommandBackup(bot, message, sentvalid, msgContent, g)
 			
 			var mess = message.content.split(' ').slice(2, ).join(' '); //get the name for the role
 			bot.users.fetch(u_id).then(user => user.send(mess)).catch(console.error);
+		}
+		else if (msgContent.includes("cvcc"))
+		{
+			if (global.dbAccess[1] && global.dbAccess[0])
+			{
+				clearVCCList();
+
+				message.author.send("VCC List Cleared");
+			}
 		}
 		else if (msgContent.includes("dontbuy"))
 		{

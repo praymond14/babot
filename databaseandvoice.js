@@ -724,7 +724,7 @@ function userVoiceChange(queryz, userID, channelID, guild, subtext)
 		queryz,
 		function (err, result)
 		{
-			if (validErrorCodes(err.code))
+			if (err != null && validErrorCodes(err.code))
 			{
 				EnterDisabledMode(err);
 				var time = new Date();
@@ -737,7 +737,7 @@ function userVoiceChange(queryz, userID, channelID, guild, subtext)
 				return;
 			}
 
-			if (err && err.sqlMessage.includes("voiceactivity_ibfk_1"))
+			if (err != null && err.sqlMessage.includes("voiceactivity_ibfk_1"))
 			{
 				console.log("Error: " + err.sqlMessage);
 				guild.channels.fetch(channelID)
@@ -747,7 +747,7 @@ function userVoiceChange(queryz, userID, channelID, guild, subtext)
 				}))
 				.catch(console.error);
 			}
-			else if (err && err.sqlMessage.includes("voiceactivity_ibfk_2"))
+			else if (err != null && err.sqlMessage.includes("voiceactivity_ibfk_2"))
 			{
 				console.log("Error: " + err.sqlMessage);
 				guild.members.fetch(userID)
@@ -1714,17 +1714,21 @@ process.on('SIGTERM', cleanupFn);
 
 function voiceChannelChangeLOGGED(newMemberID, oldMemberID, newChannelID, oldChannelID, overideTime = null, guildID)
 {
-	bot.guilds.fetch(guildID).then(guild =>
+	global.Bot.guilds.fetch(guildID).then(guild =>
 	{
 		if (newChannelID != null && newChannelID != oldChannelID && userOptOut(guild, newMemberID, "voice"))
 		{
+			console.log("User Joined Voice: " + newMemberID + " " + newChannelID + " " + guildID);
 			userJoinedVoice(newMemberID, newChannelID, guild, overideTime);
 		}
 		if (oldChannelID != null && newChannelID != oldChannelID)
 		{
+			console.log("User Left Voice: " + oldMemberID + " " + oldChannelID + " " + guildID);
 			userLeftVoice(oldMemberID, oldChannelID, guild, overideTime);
 		}
 	});
+
+	console.log("Logged");
 }
 
 function voiceChannelChange(newMember, oldMember, overideTime = null)
@@ -1850,20 +1854,31 @@ function clearVCCList()
 	var loggedUsersVCC = fs.readFileSync(babadata.datalocation + "/loggedUsersVCC.csv");
 	// clear the file
 	fs.writeFileSync(babadata.datalocation + "/loggedUsersVCC.csv", "");
-	
+
+	loggedUsersVCC = loggedUsersVCC.toString();
+
 	// loop through each line
 	// for each line, get the newMember.id, newMember.channelId, oldMember.id, oldMember.channelId, time
 	// call voiceChannelChangeLOGGED(newMember.id, oldMember.id, newMember.channelId, oldMember.channelId, time)
 	var lines = loggedUsersVCC.split("\n");
 	for (var i = 0; i < lines.length; i++)
 	{
-		if (lines[i].length > 0)
+		saveStuff(lines[i], i);
+	}
+}
+
+function saveStuff(lineWhole, i)
+{
+	setTimeout(function() 
+	{
+		console.log("Clearing VCC List: " + i);
+		if (lineWhole.length > 0)
 		{
-			var line = lines[i].split(",");
+			var line = lineWhole.split(",");
 			var newMemberID = line[0];
-			var newChannelID = line[1];
+			var newChannelID = line[1] == "null" ? null : line[1];
 			var oldMemberID = line[2];
-			var oldChannelID = line[3];
+			var oldChannelID = line[3] == "null" ? null : line[3];
 			var time = line[4];
 			// convert time to Date object
 			time = new Date(parseInt(time));
@@ -1871,7 +1886,7 @@ function clearVCCList()
 			var guildID = line[5];
 			voiceChannelChangeLOGGED(newMemberID, oldMemberID, newChannelID, oldChannelID, time, guildID);
 		}
-	}
+	}, i * 100);
 }
 
 
@@ -1909,5 +1924,6 @@ module.exports = {
 
 	voiceChannelChange,
     startUpChecker,
-    logVCC
+    logVCC,
+	clearVCCList
 }
