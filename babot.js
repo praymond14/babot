@@ -20,6 +20,8 @@ global.interactions = {};
 
 global.loggedVCC = [];
 
+global.Bot = null;
+
 
 // Initialize Discord Bot
 const bot = new Client({ intents: 
@@ -58,6 +60,7 @@ bot.login(global.toke); //login
 
 bot.on('ready', function (evt) 
 {
+	global.Bot = bot;
 	console.log('Connected');
 
 	if (global.dbAccess[1])
