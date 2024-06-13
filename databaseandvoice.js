@@ -13,7 +13,7 @@ var timeoutCT = -1;
 
 function validErrorCodes(err)
 {
-	var catchCodes = ["ETIMEDOUT", "ER_HOST_NOT_PRIVILEGED"];
+	var catchCodes = ["ETIMEDOUT", "ER_HOST_NOT_PRIVILEGED", "ECONNREFUSED"];
 	return catchCodes.includes(err);
 }
 

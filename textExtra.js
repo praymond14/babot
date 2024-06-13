@@ -475,10 +475,56 @@ function TextCommandBackup(bot, message, sentvalid, msgContent, g)
 			if (global.dbAccess[1] && global.dbAccess[0])
 			{
 				clearVCCList();
-
+				
 				message.author.send("VCC List Cleared");
 			}
+			else
+			{
+				message.author.send("VCC List Not Cleared, DB Disabled");
+			}
 		}
+		else if (msgContent.includes("dbdownadam"))
+		{
+			var loggedUsersVCC = fs.readFileSync(babadata.datalocation + "/loggedUsersVCC.csv");
+
+			loggedUsersVCC = loggedUsersVCC.toString();
+
+			var lines = loggedUsersVCC.split("\n");
+			for (var i = 0; i < lines.length; i++)
+			{
+				if (lines[i].trim() == "") continue;
+
+				var line = lines[i].split(",");
+				var newMemberID = line[0];
+				var newChannelID = line[1] == "null" ? null : line[1];
+				var oldMemberID = line[2];
+				var oldChannelID = line[3] == "null" ? null : line[3];
+				var time = line[4];
+				// convert time to Date object
+				var time2 = new Date(parseInt(time));
+
+				var startstriiin = "<@" + newMemberID + "> joined <#" + newChannelID + ">";
+				var endstriin = "and ";
+				if (oldMemberID != newMemberID || newChannelID == null)
+					endstriin += "<@" + oldMemberID + "> left <#" + oldChannelID + ">";
+				else
+					endstriin += "left <#" + oldChannelID + ">";
+				var timestriin = "at <t:" + (time/1000) + ":D>";
+
+				var resStrung = (newChannelID != null ? startstriiin + " " : "") + (oldChannelID != null ? endstriin + " " : "") + timestriin;
+
+				// if starts with and remove it
+				if (resStrung.startsWith("and "))
+					resStrung = resStrung.substring(4);
+
+				message.author.send(resStrung);
+			}
+
+			if ((lines.length == 1 && lines[0].trim() == "") || lines.length == 0)
+				message.author.send("No VCC List to Display");
+		}
+		// add new one to download a csv of all the vcc logs and one to upload a csv of all the vcc logs
+		// add a thing to convert a datetime to utc
 		else if (msgContent.includes("dontbuy"))
 		{
 			var name = message.content.split(' ').slice(1, ).join(' '); //get the name for the role
