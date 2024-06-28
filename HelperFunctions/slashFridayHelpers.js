@@ -79,7 +79,13 @@ async function funnyDOWText(dowNum, authorID, recrused = 0, ToBeCounted = [], he
 
 	var text = textos[Math.floor(Math.random() * textos.length)];
 
-	//text = "{repeat:{brepeat:[INTSmall]:[Num]}:H}hgregg!"
+// 	text = `{repeatS:7:Frog}
+// {repeatS:9:Frog}
+// {repeatS:4:Frog}
+// {repeatS:3:Frog}
+// {repeatS:6:Frog}
+// {repeatS:9:Frog}
+// `
 
 	text = repeatCheck(text, "b");
 
@@ -419,11 +425,11 @@ function repeatCheck(text, prefix = "")
 		pf = "[" + prefix.toLowerCase() + prefix.toUpperCase() + "]";
 	}
 
-	var regexString = "{" + pf + "[rR][eE][pP][eE][aA][tT][sSnN]?:(\\d+):((.|\n)*)}";
+	var regexString = "{" + pf + "[rR][eE][pP][eE][aA][tT][sSnN]?:(\\d+):((.|\n)*?)}";
 
 	if (prefix == "b")
 	{
-		regexString =  "{" + pf + "[rR][eE][pP][eE][aA][tT][sSnN]?:(\\[(.*)\\]):((.|\n)*)}";
+		regexString =  "{" + pf + "[rR][eE][pP][eE][aA][tT][sSnN]?:(\\[(.*)\\]):((.|\n)*?)}";
 	}
 
 	var RegexExpress = new RegExp(regexString, "g");
@@ -441,6 +447,7 @@ function repeatCheck(text, prefix = "")
 		for (var i = 0; i < match.length; i++)
 		{
 			var matchi = match[i];
+			
 			if (prefix == "b")
 			{
 				// get the middle value
@@ -450,9 +457,11 @@ function repeatCheck(text, prefix = "")
 			}
 
 			var num = parseInt(matchi.match(/\d+/)[0]);
-			var value = matchi.split(":").pop();
+			var valuesplit = matchi.split(":")
+			// value is index 2 onwards
+			var value = valuesplit.slice(2).join(":");
 
-			value = value.replaceAll("}", "");
+			value = value.replace("}", "");
 
 			var containsS = matchi.split(":")[0].toLowerCase().includes("s");
 			var containsN = matchi.split(":")[0].toLowerCase().includes("n");
