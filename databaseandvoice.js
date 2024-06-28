@@ -1214,8 +1214,124 @@ function cacheDOW()
 			fs.writeFileSync(babadata.datalocation + "/FROGcache.json", data);
 		}
 	);
+	
+	
+	con.query(`SELECT PersonName, UserID, DefaultNormalChance, DefaultH1Chance, DefaultH2Chance, DefaultH3CHance, DefaultRNGFontChance, DefaultFlagChance FROM pleased
+	Left Join userval on pleased.UserID = userval.DiscordID;`,
+	function (err, result)
+		{
+			var opts = [];
+			if (err)
+			{
+				if (validErrorCodes(err.code))
+				{
+					EnterDisabledMode(err);
+					return;
+				}
+				else
+					throw err;
+			}
+			for (var i = 0; i < result.length; i++)
+			{
+				var res = result[i];
+				var resj = 
+				{
+					"UID": res.UserID,
+					"Name": res.PersonName,
+					"DefaultNormalChance": res.DefaultNormalChance,
+					"DefaultH1Chance": res.DefaultH1Chance,
+					"DefaultH2Chance": res.DefaultH2Chance,
+					"DefaultH3CHance": res.DefaultH3CHance,
+					"DefaultRNGFontChance": res.DefaultRNGFontChance,
+					"DefaultFlagChance": res.DefaultFlagChance
+				}
 
-	con.query(`Select * from dowfunny`,
+				opts.push(resj);
+			}
+
+			var data = JSON.stringify(opts);
+
+			fs.writeFileSync(babadata.datalocation + "/Pleasedcache.json", data);
+		}
+	);
+
+	con.query(`SELECT PersonName, OverideUserIDs, UserID, DefaultNormalChance, DefaultH1Chance, DefaultH2Chance, DefaultH3CHance, DefaultRNGFontChance, DefaultFlagChance FROM pleasedOverides
+Left Join userval on pleasedOverides.UserID = userval.DiscordID;`,
+	function (err, result)
+		{
+			var opts = {};
+			if (err)
+			{
+				if (validErrorCodes(err.code))
+				{
+					EnterDisabledMode(err);
+					return;
+				}
+				else
+					throw err;
+			}
+			for (var i = 0; i < result.length; i++)
+			{
+				var res = result[i];
+				var resj = 
+				{
+					"UID": res.UserID,
+					"OverideUIDs": res.OverideUserIDs,
+					"DefaultNormalChance": res.DefaultNormalChance,
+					"DefaultH1Chance": res.DefaultH1Chance,
+					"DefaultH2Chance": res.DefaultH2Chance,
+					"DefaultH3Chance": res.DefaultH3CHance,
+					"DefaultRNGFontChance": res.DefaultRNGFontChance,
+					"DefaultFlagChance": res.DefaultFlagChance
+				}
+
+				opts[res.PersonName] = resj;
+			}
+
+			var data = JSON.stringify(opts);
+			
+			fs.writeFileSync(babadata.datalocation + "/PleasedOVERIDEcache.json", data);
+		}
+	);
+
+	con.query(`Select * from fishdb`,
+	function (err, result)
+		{
+			var opts = [];
+			if (err)
+			{
+				if (validErrorCodes(err.code))
+				{
+					EnterDisabledMode(err);
+					return;
+				}
+				else
+					throw err;
+			}
+			for (var i = 0; i < result.length; i++)
+			{
+				var res = result[i];
+				text = "https://bikus.org/Images/Fish/" + res.FishIMGURL;
+				var resj = 
+				{
+					"url": text,
+					"FishWords": res.FishWords,
+					"FishBuff": res.WithFishMultBuff,
+					"ProcFishless": res.ProcOnWordsNoFish,
+					"ProcChance": res.ProcChance,
+					"DefaultOccCount": res.DefaultOccCount,
+				}
+
+				opts.push(resj);
+			}
+
+			var data = JSON.stringify(opts);
+
+			fs.writeFileSync(babadata.datalocation + "/FISHcache.json", data);
+		}
+	);
+
+	con.query(`SELECT * FROM dowfunny left join fridaytimegates on dowfunny.UID = fridaytimegates.fUID`,
 	function (err, result)
 		{
 			var opts = [];
@@ -1246,7 +1362,13 @@ function cacheDOW()
 					"IDS": res.overideIDs,
 					"h1": res.h1,
 					"h2": res.h2,
-					"h3": res.h3
+					"h3": res.h3,
+					"Occurance": 100,
+
+					"StartTime": res.StartTime,
+					"EndTime": res.EndTime,
+					"DayOfWeek": res.DayOfWeek,
+					"OccuranceChance": res.OccuranceChance == null ? 100 : res.OccuranceChance,
 				}
 
 				opts.push(resj);
@@ -1840,6 +1962,8 @@ function logVCCDATA(newMemberID, oldMemberID, newChannelID, oldChannelID, time, 
 
 function logVCC(newMember, oldMember, time)
 {
+	if (newMember.channelId == oldMember.channelId)
+		return;
 	// log the voice channel change
 	logVCCDATA(newMember.id, oldMember.id, newMember.channelId, oldMember.channelId, time, newMember.guild.id);
 }

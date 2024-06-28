@@ -627,17 +627,12 @@ function preformEasterEggs(message, msgContent, bot)
 	if(ames.includes('adam') || ames.includes("aikus"))
 	{
 		rct++;
-		if(ames.includes("please") || ames.includes("pikus"))
-		{
-			if (!(message.author.bot && msgContent == "# indeed, adam please!"))
-				message.channel.send("# Indeed, Adam Please!");
-		}
 		
 		var num = Math.floor(Math.random() * 100); //pick a random one
 		if (num < 2)
 			message.channel.send("<:adam:995385148331802634>");
-
-		if (!(message.author.bot && msgContent == "# indeed, adam please!"))
+		
+		if (!(message.author.bot && (msgContent.includes("indeed, adamplease!") || msgContent.includes("indeed, adam please!"))))
 			message.react("995385148331802634").catch(console.error);
 	}
 
@@ -645,53 +640,16 @@ function preformEasterEggs(message, msgContent, bot)
 	if(ames.includes('sami'))
 	{
 		rct++;
-		if(ames.includes("please"))
-		{
-			if (!(message.author.bot && msgContent == "indeed, sami please!"))
-				message.channel.send("Indeed, Sami Please!");
-		}
 
 		var num = Math.floor(Math.random() * 100);
 		if (num < 2)
 			message.channel.send("<:sami:1105524011854729237>");
 
-		if (!(message.author.bot && msgContent == "indeed, sami please!"))
+		if (!(message.author.bot && (msgContent.includes("indeed, samiplease!") || msgContent.includes("indeed, sami please!"))))
 			message.react("1105524011854729237").catch(console.error);
 	}
 
-	if(ames.includes('ryan'))
-	{
-		if(ames.includes("please"))
-		{
-			if (!(message.author.bot && msgContent == "indeed, ryan please!"))
-				message.channel.send("Indeed, Ryan Please!");
-		}
-	}
-
-	if(ames.includes('hank'))
-	{
-		if(ames.includes("please"))
-		{
-			if (!(message.author.bot && msgContent == "indeed, hank please!"))
-				message.channel.send("Indeed, Hank Please!");
-		}
-	}
-	if(ames.includes('isaac'))
-	{
-		if(ames.includes("please"))
-		{
-			if (!(message.author.bot && msgContent == "indeed, isaac please!"))
-				message.channel.send("Indeed, Isaac Please!");
-		}
-	}
-	if(ames.includes('amanda'))
-	{
-		if(ames.includes("please"))
-		{
-			if (!(message.author.bot && msgContent == "indeed, amanda please!"))
-				message.channel.send("Indeed, Amanda Please!");
-		}
-	}
+	pleaseChecker(message, msgContent, ames);
 
 	if (ames.includes("frog") || msgContent.includes("🐸") || ames.includes("toad"))
 	{
@@ -742,6 +700,187 @@ function preformEasterEggs(message, msgContent, bot)
 	{
 		var ovenitems = ["https://tenor.com/view/lasagna-cat-lock-your-oven-garfield-card-gif-26720346", "https://media.discordapp.net/attachments/561209488724459531/1062888125073989742/091.png"]
 		message.reply(ovenitems[Math.floor(Math.random() * ovenitems.length)]);
+	}
+
+	checkForFish(message, msgContent);
+}
+
+function pleaseChecker(message, msgContent, ames)
+{
+	var pleasedata = fs.readFileSync(babadata.datalocation + "/Pleasedcache.json");
+	var pleaseOVERIDEdata = fs.readFileSync(babadata.datalocation + "/PleasedOVERIDEcache.json");
+
+	var please = JSON.parse(pleasedata);
+	var pleaseOVERIDE = JSON.parse(pleaseOVERIDEdata);
+
+	if(ames.includes("please") || ames.includes("pikus"))
+	{
+		for (var i = 0; i < please.length; i++)
+		{
+			var pleaso = please[i];
+			// copy pleaso to a new object
+			var newPleaso = {};
+			for (var key in pleaso)
+			{
+				newPleaso[key] = pleaso[key];
+			}
+
+			if (ames.includes(please[i].Name.toLowerCase()))
+			{
+				if (!(message.author.bot && (msgContent.includes("indeed, " + please[i].Name.toLowerCase() + " please!") || msgContent.includes("indeed, " + please[i].Name.toLowerCase() + "please!"))))
+				{
+					var uid = message.author.id;
+					var ovrideval = pleaseOVERIDE[please[i].Name];
+
+					if (ovrideval != null)
+					{
+						var overideIds = ovrideval.OverideUIDs;
+						overideIds = overideIds.split(", ");
+
+						if (overideIds.includes(uid))
+						{
+							newPleaso.DefaultNormalChance = ovrideval.DefaultNormalChance != -1 ? ovrideval.DefaultNormalChance : pleaso.DefaultNormalChance;
+							newPleaso.DefaultH1Chance = ovrideval.DefaultH1Chance != -1 ? ovrideval.DefaultH1Chance : pleaso.DefaultH1Chance;
+							newPleaso.DefaultH2Chance = ovrideval.DefaultH2Chance != -1 ? ovrideval.DefaultH2Chance : pleaso.DefaultH2Chance;
+							newPleaso.DefaultH3Chance = ovrideval.DefaultH3Chance != -1 ? ovrideval.DefaultH3Chance : pleaso.DefaultH3Chance;
+							newPleaso.DefaultRNGFontChance = ovrideval.DefaultRNGFontChance != -1 ? ovrideval.DefaultRNGFontChance : pleaso.DefaultRNGFontChance;
+							newPleaso.DefaultFlagChance = ovrideval.DefaultFlagChance != -1 ? ovrideval.DefaultFlagChance : pleaso.DefaultFlagChance;
+						}
+					}
+					
+					var stringDefault = "Indeed, " + please[i].Name + " Please!";
+					
+					var pleaselist = [];
+					for (var j = 0; j < newPleaso.DefaultNormalChance; j++)
+						pleaselist.push(stringDefault);
+
+					for (var j = 0; j < newPleaso.DefaultH1Chance; j++)
+						pleaselist.push("# " + stringDefault);
+
+					for (var j = 0; j < newPleaso.DefaultH2Chance; j++)
+						pleaselist.push("## " + stringDefault);
+
+					for (var j = 0; j < newPleaso.DefaultH3Chance; j++)
+						pleaselist.push("### " + stringDefault);
+
+					var chosen = pleaselist[Math.floor(Math.random() * pleaselist.length)];
+
+					var normalFont = 100 - newPleaso.DefaultRNGFontChance - newPleaso.DefaultFlagChance;
+					if (normalFont < 0) normalFont = 1;
+
+					var newPleaseList = [];
+					for (var j = 0; j < normalFont; j++)
+						newPleaseList.push(chosen);
+
+					for (var j = 0; j < newPleaso.DefaultRNGFontChance; j++)
+						newPleaseList.push(RandFont(chosen));
+
+					for (var j = 0; j < newPleaso.DefaultFlagChance; j++)
+						newPleaseList.push(RandFont(chosen, 12));
+
+					// pick a random one
+					var num = Math.floor(Math.random() * newPleaseList.length);
+					message.channel.send(newPleaseList[num]);
+				}
+			}
+		}
+	}
+}
+
+function RandFont(text, index = -1)
+{
+	var fonts = global.reverseLook;
+	var newText = "";
+
+	var rnd = Math.floor(Math.random() * fonts["A"].length);
+
+	// loop through characters in text (ignoring # and space)
+	for (var i = 0; i < text.length; i++)
+	{
+		// only replace a-z A-Z 0-9
+		if (!text[i].match(/[a-zA-Z0-9]/))
+		{
+			newText += text[i];
+			continue;
+		}
+		
+		if (index == -1)
+		{
+			newText += fonts[text[i]][rnd];
+		}
+		else
+		{
+			newText += fonts[text[i]][index];
+		}
+	}
+
+	return newText;
+}
+
+function checkForFish(message, msgContent)
+{
+	// load babadata.datalocation + "/FISHcache.json"
+	
+	var fishData = fs.readFileSync(babadata.datalocation + "/FISHcache.json");
+
+	var fish = JSON.parse(fishData);
+
+	var mesgtosend = [];
+	var allfish = [];
+
+	var fishio = msgContent.includes("fish");
+
+	for (var i = 0; i < fish.length; i++)
+	{
+		fishI = fish[i];
+
+		for (var j = 0; j < fishI.DefaultOccCount; j++)
+		{
+			allfish.push(fishI.url);
+		}
+
+		if (fishI.ProcFishless)
+		{
+			var procChance = 1 / fishI.ProcChance;
+			var FishWords = fishI.FishWords;
+			var FishWordSimilars = FishWords.split(", ");
+
+			var chanceo = Math.random() < procChance;
+			if (!chanceo && !fishio) continue;
+
+			for (var j = 0; j < FishWordSimilars.length; j++)
+			{
+				if (msgContent.includes(FishWordSimilars[j]))
+				{
+					for (var j = 0; j < (fishI.DefaultOccCount - 1) * fishI.FishBuff; j++)
+					{
+						allfish.push(fishI.url);
+					}
+					mesgtosend.push(fishI.url);
+					break;
+				}
+			}
+		}
+	}
+
+	if (fishio)
+	{
+		mesgtosend = [];
+		
+		var one500 = Math.random() < (1/500);
+		if (one500)
+		{
+			var num = Math.floor(Math.random() * allfish.length);
+			mesgtosend = [allfish[num]];
+		}
+	}
+
+	if (mesgtosend.length > 0)
+	{
+		for (var i = 0; i < mesgtosend.length; i++)
+		{
+			message.reply(mesgtosend[i]);
+		}
 	}
 }
 

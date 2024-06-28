@@ -493,6 +493,7 @@ function TextCommandBackup(bot, message, sentvalid, msgContent, g)
 			for (var i = 0; i < lines.length; i++)
 			{
 				if (lines[i].trim() == "") continue;
+				if (newChannelID == oldChannelID) continue;
 
 				var line = lines[i].split(",");
 				var newMemberID = line[0];
@@ -509,7 +510,8 @@ function TextCommandBackup(bot, message, sentvalid, msgContent, g)
 					endstriin += "<@" + oldMemberID + "> left <#" + oldChannelID + ">";
 				else
 					endstriin += "left <#" + oldChannelID + ">";
-				var timestriin = "at <t:" + (time/1000) + ":D>";
+				var timeint = parseInt(time/1000);
+				var timestriin = "at <t:" + timeint + ":D> <t:" + timeint + ":T>";
 
 				var resStrung = (newChannelID != null ? startstriiin + " " : "") + (oldChannelID != null ? endstriin + " " : "") + timestriin;
 

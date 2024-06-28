@@ -9,6 +9,7 @@ const fs = require('fs');
 // const options = { year: 'numeric', month: 'long', day: 'numeric' }; // for date parsing to string
 
 var lookuptable = {};
+global.reverseLook = {};
 
 function sqlEscapeStringThingforAdamBecauseHeWillDoanSQLInjectionOtherwise(str)
  {
@@ -47,17 +48,26 @@ function loadInDBFSV()
 	{
 		var lnez = result[i].split("🐸");
 		var actual = "";
+		var atchually = "";
 		for (var j = 1; j < lnez.length - 2; j++)
 		{
 			iteml = lnez[j].toLowerCase();
 
-			if (j == 1) actual = iteml;
+			if (j == 1) 
+			{
+				actual = iteml;
+				atchually = lnez[j];
+				if (global.reverseLook[lnez[j]] == undefined) global.reverseLook[lnez[j]] = [];
+			}
 			else
 			{
 				if (typeof lookuptable[iteml] == 'undefined' && iteml != actual)
 				{
 					lookuptable[iteml] = actual;
 				}
+
+				if (global.reverseLook[atchually] == undefined) global.reverseLook[atchually] = [];
+					global.reverseLook[atchually].push(lnez[j]);
 			}
 		}
 	}
@@ -86,7 +96,7 @@ function normalizeMSG(msgContent)
 			newmesg += c;
 		}
 	}
-
+	
 	return newmesg;
 }
 
