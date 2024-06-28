@@ -79,6 +79,10 @@ async function funnyDOWText(dowNum, authorID, recrused = 0, ToBeCounted = [], he
 
 	var text = textos[Math.floor(Math.random() * textos.length)];
 
+	text = "{repeat:{brepeat:[INTSmall]:[Num]}:H}hgregg!"
+
+	text = repeatCheck(text, "b");
+
 	// set headLevel to number of # at start of text
 	if (text.startsWith("#") && recrused == 0)
 	{
@@ -144,41 +148,7 @@ async function funnyDOWText(dowNum, authorID, recrused = 0, ToBeCounted = [], he
 	// text = text.replaceAll("[tdEOD TS-D]", "<t:" + Math.floor(todOnlyDate.getTime() / 1000) + ":D>");
 	// text = text.replaceAll("[tdEOD TS-F]", "<t:" + Math.floor(todOnlyDate.getTime() / 1000) + ":F>");
 	
-	var replaced = true;
-	var replacements = global.replacements;
-
-	if (replacements == null)
-	{
-		replaced = false;
-	}
-
-	while (replaced)
-	{
-		replaced = false;
-
-		// loop throught replacements
-		for (var i = 0; i < Object.keys(replacements).length; i++)
-		{
-			var key = Object.keys(replacements)[i];
-			var value = replacements[key];
-
-			var regex = new RegExp("\\[" + key + "\\]", "g");
-
-			if (text.match(regex))
-			{
-				while (text.match(regex))
-				{
-					var numbo = Math.floor(Math.random() * value.length);
-					text = text.replace("[" + key + "]", value[numbo].text);
-
-					TBDItem = { "UID": value[numbo].UID, "LayerDeep": recrused, "Group": 1, "Text": value[numbo].text, "HeadLevel": headLevel, "Sender": authorID};
-					ToBeCounted.push(TBDItem);
-				}
-				replaced = true;
-			}
-		}
-	}
-
+	text = replaceNested(text, ToBeCounted, recrused, headLevel, authorID);
 	
 	// if contains {RECURSIVE} then replace with result of funnyDOWText(dowNum, authorID) -- loop until no more {RECURSIVE}
 	// if contains <RECURSIVE> then replace with result of funnyDOWText(dowNum, authorID) but made URL safe -- loop until no more <RECURSIVE>
@@ -386,6 +356,56 @@ async function funnyDOWText(dowNum, authorID, recrused = 0, ToBeCounted = [], he
 		fs.writeFileSync(babadata.datalocation + "/fridayCounter.json", JSON.stringify(fc));
 	}
 
+	text = repeatCheck(text);
+
+	return text;
+}
+
+function replaceNested(text, ToBeCounted = null, recrused = 0, headLevel = 0, authorID = 0)
+{
+	var replaced = true;
+	var replacements = global.replacements;
+
+	if (replacements == null)
+	{
+		replaced = false;
+	}
+
+	while (replaced)
+	{
+		replaced = false;
+
+		// loop throught replacements
+		for (var i = 0; i < Object.keys(replacements).length; i++)
+		{
+			var key = Object.keys(replacements)[i];
+			var value = replacements[key];
+
+			var regex = new RegExp("\\[" + key + "\\]", "g");
+
+			if (text.match(regex))
+			{
+				while (text.match(regex))
+				{
+					var numbo = Math.floor(Math.random() * value.length);
+					text = text.replace("[" + key + "]", value[numbo].text);
+
+					if (ToBeCounted != null)
+					{
+						TBDItem = { "UID": value[numbo].UID, "LayerDeep": recrused, "Group": 1, "Text": value[numbo].text, "HeadLevel": headLevel, "Sender": authorID};
+						ToBeCounted.push(TBDItem);
+					}
+				}
+				replaced = true;
+			}
+		}
+	}
+
+	return text;
+}
+
+function repeatCheck(text, prefix = "")
+{
 	// new /friday option tag items go here:
 	// {repeat:x:[Value]} - repeat the value x times
 	// repeat is not case sensitive in the regex
@@ -393,19 +413,49 @@ async function funnyDOWText(dowNum, authorID, recrused = 0, ToBeCounted = [], he
 	// {repeat:5:[frog]} - frog frog frog frog frog
 	// {repeat:3:[frog{repeat:2:[frog]}]} - start with outer repeat, then go inwards 
 
-	var RegexExpress = new RegExp("{[rR][eE][pP][eE][aA][tT][sSnN]?:(\\d+):((.|\n)*)}", "g");
+	var pf = "";
+	if (prefix != "")
+	{
+		pf = "[" + prefix.toLowerCase() + prefix.toUpperCase() + "]";
+	}
+
+	var regexString = "{" + pf + "[rR][eE][pP][eE][aA][tT][sSnN]?:(\\d+):((.|\n)*)}";
+
+	if (prefix == "b")
+	{
+		regexString =  "{" + pf + "[rR][eE][pP][eE][aA][tT][sSnN]?:(\\[(.*)\\]):((.|\n)*)}";
+	}
+
+	var RegexExpress = new RegExp(regexString, "g");
+	var RegexExpress2 = new RegExp(regexString + ":", "g");
 	var match = text.match(RegexExpress);
-	if (match != null)
+	var match2 = text.match(RegexExpress2);
+	if (match2 != null) 
+	{
+		match = match2;
+		match = match.map(x => x.slice(0, -1));
+	}
+
+	while (match != null)
 	{
 		for (var i = 0; i < match.length; i++)
 		{
-			var num = parseInt(match[i].match(/\d+/)[0]);
-			var value = match[i].split(":").pop();
+			var matchi = match[i];
+			if (prefix == "b")
+			{
+				// get the middle value
+				var middle = matchi.split(":")[1];
+				var middle2 = replaceNested(middle);
+				matchi = matchi.replace(middle, middle2);
+			}
+
+			var num = parseInt(matchi.match(/\d+/)[0]);
+			var value = matchi.split(":").pop();
 
 			value = value.replaceAll("}", "");
 
-			var containsS = match[i].split(":")[0].toLowerCase().includes("s");
-			var containsN = match[i].split(":")[0].toLowerCase().includes("n");
+			var containsS = matchi.split(":")[0].toLowerCase().includes("s");
+			var containsN = matchi.split(":")[0].toLowerCase().includes("n");
 
 			var newString = "";
 			for (var j = 0; j < num; j++)
@@ -414,6 +464,14 @@ async function funnyDOWText(dowNum, authorID, recrused = 0, ToBeCounted = [], he
 			}
 
 			text = text.replace(match[i], newString);
+		}
+
+		match = text.match(RegexExpress);
+		match2 = text.match(RegexExpress2);
+		if (match2 != null) 
+		{
+			match = match2;
+			match = match.map(x => x.slice(0, -1));
 		}
 	}
 
