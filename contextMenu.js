@@ -218,6 +218,8 @@ async function buttonInfo(interaction, bot)
         global.interactions[message.id]["all"] = cid === "haiku_list";
         
         var contenenent = {content: "Select Purity Score Information"};
+        if (cid === "haiku_list") contenenent.content = "Select Multi-Haiku Information";
+        if (cid === "haiku") contenenent.content = "Select Single Haiku Information";
 
         var row = new Discord.ActionRowBuilder()
             .addComponents(

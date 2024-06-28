@@ -218,176 +218,26 @@ function babaHaikuEmbed(purity, list, chans, mye, buy, msgContent, pagestuff, ca
         var bonust = ""
         var bonupr = ""
         var haifou = false;
-        if (list)
+
+        bonust = " List for ";
+        bonust += (msgContent[6] == "chans" ? "Channels" : (msgContent[6] == "dates" ? "Dates" : "Users"));
+        HaikuSelection(function(result)
         {
-            if (chans == 1)
+            if (result == null) 
             {
-                bonust = " List for Channels"
-                HPLGenChannel(function(result)
-                {
-                    if (result == null) 
-                    {
-                        haifou = true;
-                        return callback([{content: "DB Probably not enabled!"}]);
-                    }
-
-                    hpl = FormatPurityList(result, true, pagestuff);
-                    haifou = true;
-                    return callback(EmbedPurityGen(hpl, bonust, bonupr, pagestuff));
-                });
+                haifou = true;
+                return callback([{content: "DB Probably not enabled! or no haikus found to make the purity!"}]);
             }
-            else if (chans == 2)
+
+            hpl = FormatPurityList(result, (msgContent[6] == "chans" ? true : (msgContent[6] == "dates" ? 2 : false)), pagestuff);
+
+            if (hpl.retstring.length != 0)
             {
-                bonust = " List for Dates"
-                HPLGenD8(function(result)
-                {
-                    if (result == null) 
-                    {
-                        haifou = true;
-                        return callback([{content: "DB Probably not enabled!"}]);
-                    }
-
-                    hpl = FormatPurityList(result, 2, pagestuff);
-                    haifou = true;
-                    return callback(EmbedPurityGen(hpl, bonust, bonupr, pagestuff));
-                });
+                haifou = true;
+                return callback(EmbedPurityGen(hpl, bonust, bonupr, pagestuff, msgContent));
             }
-            else
-            {
-                if (buy == 4) // THIS IS THE ONLY CODE THAT RUNS I THINK, MAYBE ONE DAY REMOVE ALL OTHER STUFF (at least runs for purity)
-                {
-                    bonust = " List for ";
-                    bonust += (msgContent[6] == "chans" ? "Channels" : (msgContent[6] == "dates" ? "Dates" : "Users"));
-                    HaikuSelection(function(result)
-                    {
-                        if (result == null) 
-                        {
-                            haifou = true;
-                            return callback([{content: "DB Probably not enabled!"}]);
-                        }
-    
-                        hpl = FormatPurityList(result, (msgContent[6] == "chans" ? true : (msgContent[6] == "dates" ? 2 : false)), pagestuff);
-
-                        if (hpl.retstring.length != 0)
-                        {
-                            haifou = true;
-                            return callback(EmbedPurityGen(hpl, bonust, bonupr, pagestuff, msgContent));
-                        }
-                        else hpl = {"retstring": ["No Haiku Purity Found based on Selections"], "total": 1};
-                    }, buy, msgContent);
-                }
-                else
-                {
-                    bonust = " List"
-                    HPLGenUsers(function(result)
-                    {
-                        if (result == null) 
-                        {
-                            haifou = true;
-                            return callback([{content: "DB Probably not enabled!"}]);
-                        }
-
-                        hpl = FormatPurityList(result, false, pagestuff);
-                        haifou = true;
-                        return callback(EmbedPurityGen(hpl, bonust, bonupr, pagestuff));
-                    });
-                }
-            }
-        }
-        else
-        {
-            if (mye > 0)
-            {
-                bonupr = "Your ";
-                var ids = mye;
-
-                HPLSelectUser(function(result)
-                {
-                    if (result == null) 
-                    {
-                        haifou = true;
-                        return callback([{content: "DB Probably not enabled!"}]);
-                    }
-
-                    hpl = FormatPurityList(result, false, pagestuff);
-
-                    if (hpl.retstring.length != 0)
-                    {
-                        haifou = true;
-                        return callback(EmbedPurityGen(hpl, bonust, bonupr, pagestuff));
-                    }
-                    else hpl = {"retstring": ["No Haiku Purity Found for You :("], "total": 1};
-                }, ids);
-            }
-            else
-            {
-                var d1 = null;
-                var IsDate = FindDate(msgContent);
-                if (IsDate != null)
-                {
-                    d1 = new Date(IsDate.year, IsDate.month - 1, IsDate.day);
-                    var mpre = d1.getMonth() + 1 < 10 ? 0 : "";
-                    var dpre = d1.getUTCDate() < 10 ? 0 : "";
-                        
-                    retY = IsDate.year == 0 ? 0 : d1.getFullYear();
-                    retM = IsDate.month == 0 ? 0 : d1.getMonth() + 1;
-                    retD = IsDate.day == 0 ? 0 : d1.getUTCDate();
-
-                    HPLSelectDate(function(result)
-                    {
-                        if (result == null) 
-                        {
-                            haifou = true;
-                            return callback([{content: "DB Probably not enabled!"}]);
-                        }
-
-                        hpl = FormatPurityList(result, 2, pagestuff);
-                        if (hpl.retstring.length != 0)
-                        {
-                            haifou = true;
-                            return callback(EmbedPurityGen(hpl, bonust, bonupr, pagestuff));
-                        }
-                        else hpl = {"retstring": ["No Haiku Purity Found!"], "total": 1};
-                    }, `${retY}-${mpre}${retM}-${dpre}${retD}`);
-                }
-
-                HPLSelectChannel(function(result)
-                {
-                    if (result == null) 
-                    {
-                        haifou = true;
-                        return callback([{content: "DB Probably not enabled!"}]);
-                    }
-
-                    hpl = FormatPurityList(result, true, pagestuff);
-                    if (hpl.retstring.length != 0)
-                    {
-                        haifou = true;
-                        return callback(EmbedPurityGen(hpl, bonust, bonupr, pagestuff));
-                    }
-                    else hpl = {"retstring": ["No Haiku Purity Found!"], "total": 1};
-                }, msgContent);
-
-                HPLSelectUser(function(result)
-                {
-                    if (result == null) 
-                    {
-                        haifou = true;
-                        return callback([{content: "DB Probably not enabled!"}]);
-                    }
-
-                    hpl = FormatPurityList(result, false, pagestuff);
-
-                    if (hpl.retstring.length != 0)
-                    {
-                        haifou = true;
-                        return callback(EmbedPurityGen(hpl, bonust, bonupr, pagestuff));
-                    }
-                    else hpl = {"retstring": ["No Haiku Purity Found!"], "total": 1};
-                }, msgContent);
-
-            }
-        }
+            else hpl = {"retstring": ["No Haiku Purity Found based on Selections"], "total": 1};
+        }, buy, msgContent);
 
         setTimeout(function()
 	    { 
@@ -399,7 +249,8 @@ function babaHaikuEmbed(purity, list, chans, mye, buy, msgContent, pagestuff, ca
     { 
         HaikuSelection(function(haiku, simnames)
         {
-            if (haiku == null) return callback([{content: "DB Probably not enabled!"}]);
+            console.log(haiku);
+            if (haiku == null) return callback([{content: "No Haiku Found, or the DB is Disabled!"}]);
 
             return callback(EmbedHaikuGen(haiku, simnames));
         }, buy, msgContent);

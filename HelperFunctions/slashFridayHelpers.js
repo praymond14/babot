@@ -381,8 +381,40 @@ async function funnyDOWText(dowNum, authorID, recrused = 0, ToBeCounted = [], he
 			}
 		}
 
+
 		// save global.fridayCounter to file
 		fs.writeFileSync(babadata.datalocation + "/fridayCounter.json", JSON.stringify(fc));
+	}
+
+	// new /friday option tag items go here:
+	// {repeat:x:[Value]} - repeat the value x times
+	// repeat is not case sensitive in the regex
+	// regex: {[rR][eE][pP][eE][aA][tT][sSnN]?:(\d+):((.|\n)*)}
+	// {repeat:5:[frog]} - frog frog frog frog frog
+	// {repeat:3:[frog{repeat:2:[frog]}]} - start with outer repeat, then go inwards 
+
+	var RegexExpress = new RegExp("{[rR][eE][pP][eE][aA][tT][sSnN]?:(\\d+):((.|\n)*)}", "g");
+	var match = text.match(RegexExpress);
+	if (match != null)
+	{
+		for (var i = 0; i < match.length; i++)
+		{
+			var num = parseInt(match[i].match(/\d+/)[0]);
+			var value = match[i].split(":").pop();
+
+			value = value.replaceAll("}", "");
+
+			var containsS = match[i].split(":")[0].toLowerCase().includes("s");
+			var containsN = match[i].split(":")[0].toLowerCase().includes("n");
+
+			var newString = "";
+			for (var j = 0; j < num; j++)
+			{
+				newString += value + (containsS ? " " : containsN ? "\n" : "");
+			}
+
+			text = text.replace(match[i], newString);
+		}
 	}
 
 	return text;
@@ -481,6 +513,44 @@ function generateOps(opsArray, authorID, prefix)
 	ops = [];
 	for (var i = 0; i < opsArray.length; i++)
 	{
+		if (opsArray[i].StartTime != null)
+		{
+			var tod = new Date();
+			var st = new Date(opsArray[i].StartTime);
+
+			if (opsArray[i].EndTime != null)
+			{
+				var et = new Date(opsArray[i].EndTime);
+				var startNormalizedToYear = new Date(tod.getFullYear(), st.getMonth(), st.getDate());
+				var endNormalizedToYear = new Date(tod.getFullYear(), et.getMonth(), et.getDate());
+
+				if (tod < startNormalizedToYear || tod > endNormalizedToYear)
+					continue;
+			}
+			else
+			{
+				var startNormalizedToYear = new Date(tod.getFullYear(), st.getMonth(), st.getDate());
+
+				if (tod != startNormalizedToYear)
+					continue;
+			}
+		}
+
+		if (opsArray[i].DayOfWeek != null)
+		{
+			var tod = new Date();
+			var dow = tod.getDay();
+
+			if (opsArray[i].DayOfWeek != dow)
+				continue;
+		}
+
+		if (opsArray[i].OccuranceChance < 100)
+		{
+			if (Math.random() * 100 > opsArray[i].OccuranceChance)
+				continue;
+		}
+
 		if (cLevel <= 1)
 		{
 			if (opsArray[i].enabledDef == true)
