@@ -79,7 +79,7 @@ async function funnyDOWText(dowNum, authorID, recrused = 0, ToBeCounted = [], he
 
 	var text = textos[Math.floor(Math.random() * textos.length)];
 
-	text = "{repeat:{brepeat:[INTSmall]:[Num]}:H}hgregg!"
+	//text = "{repeat:{brepeat:[INTSmall]:[Num]}:H}hgregg!"
 
 	text = repeatCheck(text, "b");
 
