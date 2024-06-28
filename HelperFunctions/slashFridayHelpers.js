@@ -79,14 +79,7 @@ async function funnyDOWText(dowNum, authorID, recrused = 0, ToBeCounted = [], he
 
 	var text = textos[Math.floor(Math.random() * textos.length)];
 
-// 	text = `{repeatS:7:Frog}
-// {repeatS:9:Frog}
-// {repeatS:4:Frog}
-// {repeatS:3:Frog}
-// {repeatS:6:Frog}
-// {repeatS:9:Frog}
-// `
-
+	//text = `{brepeatN:[INTSmall]:{repeatS:[INTSmall]:Frog}}`
 	text = repeatCheck(text, "b");
 
 	// set headLevel to number of # at start of text
@@ -425,11 +418,11 @@ function repeatCheck(text, prefix = "")
 		pf = "[" + prefix.toLowerCase() + prefix.toUpperCase() + "]";
 	}
 
-	var regexString = "{" + pf + "[rR][eE][pP][eE][aA][tT][sSnN]?:(\\d+):((.|\n)*?)}";
+	var regexString = "{" + pf + "[rR][eE][pP][eE][aA][tT][sSnN]?:(\\d+):((.|\n)*?)(}+)";
 
 	if (prefix == "b")
 	{
-		regexString =  "{" + pf + "[rR][eE][pP][eE][aA][tT][sSnN]?:(\\[(.*)\\]):((.|\n)*?)}";
+		regexString =  "{" + pf + "[rR][eE][pP][eE][aA][tT][sSnN]?:(\\[(.*)\\]):((.|\n)*?)(}+)";
 	}
 
 	var RegexExpress = new RegExp(regexString, "g");
@@ -460,8 +453,8 @@ function repeatCheck(text, prefix = "")
 			var valuesplit = matchi.split(":")
 			// value is index 2 onwards
 			var value = valuesplit.slice(2).join(":");
+			value = value.slice(0, -1);
 
-			value = value.replace("}", "");
 
 			var containsS = matchi.split(":")[0].toLowerCase().includes("s");
 			var containsN = matchi.split(":")[0].toLowerCase().includes("n");
