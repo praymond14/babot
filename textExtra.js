@@ -485,15 +485,17 @@ function TextCommandBackup(bot, message, sentvalid, msgContent, g)
 		}
 		else if (msgContent.includes("dbdownadam"))
 		{
+			var forceall = msgContent.includes("-force");
 			var loggedUsersVCC = fs.readFileSync(babadata.datalocation + "/loggedUsersVCC.csv");
 
 			loggedUsersVCC = loggedUsersVCC.toString();
-
 			var lines = loggedUsersVCC.split("\n");
+
+			message.author.send("Current Lines of Data: " + lines.length);
 			for (var i = 0; i < lines.length; i++)
 			{
 				if (lines[i].trim() == "") continue;
-				if (newChannelID == oldChannelID) continue;
+				if (!forceall && newChannelID == oldChannelID) continue;
 
 				var line = lines[i].split(",");
 				var newMemberID = line[0];
@@ -524,6 +526,13 @@ function TextCommandBackup(bot, message, sentvalid, msgContent, g)
 
 			if ((lines.length == 1 && lines[0].trim() == "") || lines.length == 0)
 				message.author.send("No VCC List to Display");
+		}
+		else if (msgContent.includes("dbdownbytheriver"))
+		{
+			var csv = fs.readFileSync(babadata.datalocation + "/loggedUsersVCC.csv");
+
+			// send attachment
+			message.author.send({ files: [{ attachment: Buffer.from(csv), name: 'loggedUsersVCC.csv' }] });
 		}
 		// add new one to download a csv of all the vcc logs and one to upload a csv of all the vcc logs
 		// add a thing to convert a datetime to utc
