@@ -631,7 +631,7 @@ function preformEasterEggs(message, msgContent, bot)
 		var num = Math.floor(Math.random() * 100); //pick a random one
 		if (num < 2)
 			message.channel.send("<:adam:995385148331802634>");
-		
+
 		if (!(message.author.bot && (msgContent.includes("indeed, adamplease!") || msgContent.includes("indeed, adam please!"))))
 			message.react("995385148331802634").catch(console.error);
 	}
@@ -865,13 +865,16 @@ function checkForFish(message, msgContent)
 
 	if (fishio)
 	{
-		mesgtosend = [];
-		
 		var one500 = Math.random() < (1/500);
 		if (one500)
 		{
+			mesgtosend = [];
 			var num = Math.floor(Math.random() * allfish.length);
 			mesgtosend = [allfish[num]];
+		}
+		else
+		{
+			mesgtosend = [];
 		}
 	}
 

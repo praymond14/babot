@@ -79,7 +79,7 @@ async function funnyDOWText(dowNum, authorID, recrused = 0, ToBeCounted = [], he
 
 	var text = textos[Math.floor(Math.random() * textos.length)];
 
-	//text = `{brepeatN:[INTSmall]:{repeatS:[INTSmall]:Frog}}`
+	//text = `{brepeatN:[INTMed]:{repeatS:[INTMed]:Frog}}`
 	text = repeatCheck(text, "b");
 
 	// set headLevel to number of # at start of text
@@ -177,6 +177,7 @@ async function funnyDOWText(dowNum, authorID, recrused = 0, ToBeCounted = [], he
 	text = text.replaceAll("[month]", tod.getMonth());
 	text = text.replaceAll("[todaylong]", tod.toDateString());
 	text = text.replaceAll("[dow]", dow[tod.getDay()]);
+	text = text.replaceAll("[dom]", tod.getDay());
 	text = text.replaceAll("[DAY]", dow[dowNum]);
 	text = text.replaceAll("[ACY]", dowACY[dowNum]);
 
