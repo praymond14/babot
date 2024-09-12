@@ -25,7 +25,7 @@ const { normalizeMSG } = require("./HelperFunctions/dbHelpers.js");
 const { Console } = require('console');
 const { SSL_OP_SSLEAY_080_CLIENT_DH_BUG } = require('constants');
 const { TextCommandBackup } = require("./textExtra.js");
-const { funnyDOWText } = require("./HelperFunctions/slashFridayHelpers.js");
+const { funnyDOWTextSaved } = require("./HelperFunctions/slashFridayHelpers.js");
 //const { spawn } = require("child_process");
 /* [ 	["christmas", 12, 25, 0, 0], 
 	["thanksgiving", 11, 0, 4, 4], 
@@ -179,7 +179,7 @@ async function babaMessage(bot, message)
 			if (tod.getDay() != 5)
 			{
 
-				var text = await funnyDOWText(5, message.author.id);
+				var text = await funnyDOWTextSaved(5, message.author.id);
 
 				message.channel.send(text);
 			}

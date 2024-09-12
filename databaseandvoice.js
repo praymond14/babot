@@ -1651,6 +1651,11 @@ function IncrementFridayCounter(fridayJson)
 			}
 		}
 	);
+
+
+	// fridaymessages.json
+	var fridayMessages = fs.readFileSync(babadata.datalocation + "/fridaymessages.json");
+
 }
 
 
@@ -1931,12 +1936,12 @@ function startUpChecker(client)
                     var userID = voiceState.member.id;
     
                     var up = userID + "-" + channelID;
-                    //checkUserVoiceCrash(userID, channelID, guild);
+                    checkUserVoiceCrash(userID, channelID, guild);
                     onlineusers.push(up);
                 }
             }
         });
-        //endLeftUsersCrash(onlineusers, guild);
+        endLeftUsersCrash(onlineusers, guild);
     });  
 }
 

@@ -2,7 +2,7 @@ const { FormatPurityList, HPLGenChannel, HPLGenUsers, HPLSelectChannel, HPLSelec
 const { getD1, FindDate, GetDate, dateDiffInDays, uExist, getTimeFromString } = require("./HelperFunctions/basicHelpers.js");
 const { CheckHoliday, FindNextHoliday, MakeImage, EmbedHaikuGen, loadHurricaneHelpers, checkHurricaneStuff, monthFromInt, reverseDelay } = require("./HelperFunctions/commandHelpers.js");
 const { normalizeMSG } = require("./HelperFunctions/dbHelpers.js");
-const { funnyDOWText } = require("./HelperFunctions/slashFridayHelpers.js");
+const { funnyDOWTextSaved } = require("./HelperFunctions/slashFridayHelpers.js");
 
 var babadata = require('./babotdata.json'); //baba configuration file
 var data = require(babadata.datalocation + 'data.json'); //extra data
@@ -433,7 +433,7 @@ async function babaWednesday(msgContent, author, callback)
     //let rawdata = fs.readFileSync(babadata.datalocation + "FrogHolidays/" + 'frogholidays.json'); //load file each time of calling wednesday
     //let holidays = JSON.parse(rawdata);
 
-    if (!(global.dbAccess[1] && global.dbAccess[0])) return callback([{content: await funnyDOWText(3, author.id) }]);
+    if (!(global.dbAccess[1] && global.dbAccess[0])) return callback([{content: await funnyDOWTextSaved(3, author.id) }]);
 
     ObtainDBHolidays(async function(holidays)
     {
@@ -684,7 +684,7 @@ async function babaWednesday(msgContent, author, callback)
                 if (msgContent.replace("wednesday", "").replace("when is", "").replace("day of week", "").replace("days until", "").trim() == "next")
                     outs.push({ content: "The definition of insanity is doing the same thing over and over expecting a different result" });
                 else
-                    outs.push({ content: await funnyDOWText(3, author.id) });
+                    outs.push({ content: await funnyDOWTextSaved(3, author.id) });
             }
         }
 

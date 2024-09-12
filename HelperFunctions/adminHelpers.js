@@ -130,6 +130,8 @@ async function movetoChannel(msg, channel, logchan, silent) //archive the messag
 async function DelayedDeletion(hiddenChan, img) //download function used when the delay call is ran
 {
 	var suffix = img.url.substring(img.url.lastIndexOf('.')); //gets the file extension
+	// remove anything ? and after
+	suffix = suffix.split("?")[0];
 	var tempFilePath = babadata.temp + "tempfile" + suffix; // temp file location 
 	var url = img.url;
 

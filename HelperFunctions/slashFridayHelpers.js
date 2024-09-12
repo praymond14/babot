@@ -19,6 +19,22 @@ const { NameFromUserIDID } = require('../databaseandvoice');
 // const localesz = ["in class", "in bed", "at Adam's House", "in the car driving to [l2]", "waiting for the bus", "playing slots", "doing cocaine", "in the bathroom", "in the shower", "in your walls ;),"];
 // const l2 = ["the store", "New York", "Adam's House", "nowhere", "school", "a bacon festival", "somewhere under the sea"]
 
+async function funnyDOWTextSaved(dowNum, authorID)
+{
+	var text = await funnyDOWText(dowNum, authorID);
+	// append text to fridaymessages.json
+	var fmpath = babadata.datalocation + "/fridaymessages.json";
+	var fmr = fs.readFileSync(fmpath);
+	var fmd = JSON.parse(fmr);
+
+	var fmdItem = { "UID": authorID, "Text": text, "Date": tod.toDateString(), "Time": tod.toTimeString()};
+	fmd.push(fmdItem);
+
+	fs.writeFileSync(fmpath, JSON.stringify(fmd));
+
+	return text;
+}
+
 async function funnyDOWText(dowNum, authorID, recrused = 0, ToBeCounted = [], headLevel = 0)
 {
 	let path = babadata.datalocation + "/DOWcache.json";
@@ -640,7 +656,7 @@ function removeCountRuin(uid, g)
 }
 
 module.exports = {
-    funnyDOWText,
+    funnyDOWTextSaved,
     funnyFrogText,
 	removeCountRuin
 };

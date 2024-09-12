@@ -491,11 +491,10 @@ function TextCommandBackup(bot, message, sentvalid, msgContent, g)
 			loggedUsersVCC = loggedUsersVCC.toString();
 			var lines = loggedUsersVCC.split("\n");
 
-			message.author.send("Current Lines of Data: " + lines.length);
+			message.author.send("Current Lines of Data: " + (lines.length - 1));
 			for (var i = 0; i < lines.length; i++)
 			{
 				if (lines[i].trim() == "") continue;
-				if (!forceall && newChannelID == oldChannelID) continue;
 
 				var line = lines[i].split(",");
 				var newMemberID = line[0];
@@ -505,6 +504,8 @@ function TextCommandBackup(bot, message, sentvalid, msgContent, g)
 				var time = line[4];
 				// convert time to Date object
 				var time2 = new Date(parseInt(time));
+
+				if (!forceall && newChannelID == oldChannelID) continue;
 
 				var startstriiin = "<@" + newMemberID + "> joined <#" + newChannelID + ">";
 				var endstriin = "and ";

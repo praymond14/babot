@@ -1,6 +1,6 @@
 const { babaFriday } = require("../commandFunctions.js");
 const { SlashCommandBuilder } = require('@discordjs/builders');
-const { funnyDOWText, removeCountRuin } = require("../HelperFunctions/slashFridayHelpers.js");
+const { funnyDOWTextSaved, removeCountRuin } = require("../HelperFunctions/slashFridayHelpers.js");
 
 module.exports = {
 	data: new SlashCommandBuilder()
@@ -31,7 +31,7 @@ module.exports = {
 			}
 			else
 			{
-				var text = await funnyDOWText(5, interaction.user.id);
+				var text = await funnyDOWTextSaved(5, interaction.user.id);
 
 				await interaction.editReply(text);
 			}

@@ -71,7 +71,8 @@ bot.on('ready', function (evt)
 		{
 			if (babadata.testing === undefined)
 			{
-				startUpChecker(bot);
+				clearVCCList();
+				//startUpChecker(bot);
 			}
 		});
 	}
