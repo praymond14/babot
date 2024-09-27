@@ -761,58 +761,24 @@ async function babaHurricane(hurricanename, callback)
                 // if xml file does not exist, stop searching as empty folder means end of line
 
     // {"name": "bikus", "letter": "B", "url": "bikus.png"}
+    var hfull = undefined;
     if (hurricanename != "" && hurricanename != null)
     {
-        var hurricaneJson = await loadHurricaneHelpers();
-        url = null;
-        var hFull = "";
+        var hurricaneInfo = await checkHurricaneStuff(hurricanename);
+        
+        hfull = " for " + (hurricaneInfo.Category == "N/A" ? hurricaneInfo.Type : hurricaneInfo.Category + " " + hurricaneInfo.Type) + " " + hurricaneInfo.Name;
 
-        for (const [hName, hObject] of Object.entries(hurricaneJson)) 
+        if (hurricaneInfo.OverideText != null)
         {
-            if (hName.toLowerCase() == hurricanename.toLowerCase() || hObject.letter == hurricanename.toUpperCase().charAt(0) || hName.toLowerCase().includes(hurricanename.toLowerCase()))
-            {
-                url = hObject.url;
-                hFull = hName;
-                break;
-            }
+            if ("AltName" in hurricaneInfo.OverideText)
+                hfull += " (Closest Match to " + hurricaneInfo.OverideText.AltName + ")";
+            else if ("NumberSearch" in hurricaneInfo.OverideText)
+                hfull += " (Hurricane Numbered: " + hurricaneInfo.OverideText.NumberSearch + ")";
         }
 
-        if (url == null)
-        {
-            // if letter is not a-z skip
-            if (hurricanename.toUpperCase().charCodeAt(0) < 65 || hurricanename.toUpperCase().charCodeAt(0) > 90)
-            {
-                callback({ content: "Give a Valid Hurricane Name (A-Z supported only right now)" });
-                return;
-            }
+        url = hurricaneInfo.ImageURL;
 
-            for (var i = 0; i < 6; i++)
-            {
-                var good = await checkHurricaneStuff(hurricanename, i == 0, i)
-                if (good)
-                    break;
-            }
-
-
-            hurricaneJson = await loadHurricaneHelpers();
-            for (const [hName, hObject] of Object.entries(hurricaneJson)) 
-            {
-                if (hName.toLowerCase() == hurricanename.toLowerCase() || hObject.letter == hurricanename.toUpperCase().charAt(0) || hName.toLowerCase().includes(hurricanename.toLowerCase()))
-                {
-                    url = hObject.url;
-                    hFull = hName;
-                    break;
-                }
-            }
-        }
-
-        if (url == null)
-        {
-            callback({ content: "Hurricane Doesn't seem to exist!" });
-            return;
-        }
-
-        binus = " for " + hFull;
+        binus = hfull;
     }
     
     console.log(url);
@@ -825,7 +791,7 @@ async function babaHurricane(hurricanename, callback)
             file.close();
             console.log("Download Completed");
 
-            var vv = hFull === undefined ? "Hurricanes" : hFull;
+            var vv = hfull === undefined ? "Hurricanes" : hfull;
            
             var newAttch = new Discord.AttachmentBuilder(tempFilePath, 
                 { name: vv + '.png', description : "Hurricane Info for " + vv}); //makes a new discord attachment
