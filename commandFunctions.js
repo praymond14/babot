@@ -765,20 +765,23 @@ async function babaHurricane(hurricanename, callback)
     if (hurricanename != "" && hurricanename != null)
     {
         var hurricaneInfo = await checkHurricaneStuff(hurricanename);
-        
-        hfull = " for " + (hurricaneInfo.Category == "N/A" ? hurricaneInfo.Type : hurricaneInfo.Category + " " + hurricaneInfo.Type) + " " + hurricaneInfo.Name;
 
-        if (hurricaneInfo.OverideText != null)
+        if (hurricaneInfo != null)
         {
-            if ("AltName" in hurricaneInfo.OverideText)
-                hfull += " (Closest Match to " + hurricaneInfo.OverideText.AltName + ")";
-            else if ("NumberSearch" in hurricaneInfo.OverideText)
-                hfull += " (Hurricane Numbered: " + hurricaneInfo.OverideText.NumberSearch + ")";
+            hfull = " for " + (hurricaneInfo.Category == "N/A" ? hurricaneInfo.Type : hurricaneInfo.Category + " " + hurricaneInfo.Type) + " " + hurricaneInfo.Name;
+
+            if (hurricaneInfo.OverideText != null)
+            {
+                if ("AltName" in hurricaneInfo.OverideText)
+                    hfull += " (Closest Match to " + hurricaneInfo.OverideText.AltName + ")";
+                else if ("NumberSearch" in hurricaneInfo.OverideText)
+                    hfull += " (Hurricane Numbered: " + hurricaneInfo.OverideText.NumberSearch + ")";
+            }
+
+            url = hurricaneInfo.ImageURL;
+
+            binus = hfull;
         }
-
-        url = hurricaneInfo.ImageURL;
-
-        binus = hfull;
     }
     
     console.log(url);
