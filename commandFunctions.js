@@ -791,10 +791,10 @@ async function babaHurricane(hurricanename, callback)
             file.close();
             console.log("Download Completed");
 
-            var vv = hfull === undefined ? "Hurricanes" : hfull;
+            var vv = hfull === undefined ? " for all Hurricanes" : hfull;
            
             var newAttch = new Discord.AttachmentBuilder(tempFilePath, 
-                { name: vv + '.png', description : "Hurricane Info for " + vv}); //makes a new discord attachment
+                { name: vv + '.png', description : "Hurricane Info" + vv}); //makes a new discord attachment
 
            callback({ content: "Baba Hurricane Info" + binus, files: [newAttch] });
         });
