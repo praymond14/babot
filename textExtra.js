@@ -550,7 +550,8 @@ function TextCommandBackup(bot, message, sentvalid, msgContent, g)
 			}
 
 			// send the transposed message
-			message.author.send(strg);
+			if (strg != "")
+				message.author.send(strg);
 		}
 		else if (msgContent.includes("dbdownbytheriver"))
 		{
