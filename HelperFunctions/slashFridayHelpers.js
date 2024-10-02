@@ -41,6 +41,14 @@ async function funnyDOWTextSaved(dowNum, authorID, seedSet = -1, dontSave = fals
 		var condensedNotation = textGroup[1];
 		var cnYung = textGroup[2];
 		// append text to fridaymessages.json
+
+		if (!fs.existsSync(babadata.datalocation + "/fridaymessages.json")) 
+		{
+			console.log("No fridaymessages file found -- creating with local data");
+			var data = [];
+			fs.writeFileSync(babadata.datalocation + "/fridaymessages.json", JSON.stringify(data));
+		}
+
 		var fmpath = babadata.datalocation + "/fridaymessages.json";
 		var fmr = fs.readFileSync(fmpath);
 		var fmd = JSON.parse(fmr);
