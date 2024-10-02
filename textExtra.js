@@ -4,6 +4,8 @@ const fs = require('fs');
 const https = require('https');
 const fetch = require('node-fetch');
 
+const validLetters = "bikusfrday";
+
 const { SetHolidayChan, dailyRandom, fronge, Seperated, enumConverter } = require("./HelperFunctions/basicHelpers.js");
 const { reverseDelay } = require("./HelperFunctions/commandHelpers.js");
 
@@ -527,6 +529,29 @@ function TextCommandBackup(bot, message, sentvalid, msgContent, g)
 
 			if ((lines.length == 1 && lines[0].trim() == "") || lines.length == 0)
 				message.author.send("No VCC List to Display");
+		}
+		else if (msgContent.includes("transpose"))
+		{
+			// get message
+			var message_id = message.content.split(' ')[1];
+
+			// trim to only munbers
+			message_id = message_id.replace(/\D/g,'');
+
+			// transpose numbers to string of text based on validLetters
+			var strg = "";
+			for (var i = 0; i < message_id.length; i++)
+			{
+				var num = parseInt(message_id[i]);
+				if (num < validLetters.length)
+					strg += validLetters[num];
+				else
+					strg += message_id[i];
+			}
+
+			// send the transposed message
+			if (strg != "")
+				message.author.send(strg);
 		}
 		else if (msgContent.includes("dbdownbytheriver"))
 		{

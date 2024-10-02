@@ -7,7 +7,7 @@ var babadata = require('./babotdata.json'); //baba configuration file
 const txtCommands = require('./textCommands.js');
 //const { setCommandRoles } = require('./helperFunc');
 
-const { cacheOpts, handleDisconnect, eventDB, voiceChannelChange, startUpChecker, logVCC } = require('./databaseandvoice');
+const { cacheOpts, handleDisconnect, eventDB, voiceChannelChange, startUpChecker, logVCC, clearVCCList } = require('./databaseandvoice');
 const { dailyCallStart } = require('./dailycall.js');
 const { contextInfo, modalInfo, buttonInfo, stringSelectInfo, userSelectInfo, channelSelectInfo } = require('./contextMenu');
 const { log } = require('console');
