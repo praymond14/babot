@@ -20,7 +20,7 @@ const { RNG } = require('./RNG');
 // const localesz = ["in class", "in bed", "at Adam's House", "in the car driving to [l2]", "waiting for the bus", "playing slots", "doing cocaine", "in the bathroom", "in the shower", "in your walls ;),"];
 // const l2 = ["the store", "New York", "Adam's House", "nowhere", "school", "a bacon festival", "somewhere under the sea"]
 
-var theRNG = new RNG(1);
+var theRNG = new RNG();
 
 function resetRNG()
 {
