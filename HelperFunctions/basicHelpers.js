@@ -7,7 +7,9 @@ const fs = require('fs');
 const https = require('https')
 const fetch = require('node-fetch');
 const { PermissionsBitField } = require('discord.js');
+const { funnyDOWTextSaved, resetRNG } = require('./slashFridayHelpers');
 
+const validLetters = "bikusfrday";
 
 const options = { year: 'numeric', month: 'long', day: 'numeric' }; // for date parsing to string
 
@@ -599,7 +601,7 @@ function antiDelay(message)
 	dealWithFile(message);
 }
 
-function preformEasterEggs(message, msgContent, bot)
+async function preformEasterEggs(message, msgContent, bot)
 {
 	var ames = msgContent.replace(/\s+/g, '');
 	if (Math.random() * 333333 <= 1)
@@ -624,41 +626,9 @@ function preformEasterEggs(message, msgContent, bot)
 	}
 
 	var rct = 0;
-
-	// move to db after work and working success --> add a ignore +please column in the db, change name to value -- > when loading in data lower case all values
-	var u_reacts = [
-		{ "name": "adam", "id": ["995385148331802634"], "alt": ["aikus"] },
-		{ "name": "sami", "id": ["1105524011854729237"], "alt": [] },
-		{ "name": "jeremy", "id": ["1045838047041835029"], "alt": [] },
-		{ "name": "hank", "id": ["755900896465911918"], "alt": [] },
-		{ "name": "caden", "id": ["983993509709250562", "979875378728407050", "979878045974425640", "979908137937158194", "984641353860407416"], "alt": [] },
-		{ "name": "shane", "id": ["1090786878069940224"], "alt": [] },
-	]
-
-	rct += PersonalReact(u_reacts, ames, message, msgContent);
+	rct += PersonalReact(ames, message, msgContent);
 
 	pleaseChecker(message, msgContent, ames);
-
-	if (ames.includes("frog") || msgContent.includes("🐸") || ames.includes("toad"))
-	{
-		rct++;
-		if (ames.includes("1181988742270038106") && ames.includes("frogfrontmartin"))
-		{
-			rct--;
-			var num = Math.floor(Math.random() * 100); //pick a random one
-			
-			if (num < 2)
-			{
-				rct++;
-				message.react("1181988742270038106").catch((error) => {
-					message.react("🐸");
-					console.error(error);
-				});
-			}
-		}
-		else
-			message.react("🐸");
-	}
 
 	//console.log("rct: " + rct);
 	var d1 = getD1();
@@ -669,45 +639,84 @@ function preformEasterEggs(message, msgContent, bot)
 		extremeEmoji(message, msgContent, maxemoji-rct);
 	}
 
-	if ((ames.includes("among") && ames.includes("us")) || msgContent.includes("sus") || msgContent.includes("ඞ") || msgContent.includes("amogus"))
-	{
-		message.react("990701351258443797").catch(console.error);
-	}
-
-	if (msgContent.includes("huzzah") || msgContent.includes(":luna:") || msgContent.includes("doubled"))
-	{
-		message.react("891799760346955796").catch(console.error);
-	}
-	
-	if ((ames.includes("man") && ames.includes("falling")) || message.content.includes("𓀒"))
-	{
-		message.react("1011465311096160267").catch(console.error);
-	}
-
 	if (msgContent.includes("i request an oven at this moment"))
 	{
 		var ovenitems = ["https://tenor.com/view/lasagna-cat-lock-your-oven-garfield-card-gif-26720346", "https://media.discordapp.net/attachments/561209488724459531/1062888125073989742/091.png"]
 		message.reply(ovenitems[Math.floor(Math.random() * ovenitems.length)]);
 	}
 
+	var dowIntIncluded = msgIncDay(msgContent);
+	if (dowIntIncluded > -1 && msgContent.includes("archive-"))
+	{
+		// get all text after archive- until space (ex. archive-BIKUSFRIDAY -> BIKUSFRIDAY or archive-FRFRF -> FRFRF)
+		var frday = msgContent.match(/archive-([^ ]*)/)[1];
+		// convert to lowercase
+		frday = frday.toLowerCase();
+		// trim to only include letters in validLetters
+		frday = frday.split('').filter(c => validLetters.includes(c)).join('');
+
+		if (frday != null)
+		{
+			// convert to numbers based off index in validLetters
+			var frdayInt = frday.split('').map(c => validLetters.indexOf(c));
+			// convert to string with no spaces
+			frday = frdayInt.join('');
+
+			var tesxt = await funnyDOWTextSaved(dowIntIncluded, message.author.id, frday, true);
+
+			if (tesxt != null)
+			{
+				message.channel.send(tesxt);
+			}
+
+			resetRNG();
+		}
+	}
+
 	checkForFish(message, msgContent);
 }
 
-function PersonalReact(u_reacts, ames, message, msgContent)
+function msgIncDay(msgContent)
 {
+	if (msgContent.includes("monday"))
+		return 1;
+	else if (msgContent.includes("tuesday"))
+		return 2;
+	else if (msgContent.includes("wednesday"))
+		return 3;
+	else if (msgContent.includes("thursday"))
+		return 4;
+	else if (msgContent.includes("friday"))
+		return 5;
+	else if (msgContent.includes("saturday"))
+		return 6;
+	else if (msgContent.includes("sunday"))
+		return 0;
+	else
+		return -1;
+}
+
+function PersonalReact(ames, message, msgContent)
+{
+	ames = ames.toLowerCase();
+
+	var u_reacts = JSON.parse(fs.readFileSync(babadata.datalocation + "/REACTOcache.json"));
+
 	var rct = 0;
 	for (var i = 0; i < u_reacts.length; i++)
 	{
 		var u_react = u_reacts[i];
-		
+
 		var isGood = false;
-		if (ames.includes(u_react.name))
+		if (ames.includes(u_react.Phrase.toLowerCase()))
 			isGood = true;
-		else if (u_react.alt != null)
+		else
 		{
-			for (var j = 0; j < u_react.alt.length; j++)
+			for (var j = 0; j < u_react.AlternatePhrases.length; j++)
 			{
-				if (ames.includes(u_react.alt[j]))
+				var phraseList = u_react.AlternatePhrases[j];
+				// check if all phrases in the list are included in the message
+				if (phraseList.every(phrase => ames.includes(phrase.toLowerCase())))
 				{
 					isGood = true;
 					break;
@@ -715,17 +724,37 @@ function PersonalReact(u_reacts, ames, message, msgContent)
 			}
 		}
 
+		for (var j = 0; j < u_react.IgnoredPhrases.length; j++)
+		{
+			var phraseList = u_react.IgnoredPhrases[j];
+			// check if all phrases in the list are included in the message
+			if (phraseList.every(phrase => ames.includes(phrase.toLowerCase())))
+			{
+				isGood = false;
+				break;
+			}
+		}
+
+		var tod = new Date();
+
+		if (new Date(u_react.StartDate) > tod || new Date(u_react.EndDate) < tod)
+			isGood = false;
+
 		if(isGood)
 		{
 			rct++;
 
-			var ideeznuts = u_react.id[Math.floor(Math.random() * u_react.id.length)];
+			var ideeznuts = u_react.ReactIDList[Math.floor(Math.random() * u_react.ReactIDList.length)];
 			
 			var num = Math.floor(Math.random() * 100); //pick a random one
-			if (num < 2)
+			if (num < 2 && u_react.Prompt)
 				message.channel.send("<:TEMP:" + ideeznuts + ">");
 			
-			if (!(message.author.bot && (msgContent.includes("indeed, " + u_react.name + " please!") || msgContent.includes("indeed, " + u_react.name + "please!"))))
+			var goodtoreact = true;
+			if (u_react.IgnorePlease)
+				goodtoreact = (!(message.author.bot && (msgContent.includes("indeed, " + u_react.Phrase + " please!") || msgContent.includes("indeed, " + u_react.Phrase + "please!"))))
+			
+			if (goodtoreact)
 				message.react(ideeznuts).catch(error => {
 					message.react("👍");
 					console.error(error);

@@ -3,6 +3,7 @@ var babadata = require('../babotdata.json'); //baba configuration file
 // const Discord = require('discord.js'); //discord module for interation with discord api
 const fs = require('fs');
 const { NameFromUserIDID } = require('../databaseandvoice');
+const { RNG } = require('./RNG');
 // const images = require('images');
 // const Jimp = require('jimp');
 // const fetch = require('node-fetch');
@@ -19,30 +20,45 @@ const { NameFromUserIDID } = require('../databaseandvoice');
 // const localesz = ["in class", "in bed", "at Adam's House", "in the car driving to [l2]", "waiting for the bus", "playing slots", "doing cocaine", "in the bathroom", "in the shower", "in your walls ;),"];
 // const l2 = ["the store", "New York", "Adam's House", "nowhere", "school", "a bacon festival", "somewhere under the sea"]
 
-async function funnyDOWTextSaved(dowNum, authorID)
+var theRNG = new RNG(1);
+
+function resetRNG()
 {
+	theRNG = new RNG();
+}
+
+async function funnyDOWTextSaved(dowNum, authorID, seedSet = -1, dontSave = false)
+{
+	if (seedSet != -1)
+		theRNG.setSeed(seedSet);
+
+	var seed = theRNG.getState();
+
 	var textGroup = await funnyDOWText(dowNum, authorID);
 	var text = textGroup[0];
-	var condensedNotation = textGroup[1];
-	var cnYung = textGroup[2];
-	// append text to fridaymessages.json
-	var fmpath = babadata.datalocation + "/fridaymessages.json";
-	var fmr = fs.readFileSync(fmpath);
-	var fmd = JSON.parse(fmr);
-	var tod = new Date();
-
-	var cnFull = condensedNotation;
-	if (cnYung.length > 0)
+	if (!dontSave)
 	{
-		var x = {};
-		x[cnFull] = cnYung;
-		cnFull = x;
+		var condensedNotation = textGroup[1];
+		var cnYung = textGroup[2];
+		// append text to fridaymessages.json
+		var fmpath = babadata.datalocation + "/fridaymessages.json";
+		var fmr = fs.readFileSync(fmpath);
+		var fmd = JSON.parse(fmr);
+		var tod = new Date();
+	
+		var cnFull = condensedNotation;
+		if (cnYung.length > 0)
+		{
+			var x = {};
+			x[cnFull] = cnYung;
+			cnFull = x;
+		}
+	
+		var fmdItem = { "UID": authorID, "Text": text, "Date": tod, "CondensedNotation": cnFull, "Seed": seed };
+		fmd.push(fmdItem);
+	
+		fs.writeFileSync(fmpath, JSON.stringify(fmd));
 	}
-
-	var fmdItem = { "UID": authorID, "Text": text, "Date": tod, "CondensedNotation": cnFull };
-	fmd.push(fmdItem);
-
-	fs.writeFileSync(fmpath, JSON.stringify(fmd));
 
 	return text;
 }
@@ -80,7 +96,7 @@ async function funnyDOWText(dowNum, authorID, recrused = 0, ToBeCounted = [], he
 	}
 
 	var tod = new Date();
-	var pretext = optionsDOW[Math.floor(Math.random() * optionsDOW.length)];
+	var pretext = optionsDOW[Math.floor(theRNG.nextFloat() * optionsDOW.length)];
 
 	//////// overide to select based on UID
 
@@ -131,7 +147,7 @@ async function funnyDOWText(dowNum, authorID, recrused = 0, ToBeCounted = [], he
 		}
 	}
 
-	var text = textos[Math.floor(Math.random() * textos.length)];
+	var text = textos[Math.floor(theRNG.nextFloat() * textos.length)];
 
 	condensedNotation = pretext.UID + "";
 	if (text.startsWith("#"))
@@ -373,38 +389,6 @@ async function funnyDOWText(dowNum, authorID, recrused = 0, ToBeCounted = [], he
 			text = text.replaceAll("[td" + subtext + " TS-F]", "<t:" + Math.floor(pickedDay.getTime() / 1000) + ":F>");
 	}
 
-	// while (text.includes("[emotion]"))
-	// 	text = text.replace("[emotion]", emotions[Math.floor(Math.random() * emotions.length)]);
-	
-	// while (text.includes("[game]"))
-	// 	text = text.replace("[game]", game[Math.floor(Math.random() * game.length)]);
-
-	// while (text.includes("[emotion2]"))
-	// 	text = text.replace("[emotion2]", emotion2[Math.floor(Math.random() * emotion2.length)]);
-
-	// while (text.includes("[person]"))	
-	// 	text = text.replace("[person]", persontype[Math.floor(Math.random() * persontype.length)]);	
-
-	// while (text.includes("[goodbye]"))
-	// 	text = text.replace("[goodbye]", bye[Math.floor(Math.random() * bye.length)]);
-
-	// while (text.includes("[emoji]"))
-	// 	text = text.replace("[emoji]", emoji[Math.floor(Math.random() * emoji.length)]);
-
-	// while (text.includes("[location]"))
-	// 	text = text.replace("[location]", localesz[Math.floor(Math.random() * localesz.length)]);
-
-	// while (text.includes("[l2]"))
-	// 	text = text.replace("[l2]", l2[Math.floor(Math.random() * l2.length)]);
-
-	// text = text.replace("[emotion]", emotions[Math.floor(Math.random() * emotions.length)]);
-	// text = text.replace("[emotion]", emotions[Math.floor(Math.random() * emotions.length)]);
-	// text = text.replace("[game]", game[Math.floor(Math.random() * game.length)]);
-	// text = text.replace("[emotion2]", emotion2[Math.floor(Math.random() * emotion2.length)]);
-	// text = text.replace("[person]", persontype[Math.floor(Math.random() * persontype.length)]);
-	// text = text.replace("[goodbye]", bye[Math.floor(Math.random() * bye.length)]);
-	// text = text.replace("[emoji]", emoji[Math.floor(Math.random() * emoji.length)]);
-
 	text = text.replaceAll("\\n", "\n");
 
 	// if length is greater than 1000, call again
@@ -488,7 +472,7 @@ function replaceNested(text, ToBeCounted = null, recrused = 0, headLevel = 0, au
 			{
 				while (text.match(regex))
 				{
-					var numbo = Math.floor(Math.random() * value.length);
+					var numbo = Math.floor(theRNG.nextFloat() * value.length);
 					text = text.replace("[" + key + "]", value[numbo].text);
 
 					if (ToBeCounted != null)
@@ -600,7 +584,7 @@ function onlyLettersNumbers(text)
 
 	if (text == "")
 		// set to a random string of 1 to 10 characters
-		text = Math.random().toString(36).substring(2, Math.floor(Math.random() * 10) + 2);
+		text = theRNG.nextFloat().toString(36).substring(2, Math.floor(theRNG.nextFloat() * 10) + 2);
 
 	return text;
 }
@@ -754,5 +738,6 @@ function removeCountRuin(uid, g)
 module.exports = {
     funnyDOWTextSaved,
     funnyFrogText,
-	removeCountRuin
+	removeCountRuin,
+	resetRNG
 };

@@ -1331,6 +1331,109 @@ Left Join userval on pleasedOverides.UserID = userval.DiscordID;`,
 		}
 	);
 
+	con.query(`Select * from reacto`,
+	function (err, result)
+	{
+		var opts = [];
+		if (err)
+		{
+			if (validErrorCodes(err.code))
+			{
+				EnterDisabledMode(err);
+				return;
+			}
+			else
+				throw err;
+		}
+
+		for (var i = 0; i < result.length; i++)
+		{
+			var res = result[i];
+			var resj = 
+			{
+				"Phrase": res.phrase,
+				"ReactIDs": res.reactIDs,
+				"AlternatePhrases": res.altPhrases,
+				"IgnoredPhrases": res.ignorePhrases,
+				"IgnorePlease": res.IgnorePlease,
+				"StartDate": res.StartTime,
+				"EndDate": res.EndTime,
+				"Prompt": res.Prompt,
+			}
+
+			// if startdate != null set year to this year
+			if (resj.StartDate != null)
+				resj.StartDate.setFullYear(new Date().getFullYear());
+
+			// if enddate != null set year to this year
+			if (resj.EndDate != null)
+				resj.EndDate.setFullYear(new Date().getFullYear());
+
+			// if startdate == null set to earliest date
+			if (resj.StartDate == null)
+				resj.StartDate = new Date(0);
+
+			// if enddate == null set to latest date
+			if (resj.EndDate == null)
+				resj.EndDate = new Date(8640000000000000);
+
+			// split reactIDs by comma
+			resj.ReactIDs = resj.ReactIDs.split(",");
+			for (var j = 0; j < resj.ReactIDs.length; j++)
+			{
+				// trim spaces
+				resj.ReactIDs[j] = resj.ReactIDs[j].trim();
+				var reactID = resj.ReactIDs[j].split(":");
+				resj.ReactIDs[j] = {"ID": reactID[0], "Chance": reactID[1] ? reactID[1] : 100};
+			}
+
+			// loop through reactIDs and add id to ReactIDList, chance number of times
+			resj.ReactIDList = [];
+			for (var j = 0; j < resj.ReactIDs.length; j++)
+			{
+				for (var k = 0; k < resj.ReactIDs[j].Chance; k++)
+				{
+					resj.ReactIDList.push(resj.ReactIDs[j].ID);
+				}
+			}
+
+			// split altPhrases by comma, if not null
+			if (resj.AlternatePhrases != null)
+				resj.AlternatePhrases = resj.AlternatePhrases.split(",");
+			else 
+				resj.AlternatePhrases = [];
+
+			// loop through alternate phrases and change from "val" to ["val"], or "a+b" to ["a", "b"]
+			for (var j = 0; j < resj.AlternatePhrases.length; j++)
+			{
+				// trim spaces
+				resj.AlternatePhrases[j] = resj.AlternatePhrases[j].trim();
+				resj.AlternatePhrases[j] = resj.AlternatePhrases[j].split("+");
+			}
+
+			// split ignoredPhrases by comma, if not null
+			if (resj.IgnoredPhrases != null)
+				resj.IgnoredPhrases = resj.IgnoredPhrases.split(",");
+			else
+				resj.IgnoredPhrases = [];
+
+			// loop through ignored phrases and change from "val" to ["val"], or "a+b" to ["a", "b"]
+
+			for (var j = 0; j < resj.IgnoredPhrases.length; j++)
+			{
+				// trim spaces
+				resj.IgnoredPhrases[j] = resj.IgnoredPhrases[j].trim();
+				resj.IgnoredPhrases[j] = resj.IgnoredPhrases[j].split("+");
+			}
+
+			opts.push(resj);
+		}
+
+		var data = JSON.stringify(opts);
+
+		fs.writeFileSync(babadata.datalocation + "/REACTOcache.json", data);
+	});
+
 	con.query(`SELECT * FROM dowfunny left join fridaytimegates on dowfunny.UID = fridaytimegates.fUID`,
 	function (err, result)
 		{
@@ -1663,12 +1766,12 @@ function IncrementFridayCounter(fridayJson)
 		return;
 
 	// qurey start
-	var qureyStart2 = `INSERT INTO myitisfriday (Sender,TimeStamp,Message,Condensed) VALUES `
+	var qureyStart2 = `INSERT INTO myitisfriday (Sender,TimeStamp,Message,Condensed,Seed) VALUES `;
 	var queryMiddle2 = "";
 	
 	for (var i = 0; i < friday.length; i++)
 	{
-		// var fmdItem = { "UID": authorID, "Text": text, "Date": tod "CondensedNotation": cnFull };
+		// var fmdItem = { "UID": authorID, "Text": text, "Date": tod, "CondensedNotation": cnFull, "Seed": seed };
 		var fmdItem = friday[i];
 		var sender = fmdItem.UID;
 
@@ -1689,8 +1792,10 @@ function IncrementFridayCounter(fridayJson)
 			cond = cond.replace(/"/g, '""');
 		}
 
+		var seed = fmdItem.Seed;
+
 		// add to query
-		queryMiddle2 += `("${sender}", "${time}", "${msg}", "${cond}"),`;
+		queryMiddle2 += `("${sender}", "${time}", "${msg}", "${cond}", "${seed}"),`;
 	}
 
 	// remove last comma
