@@ -7,6 +7,7 @@ const fetch = require('node-fetch');
 
 const options = { year: 'numeric', month: 'long', day: 'numeric' }; // for date parsing to string
 const { dateDiffInDays, antiDelay, GetDate, GetSimilarName, uExist } = require('./basicHelpers.js');
+const { getHurricaneInfo, saveUpdatedHurrInfo } = require('../databaseandvoice.js');
 
 var to = null;
 
@@ -430,67 +431,162 @@ function CheckHoliday(msg, holdaylist) //checks if any of the holiday list is sa
 
 function loadHurricaneHelpers()
 {
-	if(!fs.existsSync(babadata.datalocation + '/hurricaneHelp.json')) 
+	if (global.dbAccess[1] && global.dbAccess[0])
+		getHurricaneInfo();
+	
+	if(!fs.existsSync(babadata.datalocation + '/hurricanes.json')) 
 	{
-		fs.writeFileSync(babadata.datalocation + '/hurricaneHelp.json', JSON.stringify({}));
+		fs.writeFileSync(babadata.datalocation + '/hurricanes.json', JSON.stringify([]));
 	}
 
-	let rawdata = fs.readFileSync(babadata.datalocation + '/hurricaneHelp.json');
+	let rawdata = fs.readFileSync(babadata.datalocation + '/hurricanes.json');
 	let baadata = JSON.parse(rawdata);
 
 	return baadata;
 }
 
-async function checkHurricaneStuff(hurricanename, isFirst, eye)
+function checkHurricane(hurricaneName, hurricaneJsonI)
+{
+	var huricaneNameLetter = hurricaneName.charAt(0).toUpperCase();
+	var match = hurricaneJsonI.Name.toLowerCase() == hurricaneName.toLowerCase() || 
+	(hurricaneJsonI.Name.charAt(0).toLowerCase() == huricaneNameLetter.toLowerCase() && (hurricaneJsonI.systemType != "POTENTIAL TROPICAL CYCLONE" && hurricaneJsonI.systemType != "TROPICAL DEPRESSION")) ||
+	hurricaneJsonI.Number == hurricaneName
+
+	return match;
+}
+
+function parseHurricaneDate(date)
+{
+	// format example 20240926 09:00:00 PM UTC
+	var year = date.substring(0, 4);
+	var month = date.substring(4, 6);
+	var day = date.substring(6, 8);
+	var time = date.substring(9, 17);
+	var ampm = date.substring(18, 20);
+
+	var ddd = Date.parse(month + " " + day + " " + year + " " + time + " " + ampm + " UTC");
+	return ddd;
+}
+
+async function checkHurricaneStuff(hurricanename)
 {
     var hurricaneJson = loadHurricaneHelpers();
 
 	var thisYear = new Date().getFullYear();
-	var hurricanenameNum = hurricanename.toUpperCase().charCodeAt(0)
 
-	hurricanenameNum = hurricanenameNum - 64;
-	hurricanenameNum = hurricanenameNum + eye;
+	// iNum = size of hurricaneJson
+	var iNum = hurricaneJson.length;
+	var huricaneNameLetter = hurricanename.charAt(0).toUpperCase();
 
-	if (hurricanenameNum < 10) hurricanenameNum = "0" + hurricanenameNum;
-
-	var url = "https://www.nhc.noaa.gov/storm_graphics/AT" + hurricanenameNum + "/atcf-al" + hurricanenameNum + thisYear + ".xml";
-
-	var urlE = uExist(url);
-
-	if (!urlE)
+	// check if name is in the list
+	for (var i in hurricaneJson)
 	{
-		if (isFirst)
-			return false
-		else
-			return true;
+		// compare lowercase, if not found, compare first letter, if not found, compare number
+		if (checkHurricane(hurricanename, hurricaneJson[i]))
+		{
+			console.log("Hurricane Info Found for " + hurricanename);
+			var xml = await fetch(hurricaneJson[i].XMLURL).then(response => response.text());	
+			var lastUpdated = xml.split("<messageDateTimeUTC>")[1].split("</messageDateTimeUTC>")[0];
+			var lastUpdatedDate = parseHurricaneDate(lastUpdated);
+			// if lastUpdated is different than hurricaneJson[i].lastUpdated, update the hurricaneJson[i].lastUpdated
+			var newDay = new Date(lastUpdatedDate);
+			var dbDay = new Date(hurricaneJson[i].LastUpdated);
+			if (newDay > dbDay)
+			{
+				console.log("Hurricane Info Updated for " + hurricanename);
+				hurricaneJson[i].LastUpdated = newDay.toISOString().slice(0, 19).replace('T', ' ');
+				hurricaneJson[i].Updated = true;
+				var systemType = xml.split("<systemType>")[1].split("</systemType>")[0];
+				var saffirsympson = xml.split("<systemSaffirSimpsonCategory>")[1].split("</systemSaffirSimpsonCategory>")[0];
+				hurricaneJson[i].Type = systemType;
+				hurricaneJson[i].Category = saffirsympson;
+			}
+			
+			hurricaneJson[i].OverideText = 
+				hurricaneJson[i].Name.charAt(0).toLowerCase() == huricaneNameLetter.toLowerCase() ? {"AltName": hurricanename} : 
+				(hurricaneJson[i].Number == hurricanename ? {"NumberSearch": hurricanename} : null);
+
+			iNum = i;
+			break;
+		}
 	}
 
-	var xml = await fetch(url).then(response => response.text());
-
-	if (xml.includes("Page Not Found"))
+	if (iNum == hurricaneJson.length)
 	{
-		if (isFirst)
-			return false
-		else
-			return true;
-	}
-	var storm = xml.split("<systemName>")[1].split("</systemName>")[0];
+		console.log("Hurricane Info Not Found for " + hurricanename + " searching for it");
+		// loop until xml file cant be found
+		var xmlFound = true;
+		var iNumTemp = iNum;
+		while (xmlFound)
+		{
+			iNumTemp++;
 
-	// check if in hurricaneJson
-	if (hurricaneJson[storm] == null)
+			var hurricanenameNum = iNumTemp;
+			if (hurricanenameNum < 10) hurricanenameNum = "0" + hurricanenameNum;
+			var url = "https://www.nhc.noaa.gov/storm_graphics/AT" + hurricanenameNum + "/atcf-al" + hurricanenameNum + thisYear + ".xml";
+
+			var urlE = uExist(url);
+
+			if (!urlE)
+			{
+				xmlFound = false;
+				break;
+			}
+
+			var xml = await fetch(url).then(response => response.text());
+
+			if (xml.includes("Page Not Found") || xml.includes("503 Service Temporarily Unavailable"))
+			{
+				xmlFound = false;
+				break;
+			}
+
+			var id = hurricanenameNum + "" + thisYear;
+			var lastUpdated = xml.split("<messageDateTimeUTC>")[1].split("</messageDateTimeUTC>")[0];
+			var stormName = xml.split("<systemName>")[1].split("</systemName>")[0];
+			var number = iNumTemp;
+			var systemType = xml.split("<systemType>")[1].split("</systemType>")[0];
+			var saffirsympson = xml.split("<systemSaffirSimpsonCategory>")[1].split("</systemSaffirSimpsonCategory>")[0];
+			var imgURL = "https://www.nhc.noaa.gov/storm_graphics/AT" + hurricanenameNum + "/refresh/AL" + hurricanenameNum + thisYear + "_5day_cone_no_line_and_wind+png/";
+			var xmlURL = url;
+			var year = thisYear;
+
+			var lUpdateDate = new Date(parseHurricaneDate(lastUpdated));
+
+			var item = {
+				"ID": id,
+				"LastUpdated": lUpdateDate.toISOString().slice(0, 19).replace('T', ' '),
+				"Name": stormName,
+				"Number": number,
+				"Type": systemType,
+				"Category": saffirsympson,
+				"ImageURL": imgURL,
+				"XMLURL": xmlURL,
+				"Year": year,
+				"Updated": true,
+				"OverideText": 
+					stormName.charAt(0).toLowerCase() == huricaneNameLetter.toLowerCase() ? {"AltName": hurricanename} : 
+					(number == hurricanename ? {"NumberSearch": hurricanename} : null)
+			};
+
+			iNum = checkHurricane(hurricanename, item) ? iNumTemp - 1 : iNum;
+
+			console.log("Getting Hurricane Info for " + stormName + " from " + url);
+
+			hurricaneJson.push(item);
+	
+			fs.writeFileSync(babadata.datalocation + '/hurricanes.json', JSON.stringify(hurricaneJson));
+		}
+	}
+
+	var pickedItem = hurricaneJson[iNum];
+
+	if (global.dbAccess[1] && global.dbAccess[0])
 	{
-		hurricaneJson[storm] = {"name": storm.toLowerCase(), "letter": storm.charAt(0), "url": ""};
-		hurricaneJson[storm].url = "https://www.nhc.noaa.gov/storm_graphics/AT" + hurricanenameNum + "/refresh/AL" + hurricanenameNum + thisYear + "_5day_cone_no_line_and_wind+png/";
+		saveUpdatedHurrInfo();
 	}
 
-	// save hurricaneJson
-	fs.writeFileSync(babadata.datalocation + '/hurricaneHelp.json', JSON.stringify(hurricaneJson));
-
-	// check if hurricaneName is in hurricaneJson
-	if (hurricaneJson[hurricanename.toUpperCase()] != null)
-		return true;
-	else
-		return false;
+	return pickedItem;
 }
 
 function monthFromInt(mint)

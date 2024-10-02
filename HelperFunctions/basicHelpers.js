@@ -624,30 +624,18 @@ function preformEasterEggs(message, msgContent, bot)
 	}
 
 	var rct = 0;
-	if(ames.includes('adam') || ames.includes("aikus"))
-	{
-		rct++;
-		
-		var num = Math.floor(Math.random() * 100); //pick a random one
-		if (num < 2)
-			message.channel.send("<:adam:995385148331802634>");
 
-		if (!(message.author.bot && (msgContent.includes("indeed, adamplease!") || msgContent.includes("indeed, adam please!"))))
-			message.react("995385148331802634").catch(console.error);
-	}
+	// move to db after work and working success --> add a ignore +please column in the db, change name to value -- > when loading in data lower case all values
+	var u_reacts = [
+		{ "name": "adam", "id": ["995385148331802634"], "alt": ["aikus"] },
+		{ "name": "sami", "id": ["1105524011854729237"], "alt": [] },
+		{ "name": "jeremy", "id": ["1045838047041835029"], "alt": [] },
+		{ "name": "hank", "id": ["755900896465911918"], "alt": [] },
+		{ "name": "caden", "id": ["983993509709250562", "979875378728407050", "979878045974425640", "979908137937158194", "984641353860407416"], "alt": [] },
+		{ "name": "shane", "id": ["1090786878069940224"], "alt": [] },
+	]
 
-	// tbd: database the please funnys
-	if(ames.includes('sami'))
-	{
-		rct++;
-
-		var num = Math.floor(Math.random() * 100);
-		if (num < 2)
-			message.channel.send("<:sami:1105524011854729237>");
-
-		if (!(message.author.bot && (msgContent.includes("indeed, samiplease!") || msgContent.includes("indeed, sami please!"))))
-			message.react("1105524011854729237").catch(console.error);
-	}
+	rct += PersonalReact(u_reacts, ames, message, msgContent);
 
 	pleaseChecker(message, msgContent, ames);
 
@@ -703,6 +691,47 @@ function preformEasterEggs(message, msgContent, bot)
 	}
 
 	checkForFish(message, msgContent);
+}
+
+function PersonalReact(u_reacts, ames, message, msgContent)
+{
+	var rct = 0;
+	for (var i = 0; i < u_reacts.length; i++)
+	{
+		var u_react = u_reacts[i];
+		
+		var isGood = false;
+		if (ames.includes(u_react.name))
+			isGood = true;
+		else if (u_react.alt != null)
+		{
+			for (var j = 0; j < u_react.alt.length; j++)
+			{
+				if (ames.includes(u_react.alt[j]))
+				{
+					isGood = true;
+					break;
+				}
+			}
+		}
+
+		if(isGood)
+		{
+			rct++;
+
+			var ideeznuts = u_react.id[Math.floor(Math.random() * u_react.id.length)];
+			
+			var num = Math.floor(Math.random() * 100); //pick a random one
+			if (num < 2)
+				message.channel.send("<:TEMP:" + ideeznuts + ">");
+			
+			if (!(message.author.bot && (msgContent.includes("indeed, " + u_react.name + " please!") || msgContent.includes("indeed, " + u_react.name + "please!"))))
+				message.react(ideeznuts).catch(error => {
+					message.react("👍");
+					console.error(error);
+				});
+		}
+	}
 }
 
 function pleaseChecker(message, msgContent, ames)

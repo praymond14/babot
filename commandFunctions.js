@@ -2,7 +2,7 @@ const { FormatPurityList, HPLGenChannel, HPLGenUsers, HPLSelectChannel, HPLSelec
 const { getD1, FindDate, GetDate, dateDiffInDays, uExist, getTimeFromString } = require("./HelperFunctions/basicHelpers.js");
 const { CheckHoliday, FindNextHoliday, MakeImage, EmbedHaikuGen, loadHurricaneHelpers, checkHurricaneStuff, monthFromInt, reverseDelay } = require("./HelperFunctions/commandHelpers.js");
 const { normalizeMSG } = require("./HelperFunctions/dbHelpers.js");
-const { funnyDOWText } = require("./HelperFunctions/slashFridayHelpers.js");
+const { funnyDOWTextSaved } = require("./HelperFunctions/slashFridayHelpers.js");
 
 var babadata = require('./babotdata.json'); //baba configuration file
 var data = require(babadata.datalocation + 'data.json'); //extra data
@@ -433,7 +433,7 @@ async function babaWednesday(msgContent, author, callback)
     //let rawdata = fs.readFileSync(babadata.datalocation + "FrogHolidays/" + 'frogholidays.json'); //load file each time of calling wednesday
     //let holidays = JSON.parse(rawdata);
 
-    if (!(global.dbAccess[1] && global.dbAccess[0])) return callback([{content: await funnyDOWText(3, author.id) }]);
+    if (!(global.dbAccess[1] && global.dbAccess[0])) return callback([{content: await funnyDOWTextSaved(3, author.id) }]);
 
     ObtainDBHolidays(async function(holidays)
     {
@@ -684,7 +684,7 @@ async function babaWednesday(msgContent, author, callback)
                 if (msgContent.replace("wednesday", "").replace("when is", "").replace("day of week", "").replace("days until", "").trim() == "next")
                     outs.push({ content: "The definition of insanity is doing the same thing over and over expecting a different result" });
                 else
-                    outs.push({ content: await funnyDOWText(3, author.id) });
+                    outs.push({ content: await funnyDOWTextSaved(3, author.id) });
             }
         }
 
@@ -761,58 +761,27 @@ async function babaHurricane(hurricanename, callback)
                 // if xml file does not exist, stop searching as empty folder means end of line
 
     // {"name": "bikus", "letter": "B", "url": "bikus.png"}
+    var hfull = undefined;
     if (hurricanename != "" && hurricanename != null)
     {
-        var hurricaneJson = await loadHurricaneHelpers();
-        url = null;
-        var hFull = "";
+        var hurricaneInfo = await checkHurricaneStuff(hurricanename);
 
-        for (const [hName, hObject] of Object.entries(hurricaneJson)) 
+        if (hurricaneInfo != null)
         {
-            if (hName.toLowerCase() == hurricanename.toLowerCase() || hObject.letter == hurricanename.toUpperCase().charAt(0) || hName.toLowerCase().includes(hurricanename.toLowerCase()))
+            hfull = " for " + (hurricaneInfo.Category == "N/A" ? hurricaneInfo.Type : hurricaneInfo.Category + " " + hurricaneInfo.Type) + " " + hurricaneInfo.Name;
+
+            if (hurricaneInfo.OverideText != null)
             {
-                url = hObject.url;
-                hFull = hName;
-                break;
+                if ("AltName" in hurricaneInfo.OverideText)
+                    hfull += " (Closest Match to " + hurricaneInfo.OverideText.AltName + ")";
+                else if ("NumberSearch" in hurricaneInfo.OverideText)
+                    hfull += " (Hurricane Numbered: " + hurricaneInfo.OverideText.NumberSearch + ")";
             }
+
+            url = hurricaneInfo.ImageURL;
+
+            binus = hfull;
         }
-
-        if (url == null)
-        {
-            // if letter is not a-z skip
-            if (hurricanename.toUpperCase().charCodeAt(0) < 65 || hurricanename.toUpperCase().charCodeAt(0) > 90)
-            {
-                callback({ content: "Give a Valid Hurricane Name (A-Z supported only right now)" });
-                return;
-            }
-
-            for (var i = 0; i < 6; i++)
-            {
-                var good = await checkHurricaneStuff(hurricanename, i == 0, i)
-                if (good)
-                    break;
-            }
-
-
-            hurricaneJson = await loadHurricaneHelpers();
-            for (const [hName, hObject] of Object.entries(hurricaneJson)) 
-            {
-                if (hName.toLowerCase() == hurricanename.toLowerCase() || hObject.letter == hurricanename.toUpperCase().charAt(0) || hName.toLowerCase().includes(hurricanename.toLowerCase()))
-                {
-                    url = hObject.url;
-                    hFull = hName;
-                    break;
-                }
-            }
-        }
-
-        if (url == null)
-        {
-            callback({ content: "Hurricane Doesn't seem to exist!" });
-            return;
-        }
-
-        binus = " for " + hFull;
     }
     
     console.log(url);
@@ -825,10 +794,10 @@ async function babaHurricane(hurricanename, callback)
             file.close();
             console.log("Download Completed");
 
-            var vv = hFull === undefined ? "Hurricanes" : hFull;
+            var vv = hfull === undefined ? " for all Hurricanes" : hfull;
            
             var newAttch = new Discord.AttachmentBuilder(tempFilePath, 
-                { name: vv + '.png', description : "Hurricane Info for " + vv}); //makes a new discord attachment
+                { name: vv + '.png', description : "Hurricane Info" + vv}); //makes a new discord attachment
 
            callback({ content: "Baba Hurricane Info" + binus, files: [newAttch] });
         });
