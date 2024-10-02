@@ -1,24 +1,6 @@
 var babadata = require('../babotdata.json'); //baba configuration file
-// var request = require('node-fetch');
-// const Discord = require('discord.js'); //discord module for interation with discord api
 const fs = require('fs');
-const { NameFromUserIDID } = require('../databaseandvoice');
 const { RNG } = require('./RNG');
-// const images = require('images');
-// const Jimp = require('jimp');
-// const fetch = require('node-fetch');
-
-// const options = { year: 'numeric', month: 'long', day: 'numeric' }; // for date parsing to string
-
-// const emotions = ["splendid", "exciting", "sad", "boring", "fun", "exquisite", "happy", "pretty eventful", "slow to start but it picked up later in the day", "not so good", "very good", "legal", "spungungulsumplus", "fish"];
-// const persontype = ["madam", "friend", "enemy", "brother", "brother man", "BROTHERRRRRR", "bungle bus", "uncle", "second cousin twice removed", "uncles dogs sisters boyfriends moms second cousins cat", "leg", "adam"];
-// const game = ["TF2", "Ultimate Admiral: Dreadnoughts", "Fishing Simulator", "Sea of Thieves", "Factorio", "Forza Horizon 5", "nothing", "Fallout: New Vegas", "Stabbing Simulator (IRL)"];
-// const emotion2 = ["fun", "exciting", "monotonous", "speed run", "pretty eventful", "frog", "emotional", "devoid of all emotions", "mike"];
-// const bye = ["bid you a morrow", "will see you soon", "want to eat your soul, so watch out", "am going to leave now", "hate everything, goodbye", "am monke, heee heee hoo hoo", "wish you good luck on your adventures", "am going to go to bed now", "want to sleep but enevitably will not get any as i will be gaming all night, good morrow", "am going to go to the morrow lands", "will sleep now", "am pleased to sleep"];
-// const emoji = ["ඞ", "🐸", "🍆", "💄", "⛧", "🎄", "🐷", "🐎", "🐴", "🐍", "⚡", "🪙", "🖕", "🚊", "🏻🏻", "🤔", "🌳", "🌲", "🌴", "🌵", "🐀", "🍝", "𓀒"];
-
-// const localesz = ["in class", "in bed", "at Adam's House", "in the car driving to [l2]", "waiting for the bus", "playing slots", "doing cocaine", "in the bathroom", "in the shower", "in your walls ;),"];
-// const l2 = ["the store", "New York", "Adam's House", "nowhere", "school", "a bacon festival", "somewhere under the sea"]
 
 var theRNG = new RNG();
 
@@ -29,12 +11,16 @@ function resetRNG()
 
 async function funnyDOWTextSaved(dowNum, authorID, seedSet = -1, dontSave = false)
 {
+	var cacheVersion = -1;
 	if (seedSet != -1)
-		theRNG.setSeed(seedSet);
+	{
+		theRNG.setSeed(seedSet[0]);
+		cacheVersion = seedSet[1];
+	}
 
 	var seed = theRNG.getState();
 
-	var textGroup = await funnyDOWText(dowNum, authorID);
+	var textGroup = await funnyDOWText(cacheVersion, dowNum, authorID);
 	var text = textGroup[0];
 	if (!dontSave)
 	{
@@ -71,7 +57,7 @@ async function funnyDOWTextSaved(dowNum, authorID, seedSet = -1, dontSave = fals
 	return text;
 }
 
-async function funnyDOWText(dowNum, authorID, recrused = 0, ToBeCounted = [], headLevel = 0)
+async function funnyDOWText(cacheVersion, dowNum, authorID, recrused = 0, ToBeCounted = [], headLevel = 0)
 {
 	let path = babadata.datalocation + "/DOWcache.json";
 	var condensedNotation = "";
@@ -79,6 +65,7 @@ async function funnyDOWText(dowNum, authorID, recrused = 0, ToBeCounted = [], he
 
 	if (!fs.existsSync(path)) 
 	{
+		cacheVersion = -1;
 		console.log("No DOWcache file found -- creating with local data");
 
 		var opttemp = ["Man Falling into [DAY]", "𓀒", "hhhhhhhhhhhhhhhhhhhhhhhhhhhgregg", "How is your [month] going!", "🍝       🐀☜(ﾟヮﾟ☜)\n🍝     🐀☜(ﾟヮﾟ☜)\n🍝    🐀☜(ﾟヮﾟ☜)\n🍝  🐀☜(ﾟヮﾟ☜)\n🍝🐀╰(°▽°)╯", "Mike", "Not [DAY] today but maybe [DAY] tomorrow", "Real NOT [DAY] hours", "[ACY]", "???????? why ??????", "So, you called this command on a day that happens to not be [DAY]! Well today is in fact a [dow] and it mayhaps is only [d] days until the forsaken '[DAY]'. On [DAY] I will be playing some [game] and hopefully some others will show up to join me, if they do it will be [emotion] and if they dont it will be [emotion]. Yesterday I met a frog in the wild and had a [emotion2] time chasing it down. As I am an all powerful god i converted the frog into an emoji: 🐸. That frog is pretty cool but my favorite emoji is [emoji]. We have gotten far off topic here as we should be talking about how today is not [DAY] and you called the command which is illegal. I am very concerned for you as you may be my favorite [person], but you shouldnt be calling the command on [dow]. It is getting late so i [goodbye].", "I'm not sure if you are a bot or not, but I'm not going to tell you what day it is, because you are not on [DAY]. I'm sorry.", "Its not [DAY]!", "Why you calling this command on the non [DAY] days!", "Why you calling this command on [dow]!", "[DAY] is in [d] days!", "Today is [dow], not [DAY]!", "There is a chance you are stupid and dont know what the day of the week is, well i will inform you that it is in fact not [DAY] but another day of the week. I could tell you what the day is but I will not, call the command again and you could get the day or not, I dont control you. So how is your day going, for me it is [emotion]. I was playing [game] earlier and it was a [emotion2] time. Well i will let you be on your way on this non-[DAY] so have a good day my [person]!", "[DAY]n't!", "It's not time to sacrifice people, wait wrong channel!", "ඞ", "Провозајте се бунгле аутобусом, уживаћете!", "[DAY] was the other day or in a couple of days, maybe even both, i dont control time.", "Time is a social construct!", "It is [dow], my dudes!", "Bikus wouldn't approve of you using the command on the wrong day of the week and Bikus is dead how dou you feel.", "[todaylong]", "69", "I was gonna tell you the day but i wont!", "||ﬞ||", "No [DAY] silly!", "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA, Rong dahy!"];
@@ -91,10 +78,22 @@ async function funnyDOWText(dowNum, authorID, recrused = 0, ToBeCounted = [], he
 		
 		var data = JSON.stringify(opttemp);
 		
-		fs.writeFileSync(babadata.datalocation + "/DOWcache.json", data);
+		fs.writeFileSync(path, data);
+	}
+
+	if (cacheVersion != -1)
+	{
+		path = babadata.datalocation + "/FridayCache/DOWcache" + cacheVersion + ".json";
+
+		if (!fs.existsSync(path)) 
+		{
+			// return to normal cache
+			cacheVersion = -1;
+			path = babadata.datalocation + "/DOWcache.json";
+		}
 	}
 	
-    let rawdata = fs.readFileSync(babadata.datalocation + "/DOWcache.json");
+    let rawdata = fs.readFileSync(path);
 
     var optionsDOW = JSON.parse(rawdata);
 
@@ -170,7 +169,7 @@ async function funnyDOWText(dowNum, authorID, recrused = 0, ToBeCounted = [], he
 	}
 
 	//text = `{brepeatN:[INTMed]:{repeatS:[INTMed]:Frog}}`
-	text = repeatCheck(text, "b");
+	text = repeatCheck(cacheVersion, text, "b");
 
 	// set headLevel to number of # at start of text
 	if (text.startsWith("#") && recrused == 0)
@@ -237,7 +236,7 @@ async function funnyDOWText(dowNum, authorID, recrused = 0, ToBeCounted = [], he
 	// text = text.replaceAll("[tdEOD TS-D]", "<t:" + Math.floor(todOnlyDate.getTime() / 1000) + ":D>");
 	// text = text.replaceAll("[tdEOD TS-F]", "<t:" + Math.floor(todOnlyDate.getTime() / 1000) + ":F>");
 	
-	text = replaceNested(text, ToBeCounted, recrused, headLevel, authorID);
+	text = replaceNested(cacheVersion, text, ToBeCounted, recrused, headLevel, authorID);
 	
 	// if contains {RECURSIVE} then replace with result of funnyDOWText(dowNum, authorID) -- loop until no more {RECURSIVE}
 	// if contains <RECURSIVE> then replace with result of funnyDOWText(dowNum, authorID) but made URL safe -- loop until no more <RECURSIVE>
@@ -246,7 +245,7 @@ async function funnyDOWText(dowNum, authorID, recrused = 0, ToBeCounted = [], he
 	{
 		if (text.includes("{RECURSIVE}"))
 		{
-			var RECR = await funnyDOWText(dowNum, authorID, recrused+1, ToBeCounted, headLevel);
+			var RECR = await funnyDOWText(cacheVersion, dowNum, authorID, recrused+1, ToBeCounted, headLevel);
 			text = text.replace("{RECURSIVE}", RECR[0]);
 			var RECRcn = RECR[1];
 			var RECRcnY = RECR[2];
@@ -262,7 +261,7 @@ async function funnyDOWText(dowNum, authorID, recrused = 0, ToBeCounted = [], he
 
 		if (text.includes("<RECURSIVE>"))
 		{
-			var RECRFlat = await funnyDOWText(dowNum, authorID, recrused+1, ToBeCounted, headLevel);
+			var RECRFlat = await funnyDOWText(cacheVersion, dowNum, authorID, recrused+1, ToBeCounted, headLevel);
 			text = text.replace("<RECURSIVE>", onlyLettersNumbers(RECRFlat[0]));
 			var RECRcn = "|" + RECRFlat[1];
 			var RECRcnY = RECRFlat[2];
@@ -278,7 +277,7 @@ async function funnyDOWText(dowNum, authorID, recrused = 0, ToBeCounted = [], he
 
 		if (text.includes("{REVERSE}"))
 		{
-			var res = await funnyDOWText(dowNum, authorID, recrused+1, ToBeCounted, headLevel);
+			var res = await funnyDOWText(cacheVersion, dowNum, authorID, recrused+1, ToBeCounted, headLevel);
 			text = text.replace("{REVERSE}", res[0].split("").reverse().join(""));
 			var RECRcn = "-" + res[1];
 			var RECRcnY = res[2];
@@ -357,6 +356,8 @@ async function funnyDOWText(dowNum, authorID, recrused = 0, ToBeCounted = [], he
 
 			// make sure to replace [SENDER] with the name of the user who called the command, needs to wait for the result
 			
+			var { NameFromUserIDID } = require('../databaseandvoice.js');
+
 			var res = await NameFromUserIDID(authorID);
 
 			// res is an object promise, need to get the value from it
@@ -402,7 +403,7 @@ async function funnyDOWText(dowNum, authorID, recrused = 0, ToBeCounted = [], he
 	// if length is greater than 1000, call again
 	if (text.length > 2000)
 	{
-		return funnyDOWText(dowNum, authorID);
+		return funnyDOWText(cacheVersion, dowNum, authorID);
 	}
 
 	// if recusion level is 0, save ToBeCounted to file
@@ -446,7 +447,7 @@ async function funnyDOWText(dowNum, authorID, recrused = 0, ToBeCounted = [], he
 		fs.writeFileSync(babadata.datalocation + "/fridayCounter.json", JSON.stringify(fc));
 	}
 
-	textC = repeatCheck(text);
+	textC = repeatCheck(cacheVersion, text);
 	text = textC[0];
 	if (textC[1].length > 0)
 		condensedNotation += "*" + textC[1].join("*");
@@ -454,10 +455,27 @@ async function funnyDOWText(dowNum, authorID, recrused = 0, ToBeCounted = [], he
 	return [text, condensedNotation, cnYung];
 }
 
-function replaceNested(text, ToBeCounted = null, recrused = 0, headLevel = 0, authorID = 0)
+function replaceNested(cacheVersion, text, ToBeCounted = null, recrused = 0, headLevel = 0, authorID = 0)
 {
 	var replaced = true;
-	var replacements = global.replacements;
+	// get from FridayLoops.json
+	var path = babadata.datalocation + "/FridayLoops.json";
+
+	if (cacheVersion != -1)
+	{
+		path = babadata.datalocation + "/FridayCache/FridayLoops" + cacheVersion + ".json";
+
+		if (!fs.existsSync(path))
+		{
+			// return to normal cache
+			cacheVersion = -1;
+			path = babadata.datalocation + "/FridayLoops.json";
+		}
+	}
+
+	let rawdata = fs.readFileSync(path);
+
+	var replacements = JSON.parse(rawdata);
 
 	if (replacements == null)
 	{
@@ -497,7 +515,7 @@ function replaceNested(text, ToBeCounted = null, recrused = 0, headLevel = 0, au
 	return text;
 }
 
-function repeatCheck(text, prefix = "")
+function repeatCheck(cacheVersion, text, prefix = "")
 {
 	// new /friday option tag items go here:
 	// {repeat:x:[Value]} - repeat the value x times
@@ -541,7 +559,7 @@ function repeatCheck(text, prefix = "")
 			{
 				// get the middle value
 				var middle = matchi.split(":")[1];
-				var middle2 = replaceNested(middle);
+				var middle2 = replaceNested(cacheVersion, middle);
 				matchi = matchi.replace(middle, middle2);
 			}
 
@@ -712,7 +730,7 @@ function generateOps(opsArray, authorID, prefix)
 
 		if (opsArray[i].OccuranceChance < 100)
 		{
-			if (Math.random() * 100 > opsArray[i].OccuranceChance)
+			if (theRNG.nextRange() * 100 > opsArray[i].OccuranceChance)
 				continue;
 		}
 

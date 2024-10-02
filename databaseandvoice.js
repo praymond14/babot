@@ -640,7 +640,7 @@ function ObtainDBHolidays(callback)
 	});
 }
 
-function NameFromUserIDID(id)
+async function NameFromUserIDID(id)
 {
 	var xxx = "";
 
@@ -1013,6 +1013,16 @@ function cacheDOW()
 		}
   	});
 
+
+	// load in dowcache and fridayloops from json files
+	let rawdata = fs.readFileSync(babadata.datalocation + "/DOWcache.json");
+	var tempdowcache = JSON.parse(rawdata);
+	var newdowcache = null;
+
+	let rawloops = fs.readFileSync(babadata.datalocation + "/FridayLoops.json");
+	var tempfridayloops = JSON.parse(rawloops);
+	var newfridayloops = null;
+
 	global.channelCache = {};
 	con.query(`Select * from channelval`,
 		function (err, result)
@@ -1173,11 +1183,11 @@ function cacheDOW()
 					replacements[fridLoops[i].group].push({"text": fridLoops[i].text, "UID": fridLoops[i].UID});
 			}
 
-			// save to a json file -- testing dont delete shane like you love to delete these things, i saw what you did that one time
-			//var data = JSON.stringify(replacements);
-			//fs.writeFileSync(babadata.datalocation + "/FridayLoops.json", data);
+			//save to a json file -- testing dont delete shane like you love to delete these things, i saw what you did that one time
+			var data = JSON.stringify(replacements);
+			fs.writeFileSync(babadata.datalocation + "/FridayLoops.json", data);
 
-			global.replacements = replacements;
+			newfridayloops = replacements;
 		}
 	);
 
@@ -1480,6 +1490,8 @@ Left Join userval on pleasedOverides.UserID = userval.DiscordID;`,
 			var data = JSON.stringify(opts);
 
 			fs.writeFileSync(babadata.datalocation + "/DOWcache.json", data);
+
+			newdowcache = opts;
 		}
 	);
 	
@@ -1548,6 +1560,87 @@ Left Join userval on pleasedOverides.UserID = userval.DiscordID;`,
 			fs.writeFileSync(babadata.datalocation + "/DOWcontrol.json", data);
 		}
 	);
+
+	// set timeout to run in 10 seconds
+	setTimeout(function() 
+	{
+		// compare newdowcache to tempdowcache
+		var changes = false;
+		if (newdowcache.length != tempdowcache.length)
+			changes = true;
+		else
+		{
+			for (var i = 0; i < newdowcache.length; i++)
+			{
+				if (newdowcache[i].text != tempdowcache[i].text)
+				{
+					changes = true;
+					break;
+				}
+			}
+		}
+
+		if (!changes)
+		{
+			// compare newfridayloops to tempfridayloops
+			if (Object.keys(newfridayloops).length != Object.keys(tempfridayloops).length)
+				changes = true;
+			else
+			{
+				for (var x in newfridayloops)
+				{
+					if (tempfridayloops[x] == null)
+					{
+						changes = true;
+						break;
+					}
+					if (newfridayloops[x].length != tempfridayloops[x].length)
+					{
+						changes = true;
+						break;
+					}
+					for (var i = 0; i < newfridayloops[x].length; i++)
+					{
+						if (newfridayloops[x][i].text != tempfridayloops[x][i].text)
+						{
+							changes = true;
+							break;
+						}
+					}
+					if (changes)
+						break;
+				}
+			}
+		}
+
+		if (changes)
+		{
+			console.log("Changes Detected, Saving Cache");
+			// if babadata.datalocation + "/FridayCache" doesn't exist, create it
+			if (!fs.existsSync(babadata.datalocation + "/FridayCache"))
+			{
+				fs.mkdirSync(babadata.datalocation + "/FridayCache");
+			}
+
+			// save tempfridayloops to babadata.datalocation + "/FridayCache/FridayLoops" + fcacheitems + ".json";
+			var fcacheitems = 0;
+			// set to number of files in directory / 2
+			fs.readdir(babadata.datalocation + "/FridayCache", (err, files) => {
+				fcacheitems = files.length / 2;
+				var data = JSON.stringify(tempfridayloops);
+				fs.writeFileSync(babadata.datalocation + "/FridayCache/FridayLoops" + fcacheitems + ".json", data);
+			});
+
+			// save tempdowcache to babadata.datalocation + "/FridayCache/DOWcache" + dcacheitems + ".json";
+			var dcacheitems = 0;
+			// set to number of files in directory / 2
+			fs.readdir(babadata.datalocation + "/FridayCache", (err, files) => {
+				dcacheitems = files.length / 2;
+				var data = JSON.stringify(tempdowcache);
+				fs.writeFileSync(babadata.datalocation + "/FridayCache/DOWcache" + dcacheitems + ".json", data);
+			});
+		}
+	}, 10000);
 }
 
 function controlDOW(id, level, prefix)

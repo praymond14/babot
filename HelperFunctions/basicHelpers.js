@@ -648,8 +648,22 @@ async function preformEasterEggs(message, msgContent, bot)
 	var dowIntIncluded = msgIncDay(msgContent);
 	if (dowIntIncluded > -1 && msgContent.includes("archive-"))
 	{
-		// get all text after archive- until space (ex. archive-BIKUSFRIDAY -> BIKUSFRIDAY or archive-FRFRF -> FRFRF)
+		// get all text after archive- until space (ex. archive-1-BIKUSFRIDAY -> BIKUSFRIDAY or archive-2-FRFRF -> FRFRF)
 		var frday = msgContent.match(/archive-([^ ]*)/)[1];
+		
+		// split 1-XXX into [NUM, LETTERS]
+		var frisplit = frday.split('-');
+		var numboVersion = -1;
+		if (frisplit.length == 1)
+		{
+			frday = frisplit[0];
+		}
+		else
+		{
+			numboVersion = frisplit[0];
+			frday = frisplit[1];
+		}
+
 		// convert to lowercase
 		frday = frday.toLowerCase();
 		// trim to only include letters in validLetters
@@ -662,7 +676,7 @@ async function preformEasterEggs(message, msgContent, bot)
 			// convert to string with no spaces
 			frday = frdayInt.join('');
 
-			var tesxt = await funnyDOWTextSaved(dowIntIncluded, message.author.id, frday, true);
+			var tesxt = await funnyDOWTextSaved(dowIntIncluded, message.author.id, [frday, numboVersion], true);
 
 			if (tesxt != null)
 			{
