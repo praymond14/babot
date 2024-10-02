@@ -1656,6 +1656,65 @@ function IncrementFridayCounter(fridayJson)
 	// fridaymessages.json
 	var fridayMessages = fs.readFileSync(babadata.datalocation + "/fridaymessages.json");
 
+	// parse json
+	var friday = JSON.parse(fridayMessages);
+
+	if (friday.length == 0)
+		return;
+
+	// qurey start
+	var qureyStart2 = `INSERT INTO myitisfriday (Sender,TimeStamp,Message,Condensed) VALUES `
+	var queryMiddle2 = "";
+	
+	for (var i = 0; i < friday.length; i++)
+	{
+		// var fmdItem = { "UID": authorID, "Text": text, "Date": tod "CondensedNotation": cnFull };
+		var fmdItem = friday[i];
+		var sender = fmdItem.UID;
+
+		var d1 = new Date(fmdItem.Date);
+		var mpre1 = d1.getMonth() + 1 < 10 ? 0 : "";
+		var dpre1 = d1.getUTCDate() < 10 ? 0 : "";
+
+		var time = `${d1.getFullYear()}-${mpre1}${d1.getMonth() + 1}-${dpre1}${d1.getUTCDate()} ${d1.getHours()}:${d1.getMinutes()}:${d1.getSeconds()}`
+		
+		var msg = fmdItem.Text;
+		// replace all " with ""
+		msg = msg.replace(/"/g, '""');
+		var cond = fmdItem.CondensedNotation;
+		// if cond is object, convert to string
+		if (typeof cond === 'object')
+		{
+			cond = JSON.stringify(cond);
+			cond = cond.replace(/"/g, '""');
+		}
+
+		// add to query
+		queryMiddle2 += `("${sender}", "${time}", "${msg}", "${cond}"),`;
+	}
+
+	// remove last comma
+	queryMiddle2 = queryMiddle2.slice(0, -1);
+
+	// add to database
+	con.query(qureyStart2 + queryMiddle2,
+		function (err, result)
+		{
+			if (err)
+			{
+				if (validErrorCodes(err.code))
+				{
+					EnterDisabledMode(err);
+					return;
+				}
+				else
+					throw err;
+			}
+		}
+	);
+
+	// clear the file
+	fs.writeFileSync(babadata.datalocation + "/fridaymessages.json", "[]");
 }
 
 

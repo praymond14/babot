@@ -21,13 +21,25 @@ const { NameFromUserIDID } = require('../databaseandvoice');
 
 async function funnyDOWTextSaved(dowNum, authorID)
 {
-	var text = await funnyDOWText(dowNum, authorID);
+	var textGroup = await funnyDOWText(dowNum, authorID);
+	var text = textGroup[0];
+	var condensedNotation = textGroup[1];
+	var cnYung = textGroup[2];
 	// append text to fridaymessages.json
 	var fmpath = babadata.datalocation + "/fridaymessages.json";
 	var fmr = fs.readFileSync(fmpath);
 	var fmd = JSON.parse(fmr);
+	var tod = new Date();
 
-	var fmdItem = { "UID": authorID, "Text": text, "Date": tod.toDateString(), "Time": tod.toTimeString()};
+	var cnFull = condensedNotation;
+	if (cnYung.length > 0)
+	{
+		var x = {};
+		x[cnFull] = cnYung;
+		cnFull = x;
+	}
+
+	var fmdItem = { "UID": authorID, "Text": text, "Date": tod, "CondensedNotation": cnFull };
 	fmd.push(fmdItem);
 
 	fs.writeFileSync(fmpath, JSON.stringify(fmd));
@@ -38,6 +50,8 @@ async function funnyDOWTextSaved(dowNum, authorID)
 async function funnyDOWText(dowNum, authorID, recrused = 0, ToBeCounted = [], headLevel = 0)
 {
 	let path = babadata.datalocation + "/DOWcache.json";
+	var condensedNotation = "";
+	var cnYung = [];
 
 	if (!fs.existsSync(path)) 
 	{
@@ -68,6 +82,30 @@ async function funnyDOWText(dowNum, authorID, recrused = 0, ToBeCounted = [], he
 	var tod = new Date();
 	var pretext = optionsDOW[Math.floor(Math.random() * optionsDOW.length)];
 
+	//////// overide to select based on UID
+
+	var selectedUID = -1;
+	var onlyAtRecurse0 = true
+	if (selectedUID != -1)
+	{
+		if (onlyAtRecurse0 && recrused != 0)
+		{}
+		else
+		{
+			for (var i = 0; i < optionsDOW.length; i++)
+			{
+				if (optionsDOW[i].UID == selectedUID)
+				{
+					console.log("Selected UID " + selectedUID + " for DOW");
+					pretext = optionsDOW[i];
+					break;
+				}
+			}
+		}
+	}
+
+	////////
+
 	var textos = [];
 	for (var i = 0; i < 12; i++)
 		textos.push(pretext.text);
@@ -94,6 +132,18 @@ async function funnyDOWText(dowNum, authorID, recrused = 0, ToBeCounted = [], he
 	}
 
 	var text = textos[Math.floor(Math.random() * textos.length)];
+
+	condensedNotation = pretext.UID + "";
+	if (text.startsWith("#"))
+	{
+		var hashnum = text.match(/#/g).length;
+		// add hashnum # to condensedNotation
+		var hasstr = "";
+		for (var i = 0; i < hashnum; i++)
+			hasstr += "#";
+
+		condensedNotation = hasstr + condensedNotation;
+	}
 
 	//text = `{brepeatN:[INTMed]:{repeatS:[INTMed]:Frog}}`
 	text = repeatCheck(text, "b");
@@ -172,18 +222,50 @@ async function funnyDOWText(dowNum, authorID, recrused = 0, ToBeCounted = [], he
 	{
 		if (text.includes("{RECURSIVE}"))
 		{
-			text = text.replace("{RECURSIVE}", await funnyDOWText(dowNum, authorID, recrused+1, ToBeCounted, headLevel));
+			var RECR = await funnyDOWText(dowNum, authorID, recrused+1, ToBeCounted, headLevel);
+			text = text.replace("{RECURSIVE}", RECR[0]);
+			var RECRcn = RECR[1];
+			var RECRcnY = RECR[2];
+			if (RECRcnY.length > 0)
+			{
+				var x = {};
+				x[RECRcn] = RECRcnY;
+				cnYung.push(x);
+			}
+			else
+				cnYung.push(RECRcn);
 		}
 
 		if (text.includes("<RECURSIVE>"))
 		{
-			text = text.replace("<RECURSIVE>", onlyLettersNumbers(await funnyDOWText(dowNum, authorID, recrused+1, ToBeCounted, headLevel)));
+			var RECRFlat = await funnyDOWText(dowNum, authorID, recrused+1, ToBeCounted, headLevel);
+			text = text.replace("<RECURSIVE>", onlyLettersNumbers(RECRFlat[0]));
+			var RECRcn = "|" + RECRFlat[1];
+			var RECRcnY = RECRFlat[2];
+			if (RECRcnY.length > 0)
+			{
+				var x = {};
+				x[RECRcn] = RECRcnY;
+				cnYung.push(x);
+			}
+			else
+				cnYung.push(RECRcn);
 		}
 
 		if (text.includes("{REVERSE}"))
 		{
 			var res = await funnyDOWText(dowNum, authorID, recrused+1, ToBeCounted, headLevel);
-			text = text.replace("{REVERSE}", res.split("").reverse().join(""));
+			text = text.replace("{REVERSE}", res[0].split("").reverse().join(""));
+			var RECRcn = "-" + res[1];
+			var RECRcnY = res[2];
+			if (RECRcnY.length > 0)
+			{
+				var x = {};
+				x[RECRcn] = RECRcnY;
+				cnYung.push(x);
+			}
+			else
+				cnYung.push(RECRcn);
 		}
 	}
 
@@ -372,9 +454,12 @@ async function funnyDOWText(dowNum, authorID, recrused = 0, ToBeCounted = [], he
 		fs.writeFileSync(babadata.datalocation + "/fridayCounter.json", JSON.stringify(fc));
 	}
 
-	text = repeatCheck(text);
+	textC = repeatCheck(text);
+	text = textC[0];
+	if (textC[1].length > 0)
+		condensedNotation += "*" + textC[1].join("*");
 
-	return text;
+	return [text, condensedNotation, cnYung];
 }
 
 function replaceNested(text, ToBeCounted = null, recrused = 0, headLevel = 0, authorID = 0)
@@ -452,6 +537,8 @@ function repeatCheck(text, prefix = "")
 		match = match.map(x => x.slice(0, -1));
 	}
 
+	var counto = [];
+
 	while (match != null)
 	{
 		for (var i = 0; i < match.length; i++)
@@ -472,9 +559,11 @@ function repeatCheck(text, prefix = "")
 			var value = valuesplit.slice(2).join(":");
 			value = value.slice(0, -1);
 
-
 			var containsS = matchi.split(":")[0].toLowerCase().includes("s");
 			var containsN = matchi.split(":")[0].toLowerCase().includes("n");
+
+			// add num to counto
+			counto.push(num + (containsS ? "s" : "") + (containsN ? "n" : ""));
 
 			var newString = "";
 			for (var j = 0; j < num; j++)
@@ -494,7 +583,14 @@ function repeatCheck(text, prefix = "")
 		}
 	}
 
-	return text;
+	if (prefix == "b")
+	{
+		return text;
+	}
+	else
+	{
+		return [text, counto];
+	}
 }
 
 function onlyLettersNumbers(text)
