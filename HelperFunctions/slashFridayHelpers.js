@@ -48,10 +48,15 @@ async function funnyDOWTextSaved(dowNum, authorID, seedSet = -1, dontSave = fals
 			cnFull = x;
 		}
 	
-		var fmdItem = { "UID": authorID, "Text": text, "Date": tod, "CondensedNotation": cnFull, "Seed": seed };
-		fmd.push(fmdItem);
-	
-		fs.writeFileSync(fmpath, JSON.stringify(fmd));
+
+		fs.readdir(babadata.datalocation + "/FridayCache", (err, files) => {
+			fcacheitems = files.length / 2;
+
+			var fmdItem = { "UID": authorID, "Text": text, "Date": tod, "CondensedNotation": cnFull, "Seed": seed, "FileVersion": fcacheitems };
+			fmd.push(fmdItem);
+		
+			fs.writeFileSync(fmpath, JSON.stringify(fmd));
+		});
 	}
 
 	return text;

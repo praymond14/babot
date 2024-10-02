@@ -1859,12 +1859,12 @@ function IncrementFridayCounter(fridayJson)
 		return;
 
 	// qurey start
-	var qureyStart2 = `INSERT INTO myitisfriday (Sender,TimeStamp,Message,Condensed,Seed) VALUES `;
+	var qureyStart2 = `INSERT INTO myitisfriday (Sender,TimeStamp,Message,Condensed,Seed,FileVersion) VALUES `;
 	var queryMiddle2 = "";
 	
 	for (var i = 0; i < friday.length; i++)
 	{
-		// var fmdItem = { "UID": authorID, "Text": text, "Date": tod, "CondensedNotation": cnFull, "Seed": seed };
+		// var fmdItem = { "UID": authorID, "Text": text, "Date": tod, "CondensedNotation": cnFull, "Seed": seed, "FileVersion": fc };
 		var fmdItem = friday[i];
 		var sender = fmdItem.UID;
 
@@ -1888,7 +1888,7 @@ function IncrementFridayCounter(fridayJson)
 		var seed = fmdItem.Seed;
 
 		// add to query
-		queryMiddle2 += `("${sender}", "${time}", "${msg}", "${cond}", "${seed}"),`;
+		queryMiddle2 += `("${sender}", "${time}", "${msg}", "${cond}", "${seed}", "${fmdItem.FileVersion}"),`;
 	}
 
 	// remove last comma
