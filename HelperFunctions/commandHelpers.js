@@ -429,10 +429,10 @@ function CheckHoliday(msg, holdaylist) //checks if any of the holiday list is sa
 	return retme; //returns list of holidays asked for
 }
 
-function loadHurricaneHelpers()
+async function loadHurricaneHelpers()
 {
 	if (global.dbAccess[1] && global.dbAccess[0])
-		getHurricaneInfo();
+		await getHurricaneInfo();
 	
 	if(!fs.existsSync(babadata.datalocation + '/hurricanes.json')) 
 	{
@@ -470,7 +470,7 @@ function parseHurricaneDate(date)
 
 async function checkHurricaneStuff(hurricanename)
 {
-    var hurricaneJson = loadHurricaneHelpers();
+    var hurricaneJson = await loadHurricaneHelpers();
 
 	var thisYear = new Date().getFullYear();
 
