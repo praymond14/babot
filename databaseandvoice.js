@@ -2271,102 +2271,114 @@ function saveStuff(lineWhole, i)
 }
 
 
-function saveUpdatedHurrInfo()
+async function saveUpdatedHurrInfo()
 {
-	if(!fs.existsSync(babadata.datalocation + '/hurricanes.json')) 
+	return new Promise((resolve, reject) => 
 	{
-		fs.writeFileSync(babadata.datalocation + '/hurricanes.json', JSON.stringify([]));
-	}
-
-	var data = fs.readFileSync(babadata.datalocation + "/hurricanes.json");
-	var hurrInfo = JSON.parse(data);
-
-	for (var i = 0; i < hurrInfo.length; i++)
-	{
-		if (hurrInfo[i].Updated)
+		if(!fs.existsSync(babadata.datalocation + '/hurricanes.json')) 
 		{
-			// update all the info
-			var id = hurrInfo[i].ID;
-			var name = hurrInfo[i].Name;
-			var number = hurrInfo[i].Number;
-			var type = hurrInfo[i].Type;
-			var category = hurrInfo[i].Category;
-			var imgURL = hurrInfo[i].ImageURL;
-			var xmlURL = hurrInfo[i].XMLURL;
-			var year = hurrInfo[i].Year;
-			var lastUpdated = hurrInfo[i].LastUpdated;
-
-			// insert into database, if it already exists, update it
-			con.query(`Insert into hurricane (id, name, number, type, category, imageURL, XMLUrl, year, lastupdated) VALUES ("${id}", "${name}", "${number}", "${type}", "${category}", "${imgURL}", "${xmlURL}", "${year}", "${lastUpdated}") ON DUPLICATE KEY UPDATE name = "${name}", type = "${type}", category = "${category}", lastupdated = "${lastUpdated}"`,
-			function (err, result)
-			{
-				if (err)
-				{
-					if (validErrorCodes(err.code))
-					{
-						EnterDisabledMode(err);
-						return;
-					}
-					else
-						throw err;
-				}
-			});
-
-			hurrInfo[i].Updated = false;
+			fs.writeFileSync(babadata.datalocation + '/hurricanes.json', JSON.stringify([]));
 		}
-	}
+	
+		var data = fs.readFileSync(babadata.datalocation + "/hurricanes.json");
+		var hurrInfo = JSON.parse(data);
+	
+		for (var i = 0; i < hurrInfo.length; i++)
+		{
+			if (hurrInfo[i].Updated)
+			{
+				// update all the info
+				var id = hurrInfo[i].ID;
+				var name = hurrInfo[i].Name;
+				var number = hurrInfo[i].Number;
+				var type = hurrInfo[i].Type;
+				var category = hurrInfo[i].Category;
+				var imgURL = hurrInfo[i].ImageURL;
+				var xmlURL = hurrInfo[i].XMLURL;
+				var year = hurrInfo[i].Year;
+				var lastUpdated = hurrInfo[i].LastUpdated;
+	
+				// insert into database, if it already exists, update it
+				con.query(`Insert into hurricane (id, name, number, type, category, imageURL, XMLUrl, Year, lastupdated) VALUES ("${id}", "${name}", "${number}", "${type}", "${category}", "${imgURL}", "${xmlURL}", "${year}", "${lastUpdated}") ON DUPLICATE KEY UPDATE name = "${name}", type = "${type}", category = "${category}", lastupdated = "${lastUpdated}"`,
+				function (err, result)
+				{
+					if (err)
+					{
+						if (validErrorCodes(err.code))
+						{
+							EnterDisabledMode(err);
+							return;
+						}
+						else
+							throw err;
+					}
+				});
+	
+				hurrInfo[i].Updated = false;
+			}
+		}
+
+		resolve();
+	});
 }
 
 
-function getHurricaneInfo()
+async function getHurricaneInfo()
 {
-	saveUpdatedHurrInfo();
-	
-	con.query(`Select * from hurricane`,
-	function (err, result)
+	return new Promise((resolve, reject) =>
+	{
+		// wait for saveUpdatedHurrInfo to finish
+		saveUpdatedHurrInfo().then(() =>
 		{
-			var opts = [];
-			if (err)
-			{
-				if (validErrorCodes(err.code))
+			con.query(`Select * from hurricane`,
+			function (err, result)
 				{
-					EnterDisabledMode(err);
-					return;
-				}
-				else
-					throw err;
-			}
-
-			for (var i = 0; i < result.length; i++)
-			{
-				var res = result[i];
-
-				if (res.Year != new Date().getFullYear())
-					continue;
+					var opts = [];
+					if (err)
+					{
+						if (validErrorCodes(err.code))
+						{
+							EnterDisabledMode(err);
+							return;
+						}
+						else
+							throw err;
+					}
+		
+					for (var i = 0; i < result.length; i++)
+					{
+						var res = result[i];
+		
+						if (res.Year != new Date().getFullYear())
+							continue;
+						
+						var resj = 
+						{
+							"ID": res.id,
+							"LastUpdated": res.LastUpdated,
+							"Name": res.name,
+							"Number": res.number,
+							"Type": res.type,
+							"Category": res.category,
+							"ImageURL": res.imageURL,
+							"XMLURL": res.XMLUrl,
+							"Year": res.Year,
+							"Updated": false,
+							"OverideText": null
+						}
+		
+						opts.push(resj);
+					}
+		
+					var data = JSON.stringify(opts);
+		
+					fs.writeFileSync(babadata.datalocation + "/hurricanes.json", data);
 				
-				var resj = 
-				{
-					"ID": res.id,
-					"LastUpdated": res.LastUpdated,
-					"Name": res.name,
-					"Number": res.number,
-					"Type": res.type,
-					"Category": res.category,
-					"ImageURL": res.imageURL,
-					"XMLURL": res.XMLUrl,
-					"Year": res.year,
-					"Updated": false,
-					"OverideText": null
+					resolve();
 				}
-
-				opts.push(resj);
-			}
-
-			var data = JSON.stringify(opts);
-
-			fs.writeFileSync(babadata.datalocation + "/hurricanes.json", data);
-		}
-	);
+			);
+		});
+	});
 }
 
 
