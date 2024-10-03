@@ -500,6 +500,7 @@ async function checkHurricaneStuff(hurricanename)
 				var saffirsympson = xml.split("<systemSaffirSimpsonCategory>")[1].split("</systemSaffirSimpsonCategory>")[0];
 				hurricaneJson[i].Type = systemType;
 				hurricaneJson[i].Category = saffirsympson;
+				hurricaneJson[i].Name = xml.split("<systemName>")[1].split("</systemName>")[0];
 			}
 			
 			hurricaneJson[i].OverideText = 
@@ -507,6 +508,7 @@ async function checkHurricaneStuff(hurricanename)
 				(hurricaneJson[i].Number == hurricanename ? {"NumberSearch": hurricanename} : null);
 
 			iNum = i;
+			fs.writeFileSync(babadata.datalocation + '/hurricanes.json', JSON.stringify(hurricaneJson));
 			break;
 		}
 	}
