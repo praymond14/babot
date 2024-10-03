@@ -1872,7 +1872,7 @@ function IncrementFridayCounter(fridayJson)
 		var mpre1 = d1.getMonth() + 1 < 10 ? 0 : "";
 		var dpre1 = d1.getUTCDate() < 10 ? 0 : "";
 
-		var time = `${d1.getFullYear()}-${mpre1}${d1.getMonth() + 1}-${dpre1}${d1.getUTCDate()} ${d1.getHours()}:${d1.getMinutes()}:${d1.getSeconds()}`
+		var time = `${d1.getFullYear()}-${mpre1}${d1.getMonth() + 1}-${dpre1}${d1.getDate()} ${d1.getHours()}:${d1.getMinutes()}:${d1.getSeconds()}`
 		
 		var msg = fmdItem.Text;
 		// replace all " with ""

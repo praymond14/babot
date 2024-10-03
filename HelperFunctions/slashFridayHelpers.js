@@ -191,13 +191,13 @@ async function funnyDOWText(cacheVersion, saveToFile, dowNum, authorID, recrused
 
 	var dowACY = 
 	[
-		"Sunday",
-		"Monday",
-		"Tuesday",
+		"Snakes Under Nocternal Deers Above Yams",
+		"Milking Otters Not Depressed Apple Yarn",
+		"Tiny Umbrellas Eating Small Drowning Andesite Yardsticks",
 		"Wonderful Eagles Do Not Eat Small Dogs And Yaks",
-		"Thursday",
+		"Trees Huting Universal Skinks Directly At Yesteryear",
 		"Fish Reading Inside Deserted American Yachts",
-		"Saturday"
+		"Silly Antelopes Teeth Understanding Red Dandelions Although Yelling"
 	]
 
 	prevActualDOW = new Date(tod.getFullYear(), tod.getMonth(), tod.getDate() - (7 - num));
