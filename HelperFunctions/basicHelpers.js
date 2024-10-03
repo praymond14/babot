@@ -713,6 +713,7 @@ function msgIncDay(msgContent)
 function PersonalReact(ames, message, msgContent)
 {
 	ames = ames.toLowerCase();
+	var mesageames = message.content.toLowerCase().replace(/\s+/g, '');
 
 	var u_reacts = JSON.parse(fs.readFileSync(babadata.datalocation + "/REACTOcache.json"));
 
@@ -722,7 +723,7 @@ function PersonalReact(ames, message, msgContent)
 		var u_react = u_reacts[i];
 
 		var isGood = false;
-		if (ames.includes(u_react.Phrase.toLowerCase()))
+		if (ames.includes(u_react.Phrase.toLowerCase()) || mesageames.includes(u_react.Phrase.toLowerCase()))
 			isGood = true;
 		else
 		{
@@ -735,6 +736,11 @@ function PersonalReact(ames, message, msgContent)
 					isGood = true;
 					break;
 				}
+				if (phraseList.every(phrase => mesageames.includes(phrase.toLowerCase())))
+				{
+					isGood = true;
+					break;
+				}
 			}
 		}
 
@@ -743,6 +749,11 @@ function PersonalReact(ames, message, msgContent)
 			var phraseList = u_react.IgnoredPhrases[j];
 			// check if all phrases in the list are included in the message
 			if (phraseList.every(phrase => ames.includes(phrase.toLowerCase())))
+			{
+				isGood = false;
+				break;
+			}
+			if (phraseList.every(phrase => mesageames.includes(phrase.toLowerCase())))
 			{
 				isGood = false;
 				break;

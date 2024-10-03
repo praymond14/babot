@@ -20,7 +20,7 @@ async function funnyDOWTextSaved(dowNum, authorID, seedSet = -1, dontSave = fals
 
 	var seed = theRNG.getState();
 
-	var textGroup = await funnyDOWText(cacheVersion, dowNum, authorID);
+	var textGroup = await funnyDOWText(cacheVersion, !dontSave, dowNum, authorID);
 	var text = textGroup[0];
 	if (!dontSave)
 	{
@@ -62,7 +62,7 @@ async function funnyDOWTextSaved(dowNum, authorID, seedSet = -1, dontSave = fals
 	return text;
 }
 
-async function funnyDOWText(cacheVersion, dowNum, authorID, recrused = 0, ToBeCounted = [], headLevel = 0)
+async function funnyDOWText(cacheVersion, saveToFile, dowNum, authorID, recrused = 0, ToBeCounted = [], headLevel = 0)
 {
 	let path = babadata.datalocation + "/DOWcache.json";
 	var condensedNotation = "";
@@ -250,7 +250,7 @@ async function funnyDOWText(cacheVersion, dowNum, authorID, recrused = 0, ToBeCo
 	{
 		if (text.includes("{RECURSIVE}"))
 		{
-			var RECR = await funnyDOWText(cacheVersion, dowNum, authorID, recrused+1, ToBeCounted, headLevel);
+			var RECR = await funnyDOWText(cacheVersion, saveToFile, dowNum, authorID, recrused+1, ToBeCounted, headLevel);
 			text = text.replace("{RECURSIVE}", RECR[0]);
 			var RECRcn = RECR[1];
 			var RECRcnY = RECR[2];
@@ -266,7 +266,7 @@ async function funnyDOWText(cacheVersion, dowNum, authorID, recrused = 0, ToBeCo
 
 		if (text.includes("<RECURSIVE>"))
 		{
-			var RECRFlat = await funnyDOWText(cacheVersion, dowNum, authorID, recrused+1, ToBeCounted, headLevel);
+			var RECRFlat = await funnyDOWText(cacheVersion, saveToFile, dowNum, authorID, recrused+1, ToBeCounted, headLevel);
 			text = text.replace("<RECURSIVE>", onlyLettersNumbers(RECRFlat[0]));
 			var RECRcn = "|" + RECRFlat[1];
 			var RECRcnY = RECRFlat[2];
@@ -282,7 +282,7 @@ async function funnyDOWText(cacheVersion, dowNum, authorID, recrused = 0, ToBeCo
 
 		if (text.includes("{REVERSE}"))
 		{
-			var res = await funnyDOWText(cacheVersion, dowNum, authorID, recrused+1, ToBeCounted, headLevel);
+			var res = await funnyDOWText(cacheVersion, saveToFile, dowNum, authorID, recrused+1, ToBeCounted, headLevel);
 			text = text.replace("{REVERSE}", res[0].split("").reverse().join(""));
 			var RECRcn = "-" + res[1];
 			var RECRcnY = res[2];
@@ -408,11 +408,11 @@ async function funnyDOWText(cacheVersion, dowNum, authorID, recrused = 0, ToBeCo
 	// if length is greater than 1000, call again
 	if (text.length > 2000)
 	{
-		return funnyDOWText(cacheVersion, dowNum, authorID);
+		return funnyDOWText(cacheVersion, saveToFile, dowNum, authorID);
 	}
 
 	// if recusion level is 0, save ToBeCounted to file
-	if (recrused == 0)
+	if (recrused == 0 && saveToFile)
 	{
 		// console.log("Items in that /DOW call:");
 		// // log ToBeCounted to console
@@ -446,7 +446,6 @@ async function funnyDOWText(cacheVersion, dowNum, authorID, recrused = 0, ToBeCo
 				fc[ToBeCounted[i].UID + "--" + ToBeCounted[i].Group + "--" + ToBeCounted[i].Sender][ToBeCounted[i].LayerDeep][ToBeCounted[i].HeadLevel]++;
 			}
 		}
-
 
 		// save global.fridayCounter to file
 		fs.writeFileSync(babadata.datalocation + "/fridayCounter.json", JSON.stringify(fc));
