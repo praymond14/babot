@@ -661,6 +661,12 @@ async function preformEasterEggs(message, msgContent, bot)
 		{
 			as = msgContent.match(/being-([^ ]*)/)[1];
 		}
+
+		var during = null;
+		if (msgContent.includes("dateof-"))
+		{
+			during = msgContent.match(/dateof-([^ ]*)/)[1];
+		}
 		
 		// split 1-XXX into [NUM, LETTERS]
 		var frisplit = frday.split('-');
@@ -687,7 +693,7 @@ async function preformEasterEggs(message, msgContent, bot)
 			// convert to string with no spaces
 			frday = frdayInt.join('');
 
-			var tesxt = await funnyDOWTextSaved(dowIntIncluded, message.author.id, [frday, numboVersion, as], true);
+			var tesxt = await funnyDOWTextSaved(dowIntIncluded, message.author.id, [frday, numboVersion, as, during], true);
 
 			if (tesxt != null)
 			{

@@ -13,16 +13,18 @@ async function funnyDOWTextSaved(dowNum, authorID, seedSet = -1, dontSave = fals
 {
 	var cacheVersion = -1;
 	var calledAs = null;
+	var during = null;
 	if (seedSet != -1)
 	{
 		theRNG.setSeed(seedSet[0]);
 		cacheVersion = seedSet[1];
 		calledAs = seedSet[2];
+		during = seedSet[3];
 	}
 
 	var seed = theRNG.getState();
 
-	var textGroup = await funnyDOWText(cacheVersion, !dontSave, dowNum, calledAs != null ? calledAs : authorID);
+	var textGroup = await funnyDOWText(cacheVersion, !dontSave, during, dowNum, calledAs != null ? calledAs : authorID);
 	var text = textGroup[0];
 	if (!dontSave && text != "")
 	{
@@ -67,7 +69,7 @@ async function funnyDOWTextSaved(dowNum, authorID, seedSet = -1, dontSave = fals
 	return text;
 }
 
-async function funnyDOWText(cacheVersion, saveToFile, dowNum, authorID, recrused = 0, ToBeCounted = [], headLevel = 0)
+async function funnyDOWText(cacheVersion, saveToFile, DateOveride, dowNum, authorID, recrused = 0, ToBeCounted = [], headLevel = 0)
 {
 	let path = babadata.datalocation + "/DOWcache.json";
 	var condensedNotation = "";
@@ -107,12 +109,19 @@ async function funnyDOWText(cacheVersion, saveToFile, dowNum, authorID, recrused
 
     var optionsDOW = JSON.parse(rawdata);
 
-	if (typeof optionsDOW[0] != "string")
+	var tod = new Date();
+	if (DateOveride != null)
 	{
-		optionsDOW = generateFridayOps(optionsDOW, authorID, cacheVersion);
+		tod = new Date(DateOveride * 1000);
 	}
 
-	var tod = new Date();
+	if (typeof optionsDOW[0] != "string")
+	{
+		optionsDOW = generateFridayOps(optionsDOW, authorID, cacheVersion, tod);
+	}
+
+	console.log("Currently there are " + optionsDOW.length + " options for DOW");
+
 	var pretext = optionsDOW[Math.floor(theRNG.nextFloat() * optionsDOW.length)];
 
 	//////// overide to select based on UID
@@ -251,14 +260,14 @@ async function funnyDOWText(cacheVersion, saveToFile, dowNum, authorID, recrused
 	
 	text = replaceNested(cacheVersion, text, ToBeCounted, recrused, headLevel, authorID);
 	
-	// if contains {RECURSIVE} then replace with result of funnyDOWText(dowNum, authorID) -- loop until no more {RECURSIVE}
-	// if contains <RECURSIVE> then replace with result of funnyDOWText(dowNum, authorID) but made URL safe -- loop until no more <RECURSIVE>
+	// if contains {RECURSIVE} then replace with result of funnyDOWTe xt(dowNum, authorID) -- loop until no more {RECURSIVE}
+	// if contains <RECURSIVE> then replace with result of funnyDOWTex t(dowNum, authorID) but made URL safe -- loop until no more <RECURSIVE>
 
 	while (text.includes("{RECURSIVE}") || text.includes("<RECURSIVE>") || text.includes("{REVERSE}"))
 	{
 		if (text.includes("{RECURSIVE}"))
 		{
-			var RECR = await funnyDOWText(cacheVersion, saveToFile, dowNum, authorID, recrused+1, ToBeCounted, headLevel);
+			var RECR = await funnyDOWText(cacheVersion, saveToFile, DateOveride, dowNum, authorID, recrused+1, ToBeCounted, headLevel);
 			text = text.replace("{RECURSIVE}", RECR[0]);
 			var RECRcn = RECR[1];
 			var RECRcnY = RECR[2];
@@ -274,7 +283,7 @@ async function funnyDOWText(cacheVersion, saveToFile, dowNum, authorID, recrused
 
 		if (text.includes("<RECURSIVE>"))
 		{
-			var RECRFlat = await funnyDOWText(cacheVersion, saveToFile, dowNum, authorID, recrused+1, ToBeCounted, headLevel);
+			var RECRFlat = await funnyDOWText(cacheVersion, saveToFile, DateOveride, dowNum, authorID, recrused+1, ToBeCounted, headLevel);
 			text = text.replace("<RECURSIVE>", onlyLettersNumbers(RECRFlat[0]));
 			var RECRcn = "|" + RECRFlat[1];
 			var RECRcnY = RECRFlat[2];
@@ -290,7 +299,7 @@ async function funnyDOWText(cacheVersion, saveToFile, dowNum, authorID, recrused
 
 		if (text.includes("{REVERSE}"))
 		{
-			var res = await funnyDOWText(cacheVersion, saveToFile, dowNum, authorID, recrused+1, ToBeCounted, headLevel);
+			var res = await funnyDOWText(cacheVersion, saveToFile, DateOveride, dowNum, authorID, recrused+1, ToBeCounted, headLevel);
 			text = text.replace("{REVERSE}", res[0].split("").reverse().join(""));
 			var RECRcn = "-" + res[1];
 			var RECRcnY = res[2];
@@ -416,7 +425,7 @@ async function funnyDOWText(cacheVersion, saveToFile, dowNum, authorID, recrused
 	// if length is greater than 1000, call again
 	if (text.length > 2000)
 	{
-		return funnyDOWText(cacheVersion, saveToFile, dowNum, authorID);
+		return funnyDOWText(cacheVersion, saveToFile, DateOveride, dowNum, authorID);
 	}
 
 	// if recusion level is 0, save ToBeCounted to file
@@ -728,8 +737,13 @@ function generateFrogOps(opsArray, authorID)
 	return ops;
 }
 
-function generateFridayOps(opsArray, authorID, prefix)
+function generateFridayOps(opsArray, authorID, prefix, tod)
 {
+	if (prefix == 2 || prefix == 3)
+		tod = new Date(2024, 9, 10);
+	if (prefix == 0 || prefix == 1)
+		tod = new Date(2024, 8, 28);
+
     let rawdata = fs.readFileSync(babadata.datalocation + "/DOWcontrol.json");
 
 	if (prefix != -1)
@@ -769,13 +783,6 @@ function generateFridayOps(opsArray, authorID, prefix)
 	{
 		if (opsArray[i].StartTime != null)
 		{
-			var tod = new Date();
-
-			if (prefix == 2 || prefix == 3)
-				tod = new Date(2024, 9, 10);
-			if (prefix == 0 || prefix == 1)
-				tod = new Date(2024, 8, 28);
-
 			var st = new Date(opsArray[i].StartTime);
 
 			if (opsArray[i].EndTime != null)
@@ -785,76 +792,30 @@ function generateFridayOps(opsArray, authorID, prefix)
 				var endNormalizedToYear = new Date(tod.getFullYear(), et.getMonth(), et.getDate());
 
 				if (tod < startNormalizedToYear || tod > endNormalizedToYear)
-				{
-					if (prefix <= 3 && prefix != -1)
-						continue
-					else
-					{
-						// replace opsArray[i] with a random one from opsArraywithNoStartDateOrDOW
-						var newOps = opsArraywithNoStartDateOrDOW[Math.floor(theRNG.nextFloat() * opsArraywithNoStartDateOrDOW.length)];
-						// replace opsArray[i] with newOps
-						opsArray[i] = newOps;
-					}
-				}
+					continue
 			}
 			else
 			{
 				var startNormalizedToYear = new Date(tod.getFullYear(), st.getMonth(), st.getDate());
+				var todDateOnly = new Date(tod.getFullYear(), tod.getMonth(), tod.getDate());
 
-				if (tod != startNormalizedToYear)
-				{
-					if (prefix <= 3 && prefix != -1)
-						continue
-					else
-					{
-						// replace opsArray[i] with a random one from opsArraywithNoStartDateOrDOW
-						var newOps = opsArraywithNoStartDateOrDOW[Math.floor(theRNG.nextFloat() * opsArraywithNoStartDateOrDOW.length)];
-						// replace opsArray[i] with newOps
-						opsArray[i] = newOps;
-					}
-				}
+				if (todDateOnly.getMonth() != startNormalizedToYear.getMonth() || todDateOnly.getDate() != startNormalizedToYear.getDate())
+					continue
 			}
 		}
 
 		if (opsArray[i].DayOfWeek != null)
 		{
-			var tod = new Date();
-
-			if (prefix == 2 || prefix == 3)
-				tod = new Date(2024, 9, 10);
-			if (prefix == 0 || prefix == 1)
-				tod = new Date(2024, 8, 28);
-
 			var dow = tod.getDay();
 
 			if (opsArray[i].DayOfWeek != dow)
-			{
-				if (prefix <= 3 && prefix != -1)
-					continue
-				else
-				{
-					// replace opsArray[i] with a random one from opsArraywithNoStartDateOrDOW
-					var newOps = opsArraywithNoStartDateOrDOW[Math.floor(theRNG.nextFloat() * opsArraywithNoStartDateOrDOW.length)];
-					// replace opsArray[i] with newOps
-					opsArray[i] = newOps;
-				}
-			}
+				continue
 		}
 
 		if (opsArray[i].OccuranceChance < 100)
 		{
-			if (theRNG.nextRange() * 100 > opsArray[i].OccuranceChance)
-			{
-				if (prefix <= 3 && prefix != -1)
-					continue
-				else
-				{
-					// replace opsArray[i] with a random one from opsArraywithNoStartDateOrDOW
-					var newOps = opsArraywithNoStartDateOrDOW[Math.floor(theRNG.nextFloat() * opsArraywithNoStartDateOrDOW.length)];
-					// replace opsArray[i] with newOps
-					opsArray[i] = newOps;
-				}
-			}
+			if (theRNG.nextFloat() * 100 > opsArray[i].OccuranceChance)
+				continue
 		}
 
 		if (cLevel <= 1)
