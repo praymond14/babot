@@ -1023,6 +1023,10 @@ function cacheDOW()
 	var tempfridayloops = JSON.parse(rawloops);
 	var newfridayloops = null;
 
+	let rawcontrol = fs.readFileSync(babadata.datalocation + "/DOWcontrol.json");
+	var tempdowcontrol = JSON.parse(rawcontrol);
+	var newdowcontrol = null;
+
 	global.channelCache = {};
 	con.query(`Select * from channelval`,
 		function (err, result)
@@ -1558,6 +1562,8 @@ Left Join userval on pleasedOverides.UserID = userval.DiscordID;`,
 			var data = JSON.stringify(opts);
 
 			fs.writeFileSync(babadata.datalocation + "/DOWcontrol.json", data);
+
+			newdowcontrol = opts;
 		}
 	);
 
@@ -1613,6 +1619,24 @@ Left Join userval on pleasedOverides.UserID = userval.DiscordID;`,
 			}
 		}
 
+		if (!changes)
+		{
+			// compare newdowcontrol to tempdowcontrol
+			if (newdowcontrol.length != tempdowcontrol.length)
+				changes = true;
+			else
+			{
+				for (var i = 0; i < newdowcontrol.length; i++)
+				{
+					if (newdowcontrol[i].Control != tempdowcontrol[i].Control)
+					{
+						changes = true;
+						break;
+					}
+				}
+			}
+		}
+
 		if (changes)
 		{
 			console.log("Changes Detected, Saving Cache");
@@ -1624,20 +1648,29 @@ Left Join userval on pleasedOverides.UserID = userval.DiscordID;`,
 
 			// save tempfridayloops to babadata.datalocation + "/FridayCache/FridayLoops" + fcacheitems + ".json";
 			var fcacheitems = 0;
-			// set to number of files in directory / 2
+			// set to number of files in directory / 3
 			fs.readdir(babadata.datalocation + "/FridayCache", (err, files) => {
-				fcacheitems = files.length / 2;
+				fcacheitems = files.length / 3;
 				var data = JSON.stringify(tempfridayloops);
 				fs.writeFileSync(babadata.datalocation + "/FridayCache/FridayLoops" + fcacheitems + ".json", data);
 			});
 
 			// save tempdowcache to babadata.datalocation + "/FridayCache/DOWcache" + dcacheitems + ".json";
 			var dcacheitems = 0;
-			// set to number of files in directory / 2
+			// set to number of files in directory / 3
 			fs.readdir(babadata.datalocation + "/FridayCache", (err, files) => {
-				dcacheitems = files.length / 2;
+				dcacheitems = files.length / 3;
 				var data = JSON.stringify(tempdowcache);
 				fs.writeFileSync(babadata.datalocation + "/FridayCache/DOWcache" + dcacheitems + ".json", data);
+			});
+
+			// save tempdowcontrol to babadata.datalocation + "/FridayCache/DOWcontrol" + dcontrolitems + ".json";
+			var dcontrolitems = 0;
+			// set to number of files in directory / 3
+			fs.readdir(babadata.datalocation + "/FridayCache", (err, files) => {
+				dcontrolitems = files.length / 3;
+				var data = JSON.stringify(tempdowcontrol);
+				fs.writeFileSync(babadata.datalocation + "/FridayCache/DOWcontrol" + dcontrolitems + ".json", data);
 			});
 		}
 	}, 10000);
@@ -2352,10 +2385,15 @@ async function getHurricaneInfo()
 						if (res.Year != new Date().getFullYear())
 							continue;
 						
+						// convert lastupdated to current timezone
+						var ctimez = new Date(res.LastUpdated);
+						var offset = ctimez.getTimezoneOffset();
+						ctimez.setMinutes(ctimez.getMinutes() - offset);
+
 						var resj = 
 						{
 							"ID": res.id,
-							"LastUpdated": res.LastUpdated,
+							"LastUpdated": ctimez,
 							"Name": res.name,
 							"Number": res.number,
 							"Type": res.type,
@@ -2366,6 +2404,7 @@ async function getHurricaneInfo()
 							"Updated": false,
 							"OverideText": null
 						}
+
 		
 						opts.push(resj);
 					}

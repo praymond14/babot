@@ -359,6 +359,39 @@ function TextCommandBackup(bot, message, sentvalid, msgContent, g)
 			dailyRandom(u_id, bot, counter, g);
 			message.author.send("SUCC cess");
 		}
+		else if (msgContent.includes("getthefries"))
+		{
+			// list all items in the directory of babadata.datalocation + "/FridayCache"
+			fs.readdir(babadata.datalocation + "/FridayCache", (err, files) => {
+				if (err) {
+					message.author.send("An error occurred while reading the directory");
+					return;
+				}
+				message.author.send("Files in the directory are:\n```" + files.join("\n") + "```");
+			});
+		}
+		else if (msgContent.includes("cachethefries"))
+		{
+			var file = message.attachments.first();
+
+			if (file == null)
+			{
+				message.author.send("No file attached");
+				return;
+			}
+
+			fetch(file.url).then(res => 
+			{
+				// save file to babadata  babadata.datalocation + "/FridayCache"
+				const local = babadata.datalocation + "/FridayCache/" + file.name;
+				
+				const dest = fs.createWriteStream(local);
+ 
+ 				res.body.pipe(dest).on('finish', () => {
+					message.author.send("File saved");
+				});
+			})
+		}
 		// react to a message with a custom emoji
 		else if (msgContent.includes("reee"))
 		{

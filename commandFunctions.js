@@ -899,6 +899,30 @@ async function babaRemind(message, time, date, interaction)
     return theDate;
 }
 
+function babaAurora(time, callback)
+{
+    var url = "https://services.swpc.noaa.gov/experimental/images/aurora_dashboard/" + time + "_static_viewline_forecast.png"
+    var tempFilePath = babadata.temp + "aurora.png";
+    const file = fs.createWriteStream(tempFilePath);
+    
+    const request = https.get(url, function(response) {
+        response.pipe(file);
+     
+        // after download completed close filestream
+         file.on("finish", () => {
+             file.close();
+             console.log("Download Completed");
+ 
+             var vv = "Aurora Forecast for " + time;
+            
+             var newAttch = new Discord.AttachmentBuilder(tempFilePath, 
+                 { name: vv + '.png', description : "Aurora Info" + vv}); //makes a new discord attachment
+ 
+            callback({ content: "Baba Aurora Info", files: [newAttch] });
+         });
+     });
+}
+
 module.exports = {
     babaFriday, 
     babaHelp, 
@@ -917,5 +941,6 @@ module.exports = {
     babaHurricane,
     babaCat,
     babaWeather,
-    babaRemind
+    babaRemind,
+    babaAurora
 };

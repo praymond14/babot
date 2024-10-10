@@ -12,17 +12,19 @@ function resetRNG()
 async function funnyDOWTextSaved(dowNum, authorID, seedSet = -1, dontSave = false)
 {
 	var cacheVersion = -1;
+	var calledAs = null;
 	if (seedSet != -1)
 	{
 		theRNG.setSeed(seedSet[0]);
 		cacheVersion = seedSet[1];
+		calledAs = seedSet[2];
 	}
 
 	var seed = theRNG.getState();
 
-	var textGroup = await funnyDOWText(cacheVersion, !dontSave, dowNum, authorID);
+	var textGroup = await funnyDOWText(cacheVersion, !dontSave, dowNum, calledAs != null ? calledAs : authorID);
 	var text = textGroup[0];
-	if (!dontSave)
+	if (!dontSave && text != "")
 	{
 		var condensedNotation = textGroup[1];
 		var cnYung = textGroup[2];
@@ -50,7 +52,7 @@ async function funnyDOWTextSaved(dowNum, authorID, seedSet = -1, dontSave = fals
 	
 
 		fs.readdir(babadata.datalocation + "/FridayCache", (err, files) => {
-			fcacheitems = files.length / 2;
+			fcacheitems = files.length / 3;
 
 			var fmdItem = { "UID": authorID, "Text": text, "Date": tod, "CondensedNotation": cnFull, "Seed": seed, "FileVersion": fcacheitems };
 			fmd.push(fmdItem);
@@ -58,6 +60,9 @@ async function funnyDOWTextSaved(dowNum, authorID, seedSet = -1, dontSave = fals
 			fs.writeFileSync(fmpath, JSON.stringify(fmd));
 		});
 	}
+
+	if (text == "")
+		text = "You are not allowed to enjoy this command, you are a bad person!";
 
 	return text;
 }
@@ -104,7 +109,7 @@ async function funnyDOWText(cacheVersion, saveToFile, dowNum, authorID, recrused
 
 	if (typeof optionsDOW[0] != "string")
 	{
-		optionsDOW = generateOps(optionsDOW, authorID, "DOW");
+		optionsDOW = generateFridayOps(optionsDOW, authorID, cacheVersion);
 	}
 
 	var tod = new Date();
@@ -130,6 +135,11 @@ async function funnyDOWText(cacheVersion, saveToFile, dowNum, authorID, recrused
 				}
 			}
 		}
+	}
+
+	if (pretext == null)
+	{
+		return ["", "", []];
 	}
 
 	////////
@@ -202,8 +212,6 @@ async function funnyDOWText(cacheVersion, saveToFile, dowNum, authorID, recrused
 
 	prevActualDOW = new Date(tod.getFullYear(), tod.getMonth(), tod.getDate() - (7 - num));
 	nextActualDOW = new Date(tod.getFullYear(), tod.getMonth(), tod.getDate() + num);
-
-	if (text == null) text = "You are not allowed to enjoy [DAY], you are a bad person!";
 
 	var todOnlyDate = new Date(tod.getFullYear(), tod.getMonth(), tod.getDate());
 
@@ -675,7 +683,7 @@ function funnyFrogText(authorID)
 
 	if (typeof optionsFROG[0] != "string")
 	{
-		optionsFROG = generateOps(optionsFROG, authorID, "FROG");
+		optionsFROG = generateFrogOps(optionsFROG, authorID);
 	}
 
 	var text = optionsFROG[Math.floor(Math.random() * optionsFROG.length)].text;
@@ -683,9 +691,9 @@ function funnyFrogText(authorID)
 	return text;
 }
 
-function generateOps(opsArray, authorID, prefix)
+function generateFrogOps(opsArray, authorID)
 {
-    let rawdata = fs.readFileSync(babadata.datalocation + "/" + prefix + "control.json");
+    let rawdata = fs.readFileSync(babadata.datalocation + "/FROGcontrol.json");
     var controlList = JSON.parse(rawdata);
 	var cLevel = 0;
 
@@ -700,9 +708,74 @@ function generateOps(opsArray, authorID, prefix)
 	ops = [];
 	for (var i = 0; i < opsArray.length; i++)
 	{
+		if (cLevel <= 1)
+		{
+			if (opsArray[i].enabledDef == true)
+			{
+				ops.push(opsArray[i]);
+			}
+		}
+
+		if (cLevel >= 1)
+		{
+			if (opsArray[i].IDS != null && opsArray[i].IDS.toString().includes(authorID))
+			{
+				ops.push(opsArray[i]);
+			}
+		}
+	}
+
+	return ops;
+}
+
+function generateFridayOps(opsArray, authorID, prefix)
+{
+    let rawdata = fs.readFileSync(babadata.datalocation + "/DOWcontrol.json");
+
+	if (prefix != -1)
+	{
+		path = babadata.datalocation + "/FridayCache/DOWcache" + prefix + ".json";
+
+		if (!fs.existsSync(path)) 
+		{
+			// return to normal cache
+			cacheVersion = -1;
+			path = babadata.datalocation + "/DOWcache.json";
+		}
+	}
+
+    var controlList = JSON.parse(rawdata);
+	var cLevel = 0;
+
+	for (var i = 0; i < controlList.length; i++)
+	{
+		if (controlList[i].ID == authorID)
+		{
+			cLevel = controlList[i].Control;
+		}
+	}
+
+	var opsArraywithNoStartDateOrDOW = [];
+	for (var i = 0; i < opsArray.length; i++)
+	{
+		if (opsArray[i].StartTime == null && opsArray[i].DayOfWeek == null && opsArray[i].OccuranceChance == 100)
+		{
+			opsArraywithNoStartDateOrDOW.push(opsArray[i]);
+		}
+	}
+	
+	ops = [];
+	for (var i = 0; i < opsArray.length; i++)
+	{
 		if (opsArray[i].StartTime != null)
 		{
 			var tod = new Date();
+
+			if (prefix == 2 || prefix == 3)
+				tod = new Date(2024, 9, 10);
+			if (prefix == 0 || prefix == 1)
+				tod = new Date(2024, 8, 28);
+
 			var st = new Date(opsArray[i].StartTime);
 
 			if (opsArray[i].EndTime != null)
@@ -712,30 +785,76 @@ function generateOps(opsArray, authorID, prefix)
 				var endNormalizedToYear = new Date(tod.getFullYear(), et.getMonth(), et.getDate());
 
 				if (tod < startNormalizedToYear || tod > endNormalizedToYear)
-					continue;
+				{
+					if (prefix <= 3 && prefix != -1)
+						continue
+					else
+					{
+						// replace opsArray[i] with a random one from opsArraywithNoStartDateOrDOW
+						var newOps = opsArraywithNoStartDateOrDOW[Math.floor(theRNG.nextFloat() * opsArraywithNoStartDateOrDOW.length)];
+						// replace opsArray[i] with newOps
+						opsArray[i] = newOps;
+					}
+				}
 			}
 			else
 			{
 				var startNormalizedToYear = new Date(tod.getFullYear(), st.getMonth(), st.getDate());
 
 				if (tod != startNormalizedToYear)
-					continue;
+				{
+					if (prefix <= 3 && prefix != -1)
+						continue
+					else
+					{
+						// replace opsArray[i] with a random one from opsArraywithNoStartDateOrDOW
+						var newOps = opsArraywithNoStartDateOrDOW[Math.floor(theRNG.nextFloat() * opsArraywithNoStartDateOrDOW.length)];
+						// replace opsArray[i] with newOps
+						opsArray[i] = newOps;
+					}
+				}
 			}
 		}
 
 		if (opsArray[i].DayOfWeek != null)
 		{
 			var tod = new Date();
+
+			if (prefix == 2 || prefix == 3)
+				tod = new Date(2024, 9, 10);
+			if (prefix == 0 || prefix == 1)
+				tod = new Date(2024, 8, 28);
+
 			var dow = tod.getDay();
 
 			if (opsArray[i].DayOfWeek != dow)
-				continue;
+			{
+				if (prefix <= 3 && prefix != -1)
+					continue
+				else
+				{
+					// replace opsArray[i] with a random one from opsArraywithNoStartDateOrDOW
+					var newOps = opsArraywithNoStartDateOrDOW[Math.floor(theRNG.nextFloat() * opsArraywithNoStartDateOrDOW.length)];
+					// replace opsArray[i] with newOps
+					opsArray[i] = newOps;
+				}
+			}
 		}
 
 		if (opsArray[i].OccuranceChance < 100)
 		{
 			if (theRNG.nextRange() * 100 > opsArray[i].OccuranceChance)
-				continue;
+			{
+				if (prefix <= 3 && prefix != -1)
+					continue
+				else
+				{
+					// replace opsArray[i] with a random one from opsArraywithNoStartDateOrDOW
+					var newOps = opsArraywithNoStartDateOrDOW[Math.floor(theRNG.nextFloat() * opsArraywithNoStartDateOrDOW.length)];
+					// replace opsArray[i] with newOps
+					opsArray[i] = newOps;
+				}
+			}
 		}
 
 		if (cLevel <= 1)

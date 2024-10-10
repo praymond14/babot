@@ -490,6 +490,7 @@ async function checkHurricaneStuff(hurricanename)
 			var lastUpdatedDate = parseHurricaneDate(lastUpdated);
 			// if lastUpdated is different than hurricaneJson[i].lastUpdated, update the hurricaneJson[i].lastUpdated
 			var newDay = new Date(lastUpdatedDate);
+			//  dbDay is hurricaneJson[i].LastUpdated as local time
 			var dbDay = new Date(hurricaneJson[i].LastUpdated);
 			if (newDay > dbDay)
 			{

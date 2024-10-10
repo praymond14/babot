@@ -1,4 +1,4 @@
-const { babaFriday,  babaHelp, babaPlease, babaPizza, babaVibeFlag, babaYugo, babaHaikuEmbed, babaWednesday, babaDayNextWed, babaJeremy, babaHurricane, babaRepost, babaWeather } = require("./commandFunctions.js");
+const { babaFriday,  babaHelp, babaPlease, babaPizza, babaVibeFlag, babaYugo, babaHaikuEmbed, babaWednesday, babaDayNextWed, babaJeremy, babaHurricane, babaRepost, babaWeather, babaProgress, babaAurora } = require("./commandFunctions.js");
 const { Client, Intents } = require('discord.js'); //discord module for interation with discord api
 const Discord = require('discord.js'); //discord module for interation with discord api
 var babadata = require('./babotdata.json'); //baba configuration file
@@ -197,6 +197,23 @@ async function babaMessage(bot, message)
 			{
 				message.channel.send(cont);
 			}
+		}
+
+		if (msgContent.includes("progress"))
+		{
+			message.channel.sendTyping();
+			var progress = babaProgress(20);
+			message.channel.send(progress);
+		}
+
+		if (msgContent.includes("aurora"))
+		{
+			message.channel.sendTyping();
+			var time = "tonights";
+			babaAurora(time, function(val)
+			{
+				message.channel.send(val);
+			});
 		}
 
 		if (msgContent.includes("order pizza"))

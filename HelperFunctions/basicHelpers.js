@@ -620,6 +620,11 @@ async function preformEasterEggs(message, msgContent, bot)
 		maidenTime(message.author.id, bot, 1000 * 60, message.guild);
 	}
 
+	if (msgContent.includes("wake up babe"))
+	{
+		message.reply("You mean Wake up Baba!");
+	}
+
 	if(msgContent.includes('christmas') && msgContent.includes('bad')) //perchance update
 	{
 		message.reply("# 🎅🏻🎁 Christmas is GREAT! 🎄❄️");
@@ -650,6 +655,12 @@ async function preformEasterEggs(message, msgContent, bot)
 	{
 		// get all text after archive- until space (ex. archive-1-BIKUSFRIDAY -> BIKUSFRIDAY or archive-2-FRFRF -> FRFRF)
 		var frday = msgContent.match(/archive-([^ ]*)/)[1];
+
+		var as = null;
+		if (msgContent.includes("being-"))
+		{
+			as = msgContent.match(/being-([^ ]*)/)[1];
+		}
 		
 		// split 1-XXX into [NUM, LETTERS]
 		var frisplit = frday.split('-');
@@ -676,7 +687,7 @@ async function preformEasterEggs(message, msgContent, bot)
 			// convert to string with no spaces
 			frday = frdayInt.join('');
 
-			var tesxt = await funnyDOWTextSaved(dowIntIncluded, message.author.id, [frday, numboVersion], true);
+			var tesxt = await funnyDOWTextSaved(dowIntIncluded, message.author.id, [frday, numboVersion, as], true);
 
 			if (tesxt != null)
 			{
