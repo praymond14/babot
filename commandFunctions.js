@@ -10,6 +10,7 @@ const Discord = require('discord.js'); //discord module for interation with disc
 const fs = require('fs');
 const Jimp = require('jimp');
 const https = require('https');
+var PublicGoogleCalendar = require('public-google-calendar');
 
 const options = { year: 'numeric', month: 'long', day: 'numeric' }; // for date parsing to string
 
@@ -923,6 +924,18 @@ function babaAurora(time, callback)
      });
 }
 
+function babaGoodberrys(callback)
+{
+    console.log("Goodberrys");
+    publicGoogleCalendar = new PublicGoogleCalendar({ calendarId: '24gbb7942jsn557e7l93in7itjmo5lqj@import.calendar.google.com' });
+
+    publicGoogleCalendar.getEvents(function(err, events) 
+    {
+        if (err) { return console.log(err.message); }
+        return callback({ events: events});
+    });
+}
+
 module.exports = {
     babaFriday, 
     babaHelp, 
@@ -942,5 +955,6 @@ module.exports = {
     babaCat,
     babaWeather,
     babaRemind,
-    babaAurora
+    babaAurora,
+    babaGoodberrys
 };

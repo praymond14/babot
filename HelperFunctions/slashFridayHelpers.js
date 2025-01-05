@@ -14,17 +14,21 @@ async function funnyDOWTextSaved(dowNum, authorID, seedSet = -1, dontSave = fals
 	var cacheVersion = -1;
 	var calledAs = null;
 	var during = null;
+	var utod = null;
+	var udf = null;
 	if (seedSet != -1)
 	{
 		theRNG.setSeed(seedSet[0]);
 		cacheVersion = seedSet[1];
 		calledAs = seedSet[2];
 		during = seedSet[3];
+		utod = seedSet[4];
+		udf = seedSet[5];
 	}
 
 	var seed = theRNG.getState();
 
-	var textGroup = await funnyDOWText(cacheVersion, !dontSave, during, dowNum, calledAs != null ? calledAs : authorID);
+	var textGroup = await funnyDOWText(cacheVersion, !dontSave, [during, utod, udf], dowNum, calledAs != null ? calledAs : authorID);
 	var text = textGroup[0];
 	if (!dontSave && text != "")
 	{
@@ -110,17 +114,26 @@ async function funnyDOWText(cacheVersion, saveToFile, DateOveride, dowNum, autho
     var optionsDOW = JSON.parse(rawdata);
 
 	var tod = new Date();
-	if (DateOveride != null)
+	if (DateOveride[0] != null)
 	{
-		tod = new Date(DateOveride * 1000);
+		tod = new Date(DateOveride[0] * 1000);
 	}
 
 	if (typeof optionsDOW[0] != "string")
 	{
-		optionsDOW = generateFridayOps(optionsDOW, authorID, cacheVersion, tod);
+		optionsDOW = generateFridayOps(optionsDOW, authorID, cacheVersion, DateOveride);
 	}
 
-	console.log("Currently there are " + optionsDOW.length + " options for DOW");
+	if (DateOveride[1] != null && DateOveride[2] != null)
+	{
+		tod = new Date();
+	}
+
+	// if (babadata.testing != undefined)
+	// {
+	// 	console.log("Today is " + tod.toDateString() + " for Display Date");
+	// 	console.log("Currently there are " + optionsDOW.length + " options for DOW");
+	// }
 
 	var pretext = optionsDOW[Math.floor(theRNG.nextFloat() * optionsDOW.length)];
 
@@ -737,12 +750,40 @@ function generateFrogOps(opsArray, authorID)
 	return ops;
 }
 
-function generateFridayOps(opsArray, authorID, prefix, tod)
+function generateFridayOps(opsArray, authorID, prefix, DateOveride)
 {
-	if (prefix == 2 || prefix == 3)
-		tod = new Date(2024, 9, 10);
-	if (prefix == 0 || prefix == 1)
-		tod = new Date(2024, 8, 28);
+	// get TimeGates.json
+	var path = babadata.datalocation + "/TimeGates.json";
+	let raw = fs.readFileSync(path);
+
+	var TimeGates = JSON.parse(raw);
+
+	var tod = new Date();
+	if (prefix != -1)
+	{
+		// loop through TimeGates until VersionNumber == prefix
+		for (var i = 0; i < TimeGates.length; i++)
+		{
+			if (TimeGates[i].VersionNumber == prefix)
+			{
+				// get the date from TimeGates
+				tod = new Date(TimeGates[i].DateTime);
+				break;
+			}
+		}
+	}
+
+	if (DateOveride[1] != null)
+	{
+		var tod = new Date();
+	}
+
+	if (DateOveride[2] != null && DateOveride[0] != null)
+	{
+		var tod = new Date(DateOveride[0] * 1000);
+	}
+
+	// console.log("Today is " + tod.toDateString() + " for Items Date");
 
     let rawdata = fs.readFileSync(babadata.datalocation + "/DOWcontrol.json");
 

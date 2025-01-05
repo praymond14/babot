@@ -1,4 +1,4 @@
-const { babaFriday,  babaHelp, babaPlease, babaPizza, babaVibeFlag, babaYugo, babaHaikuEmbed, babaWednesday, babaDayNextWed, babaJeremy, babaHurricane, babaRepost, babaWeather, babaProgress, babaAurora } = require("./commandFunctions.js");
+const { babaFriday,  babaHelp, babaPlease, babaPizza, babaVibeFlag, babaYugo, babaHaikuEmbed, babaWednesday, babaDayNextWed, babaJeremy, babaHurricane, babaRepost, babaWeather, babaProgress, babaAurora, babaGoodberrys } = require("./commandFunctions.js");
 const { Client, Intents } = require('discord.js'); //discord module for interation with discord api
 const Discord = require('discord.js'); //discord module for interation with discord api
 var babadata = require('./babotdata.json'); //baba configuration file
@@ -204,6 +204,49 @@ async function babaMessage(bot, message)
 			message.channel.sendTyping();
 			var progress = babaProgress(20);
 			message.channel.send(progress);
+		}
+
+		if (msgContent.includes("goodberries") || msgContent.includes("goodberry"))
+		{
+			message.channel.sendTyping();
+			babaGoodberrys(function(val)
+			{
+				var evnts = val.events;
+				
+				// sort events by date
+				evnts.sort(function(a, b)
+				{
+					return a.start - b.start;
+				});
+
+				var resp = "";
+				for (var i = 0; i < evnts.length; i++)
+				{
+					var options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+					
+					resp += evnts[i].summary + " on " + evnts[i].start.toLocaleDateString("en-US", options) + "\n";
+				}
+
+				if (resp == "")
+					resp = "No events found";
+
+				message.channel.send(resp);
+			});
+		}
+
+		if (msgContent.includes("uppus"))
+		{
+			message.channel.sendTyping();
+			var start = global.starttime;
+			var now = new Date();
+			var diff = now - start;
+			var diffDays = Math.floor(diff / 86400000); // days
+			var diffHrs = Math.floor((diff % 86400000) / 3600000); // hours
+			var diffMins = Math.floor(((diff % 86400000) % 3600000) / 60000); // minutes
+			var diffSecs = Math.floor((((diff % 86400000) % 3600000) % 60000) / 1000); // seconds
+			var diffMs = Math.floor((((diff % 86400000) % 3600000) % 60000) % 1000); // milliseconds
+			var diffString = diffDays + " days, " + diffHrs + " hours, " + diffMins + " minutes, " + diffSecs + " seconds, " + diffMs + " milliseconds";
+			message.channel.send("`" + diffString + "`");
 		}
 
 		if (msgContent.includes("aurora"))

@@ -593,6 +593,19 @@ function TextCommandBackup(bot, message, sentvalid, msgContent, g)
 			// send attachment
 			message.author.send({ files: [{ attachment: Buffer.from(csv), name: 'loggedUsersVCC.csv' }] });
 		}
+		else if (msgContent.includes("trees"))
+		{
+			var logFile = fs.readFileSync(babadata.temp + "debug.log");
+
+			// send attachment
+			message.author.send({ files: [{ attachment: Buffer.from(logFile), name: 'debug.log' }] });
+		}
+		else if (msgContent.includes("treecapitator"))
+		{
+			// reset the debug log to empty
+			fs.writeFileSync(babadata.temp + "debug.log", "");
+			message.author.send("Debug Log Cleared");
+		}
 		// add new one to download a csv of all the vcc logs and one to upload a csv of all the vcc logs
 		// add a thing to convert a datetime to utc
 		else if (msgContent.includes("dontbuy"))

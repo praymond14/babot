@@ -8,6 +8,8 @@ const https = require('https')
 const fetch = require('node-fetch');
 const { PermissionsBitField } = require('discord.js');
 const { funnyDOWTextSaved, resetRNG } = require('./slashFridayHelpers');
+const { ModalBuilder, ActionRowBuilder, TextInputBuilder } = require('discord.js');
+const { ComponentType } = require('discord.js');
 
 const validLetters = "bikusfrday";
 
@@ -297,28 +299,28 @@ function SetHolidayChan(guild, name, resetid = -1)
 			switch(name)
 			{
 				case "spook": //Spooky
-					chanyu.setName("🎃👻💀🕸️ 𝔊𝔥𝔬𝔰𝔱𝔶 👻 𝔗𝔦𝔪𝔢 🕸️💀👻🎃")
+					chanyu.setName("🎃👻💀🕸️ ⍑ᔑꖎꖎ𝙹∴ᒷᒷリ 🕸️💀👻🎃")
 						.then((newChannel) =>
 						console.log(`The channel's new name is ${newChannel.name}`),
 					)
 					.catch(console.error);
 					break;
 				case "thanks": //Thanks
-					chanyu.setName("🦃 𝑻𝒉𝒂𝒏𝒌𝒔𝑻𝑨𝑲𝑰𝑵𝑮! 🦃")
+					chanyu.setName("🦃 🇹🇭🇦🇳🇰🇸🇬🇮🇻🇮🇳🇬 3️⃣: 🇹🇭🇪 🇷🇪🇹🇺🇷🇳 🇴🇫 🇹🇭🇪 🇹🇺🇷🇰🇪🇾 🦃")
 						.then((newChannel) =>
 						console.log(`The channel's new name is ${newChannel.name}`),
 					)
 					.catch(console.error);
 					break;
 				case "crimbo": //Crimbo
-					chanyu.setName("🎄 𓀒 ＣＲＩＭＢＯ 𓀒🎄")
+					chanyu.setName("🎄 𓀒 ℂ𝕙𝕣𝕚𝕤𝕥𝕞𝕒𝕤: ℍℍ𝔾𝕣𝕖𝕘𝕘 𝔼𝕕𝕚𝕥𝕚𝕠𝕟 𓀒 🎄")
 						.then((newChannel) =>
 						console.log(`The channel's new name is ${newChannel.name}`),
 					)
 					.catch(console.error);
 					break;
 				case "defeat": //New Year
-					chanyu.setName("🎉 ᴺᵉʷ ʸᵉᵃʳ ᴵ ʰᵃʳᵈˡʸ ᵏⁿᵒʷ ʰᵉʳ 🎉")
+					chanyu.setName("🎉🚨 Нарру Пеаг Уеаг 🚨🎉") //🆃🅷🆄🆁🆂🅳🅰🆈, J₳₦Ʉ₳ⱤɎ 1🅢ⓣ, 2️⃣0️⃣2️⃣6️⃣ - change to 2027 because i found funnier one for 2026
 						.then((newChannel) =>
 						console.log(`The channel's new name is ${newChannel.name}`),
 					)
@@ -653,6 +655,7 @@ async function preformEasterEggs(message, msgContent, bot)
 	var dowIntIncluded = msgIncDay(msgContent);
 	if (dowIntIncluded > -1 && msgContent.includes("archive-"))
 	{
+		var outputstringdebug = "Archive DOW for " + dowIntIncluded;
 		// get all text after archive- until space (ex. archive-1-BIKUSFRIDAY -> BIKUSFRIDAY or archive-2-FRFRF -> FRFRF)
 		var frday = msgContent.match(/archive-([^ ]*)/)[1];
 
@@ -660,12 +663,44 @@ async function preformEasterEggs(message, msgContent, bot)
 		if (msgContent.includes("being-"))
 		{
 			as = msgContent.match(/being-([^ ]*)/)[1];
+
+			// make sure it's a number and on error set to null
+			as = parseInt(as);
+			if (isNaN(as))
+				as = null;
+
+			if (as != null)
+				outputstringdebug += " as " + as;
 		}
 
 		var during = null;
 		if (msgContent.includes("dateof-"))
 		{
 			during = msgContent.match(/dateof-([^ ]*)/)[1];
+
+			// make sure it's a number and on error set to null
+			during = parseInt(during);
+			if (isNaN(during))
+				during = null;
+
+			if (during != null)
+				outputstringdebug += " during " + during;
+		}
+
+		var utod = null;
+		if (msgContent.includes("usetoday"))
+		{
+			utod = true;
+
+			outputstringdebug += " using today";
+		}
+
+		var udf = null;
+		if (msgContent.includes("usedf"))
+		{
+			udf = true;
+
+			outputstringdebug += " using default";
 		}
 		
 		// split 1-XXX into [NUM, LETTERS]
@@ -674,11 +709,15 @@ async function preformEasterEggs(message, msgContent, bot)
 		if (frisplit.length == 1)
 		{
 			frday = frisplit[0];
+			
+			outputstringdebug += " " + frday;
 		}
 		else
 		{
 			numboVersion = frisplit[0];
 			frday = frisplit[1];
+
+			outputstringdebug += " " + numboVersion + " " + frday;
 		}
 
 		// convert to lowercase
@@ -693,10 +732,11 @@ async function preformEasterEggs(message, msgContent, bot)
 			// convert to string with no spaces
 			frday = frdayInt.join('');
 
-			var tesxt = await funnyDOWTextSaved(dowIntIncluded, message.author.id, [frday, numboVersion, as, during], true);
+			var tesxt = await funnyDOWTextSaved(dowIntIncluded, message.author.id, [frday, numboVersion, as, during, utod, udf], true);
 
 			if (tesxt != null)
 			{
+				console.log(outputstringdebug);
 				message.channel.send(tesxt);
 			}
 
@@ -761,6 +801,10 @@ function PersonalReact(ames, message, msgContent)
 			}
 		}
 
+		// check if any of the emojis are in the message
+		if (!isGood && u_react.ReactIDList.some(emoji => ames.includes(emoji.toLowerCase())))
+			isGood = true;
+
 		for (var j = 0; j < u_react.IgnoredPhrases.length; j++)
 		{
 			var phraseList = u_react.IgnoredPhrases[j];
@@ -798,8 +842,10 @@ function PersonalReact(ames, message, msgContent)
 			
 			if (goodtoreact)
 				message.react(ideeznuts).catch(error => {
-					message.react("👍");
-					console.error(error);
+					message.react("👍").catch(error2 => {
+						// console.error(error2);
+					});
+					// console.error(error);
 				});
 		}
 	}
@@ -1021,10 +1067,55 @@ function FrogButtons(texts, interaction, message)
 function handleButtonsEmbed(channel, message, userid, data)
 {
 	console.log("Handling buttons embed");
-	const filter = i => i.customId.includes("page") && i.message.id === message.id && i.user.id === userid;
+	const filter = i => (i.customId.includes("page")) 
+						&& i.message.id === message.id && i.user.id === userid;
 
-	const collector = channel.createMessageComponentCollector({ filter, time: 30000 });
+	const collectorFilter = i => {
+		return i.user.id === userid && i.message.id === message.id && i.customId.includes("jumpToHaiku");
+	};
+
+	message.awaitMessageComponent({ filter: collectorFilter, componentType: ComponentType.Button, time: 300 })
+		.then(async initialInteraction => 
+			{
+				// open a modal with a text input for the user to enter the haiku number
+				const modal = new ModalBuilder()
+					.setCustomId('jumpToNumber')
+					.setTitle('Jump to Custom Haiku');
 	
+				const input = new TextInputBuilder()
+					.setCustomId('haikuNum')
+					.setLabel("The number of the haiku you want to jump to")
+					.setStyle(1)
+					.setRequired(true)
+					.setPlaceholder("Haiku Number");
+	
+				const firstActionRow = new ActionRowBuilder().addComponents(input);
+				modal.addComponents(firstActionRow);
+	
+				initialInteraction.showModal(modal);
+
+				await initialInteraction.awaitModalSubmit({
+					filter: (i) =>
+					  	i.customId === "jumpToNumber" &&
+					  	i.user.id === userid,
+					time: 60000,
+				}).then(async (modalInteraction) => {
+					modalInteraction.deferUpdate();
+					var chansend = modalInteraction.fields.getTextInputValue("haikuNum");
+					var num = parseInt(chansend);
+					if (num != null && num > 0 && num <= data.length)
+					{
+						// update the message to show the haiku at the given number
+						message.edit(data[num - 1]);
+					}
+				}).error((err) => {
+					console.error(err);
+				});
+			}
+		)
+		.catch(err => console.log('No interactions were collected.'));
+	
+	const collector = channel.createMessageComponentCollector({ filter, time: 30000 });
 	collector.on('collect', async i => {
 		if (i.customId.includes("page")) 
 		{
@@ -1280,7 +1371,7 @@ function getTimeFromString(timestring)
 	{
 		// generate random time from 12pm to 5pm
 		var hour = Math.floor(Math.random() * 5) + 12;
-		newTime = new Date(currentTime.getFullYear(), currentTime.getMonth(), currentTime.getDate(), hour, 0, 0);
+		newTime = new Date(currentTime.getFullYear(), currentTime.getMonth(), currentTime.getDate(), hour + 12, 0, 0);
 		newTime = GambaRoll(newTime);
 		timepossibles.push(newTime);
 	}
@@ -1288,9 +1379,10 @@ function getTimeFromString(timestring)
 	// pick a random time from the possible times
 	var time = timepossibles[Math.floor(Math.random() * timepossibles.length)];
 	// convert to current timezone
-	time = new Date(time.getTime() - (time.getTimezoneOffset() * 60000));
+	var timeoutp = new Date(time.getTime() - (time.getTimezoneOffset() * 60000));
+	console.log("Time: " + timeoutp);
 
-	hourtime = new Date(hourtime.getTime() - (hourtime.getTimezoneOffset() * 60000));
+	// hourtime = new Date(hourtime.getTime() - (hourtime.getTimezoneOffset() * 60000));
 
 	return time;
 }

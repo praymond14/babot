@@ -166,7 +166,7 @@ function HPLGenUsers(callback)
 {
 	if (timeoutCT > 0) return callback(null);
 
-	con.query("SELECT haiku.PersonName as Name, DiscordID as ID, Count(*) as Count, SUM(IF(Accidental = '1', 1, 0)) as Accidental, SUM(IF(Accidental = '1', 1, 0))/COUNT(Accidental) * 100 As Purity FROM haiku Left Join userval on haiku.PersonName = userval.PersonName Group by haiku.PersonName", function (err, result) 
+	con.query("SELECT haiku.PersonName as Name, DiscordID as ID, Count(*) as Count, SUM(IF(Accidental = '1', 1, 0)) as Accidental, SUM(IF(Accidental = '1', 1, 0))/COUNT(Accidental) * 100 As Purity FROM haiku Left Join userval on haiku.PersonName = userval.PersonName Group by haiku.PersonName, DiscordID", function (err, result) 
 	{
 		if (err)
 		{
@@ -286,7 +286,7 @@ function HPLSelectUser(callback, msgContent)
 	con.query(`SELECT haiku.PersonName as Name, DiscordID as ID, Count(*) as Count, SUM(IF(Accidental = '1', 1, 0)) as Accidental, SUM(IF(Accidental = '1', 1, 0))/COUNT(Accidental) * 100 As Purity FROM haiku 
 	Left Join userval on haiku.PersonName = userval.PersonName
 	Where ` + searchPerson(msgContent) +
-	` Group by haiku.PersonName`, function (err, result)
+	` Group by haiku.PersonName, DiscordID`, function (err, result)
 	{
 		if (err)
 		{
@@ -477,7 +477,7 @@ function HaikuSelection(callback, by, msgContent)
 
 			queueueueu += addquery.join(" AND ");
 
-			queueueueu += " " + (pMode == "chans" ? "Group by haiku.ChannelID" : (pMode == "users" ? "Group by haiku.PersonName" : "Group by date"));
+			queueueueu += " " + (pMode == "chans" ? "Group by haiku.ChannelID" : (pMode == "users" ? "Group by haiku.PersonName, DiscordID" : "Group by date"));
 			queueueueu += " order by count desc, purity desc, name desc";
 
 			console.log(queueueueu);
@@ -717,6 +717,8 @@ var cleanupFn = function cleanup()
 		clearTimeout(timeoutDisconnect);
 	}
 }
+
+global.DBVoiceCleanup = cleanupFn;
 
 function userVoiceChange(queryz, userID, channelID, guild, subtext)
 {
@@ -1070,6 +1072,43 @@ function cacheDOW()
 				var res = result[i];
 				global.userCache[res.DiscordID] = res.PersonName;
 			}
+		}
+	);
+
+	con.query(`Select * from timegates`,
+		function (err, result)
+		{
+			var opts = [];
+			if (err)
+			{
+				if (validErrorCodes(err.code))
+				{
+					EnterDisabledMode(err);
+					return;
+				}
+				else
+					throw err;
+			}
+
+			for (var i = 0; i < result.length; i++)
+			{
+				var res = result[i];
+
+				var ctimez = new Date(res.DateTime);
+				var offset = ctimez.getTimezoneOffset();
+				ctimez.setMinutes(ctimez.getMinutes() - offset);
+
+				var resj = 
+				{
+					"VersionNumber": res.VersionNumber,
+					"DateTime": ctimez,
+				}
+
+				opts.push(resj);
+			}
+
+			var data = JSON.stringify(opts);
+			fs.writeFileSync(babadata.datalocation + "/TimeGates.json", data);
 		}
 	);
 
@@ -1672,6 +1711,47 @@ Left Join userval on pleasedOverides.UserID = userval.DiscordID;`,
 				var data = JSON.stringify(tempdowcontrol);
 				fs.writeFileSync(babadata.datalocation + "/FridayCache/DOWcontrol" + dcontrolitems + ".json", data);
 			});
+
+
+			// update TimeGates.json by adding another row (items + 1)
+			let rawdata = fs.readFileSync(babadata.datalocation + "/TimeGates.json");
+			var tempTimeGates = JSON.parse(rawdata);
+			// get length of tempTimeGates
+			var items = tempTimeGates.length;
+
+			var ctimez = new Date();
+			var offset = ctimez.getTimezoneOffset();
+			ctimez.setMinutes(ctimez.getMinutes() - offset);
+
+			// add new row to tempTimeGates
+			var newboy = {
+				"VersionNumber": items,
+				"DateTime": ctimez
+			}
+			tempTimeGates.push(newboy);
+
+			// save tempTimeGates to TimeGates.json
+			var data = JSON.stringify(tempTimeGates);
+			fs.writeFileSync(babadata.datalocation + "/TimeGates.json", data);
+
+			if (babadata.testing === undefined)
+			{
+				// update db with newboy
+				con.query(`INSERT INTO timegates (VersionNumber, DateTime) VALUES ("${items}", "${newboy.DateTime.toISOString().slice(0, 19).replace('T', ' ')}")`, 
+				function (err, result)
+				{
+					if (err)
+					{
+						if (validErrorCodes(err.code))
+						{
+							EnterDisabledMode(err);
+							return;
+						}
+						else
+							throw err;
+					}
+				});
+			}
 		}
 	}, 10000);
 }
