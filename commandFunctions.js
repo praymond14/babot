@@ -10,6 +10,7 @@ const Discord = require('discord.js'); //discord module for interation with disc
 const fs = require('fs');
 const Jimp = require('jimp');
 const https = require('https');
+var PublicGoogleCalendar = require('public-google-calendar');
 
 const options = { year: 'numeric', month: 'long', day: 'numeric' }; // for date parsing to string
 
@@ -899,6 +900,42 @@ async function babaRemind(message, time, date, interaction)
     return theDate;
 }
 
+function babaAurora(time, callback)
+{
+    var url = "https://services.swpc.noaa.gov/experimental/images/aurora_dashboard/" + time + "_static_viewline_forecast.png"
+    var tempFilePath = babadata.temp + "aurora.png";
+    const file = fs.createWriteStream(tempFilePath);
+    
+    const request = https.get(url, function(response) {
+        response.pipe(file);
+     
+        // after download completed close filestream
+         file.on("finish", () => {
+             file.close();
+             console.log("Download Completed");
+ 
+             var vv = "Aurora Forecast for " + time;
+            
+             var newAttch = new Discord.AttachmentBuilder(tempFilePath, 
+                 { name: vv + '.png', description : "Aurora Info" + vv}); //makes a new discord attachment
+ 
+            callback({ content: "Baba Aurora Info", files: [newAttch] });
+         });
+     });
+}
+
+function babaGoodberrys(callback)
+{
+    console.log("Goodberrys");
+    publicGoogleCalendar = new PublicGoogleCalendar({ calendarId: '24gbb7942jsn557e7l93in7itjmo5lqj@import.calendar.google.com' });
+
+    publicGoogleCalendar.getEvents(function(err, events) 
+    {
+        if (err) { return console.log(err.message); }
+        return callback({ events: events});
+    });
+}
+
 module.exports = {
     babaFriday, 
     babaHelp, 
@@ -917,5 +954,7 @@ module.exports = {
     babaHurricane,
     babaCat,
     babaWeather,
-    babaRemind
+    babaRemind,
+    babaAurora,
+    babaGoodberrys
 };

@@ -1,4 +1,5 @@
 const fs = require('fs');
+var util = require('util');
 const { Client, GatewayIntentBits, Partials, Collection } = require('discord.js'); //discord module for interation with discord api
 const Discord = require('discord.js'); //discord module for interation with discord api
 const { REST } = require('@discordjs/rest');
@@ -14,6 +15,7 @@ const { log } = require('console');
 
 global.dbAccess = [!process.argv.includes("-db"), process.argv.includes("-db") ? false : true];
 global.starttime = new Date();
+global.DailyErrors = 0;
 
 global.toke = babadata.token;
 global.interactions = {};
@@ -22,6 +24,25 @@ global.loggedVCC = [];
 
 global.Bot = null;
 
+// append to existing log file without overwriting
+var log_file = fs.createWriteStream(babadata.temp + 'debug.log', {flags : 'a'});
+var log_stdout = process.stdout;
+console.log = function(d) 
+{
+	log_file.write(util.format(d) + '\n');
+	log_stdout.write(util.format(d) + '\n');
+};
+
+console.error = function(d) 
+{
+	log_file.write('---------------------------------\n');
+	log_file.write('Caught Exception:\n');
+	log_file.write(util.format(d) + '\n');
+	log_file.write('---------------------------------\n');
+	log_stdout.write(util.format(d) + '\n');
+};
+
+console.log("Starting up on " + global.starttime);
 
 // Initialize Discord Bot
 const bot = new Client({ intents: 
@@ -173,9 +194,33 @@ bot.on('interactionCreate', async interaction => {
 var cleanupFn = function cleanup() 
 {
 	console.log("Logging off");
+	console.log("");
 	bot.destroy();
+}
+
+global.CleanupEverything = function()
+{
+	global.DailyCallCleanup();
+	global.DBVoiceCleanup();
+	global.CommandHelperCleanup();
+	cleanupFn();
 }
 
 process.on('SIGINT', cleanupFn);
 process.on('SIGTERM', cleanupFn);
 
+process.on('uncaughtException', function (err) 
+{
+	global.DailyErrors++;
+	console.log("---------------------------------");
+	console.log("Uncaught Exception:");
+	console.log("Incrementing DailyErrors to " + global.DailyErrors);
+	console.log(err);
+	console.log("---------------------------------");
+
+	if (global.DailyErrors > 50)
+	{
+		console.log("Too many errors, shutting down");
+		global.CleanupEverything();
+	}
+});

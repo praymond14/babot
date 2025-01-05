@@ -138,13 +138,20 @@ function todayDay(dow, guild, now)
 			console.log(`There are ${channels.size} channels.`)
 			bannedCats = ["955141276574035988", "955251220057047110", "587298042068074526"]; // categories to not post in
 			bannedKittens = ["826320007675641876", "917516043583361034", "1064319655872827432", "882681066127777792", "1072288299361763378"]; // channels to not post in			
-			coolCats = ["915351407287222403", "979881683790733333", "1069025445162524792", "1072635694167634032", ]; // allowed channels, add exceptions manually
+			coolCats = ["1203559278393430076", "915351407287222403", "979881683790733333", "1069025445162524792", "1072635694167634032", ]; // allowed channels, add exceptions manually
+			
 			for (let currenter of channels) 
 			{
 				if (currenter[1] != null && currenter[1].type == 0 && !bannedKittens.includes(currenter[1].id))
 				{
 					if (!bannedCats.includes(currenter[1].parentId))
 						coolCats.push(currenter[1]);
+				}
+
+				// if currenter[1].id in coolCats as id replace with currenter[1]
+				if (coolCats.includes(currenter[1].id))
+				{
+					coolCats[coolCats.indexOf(currenter[1].id)] = currenter[1];
 				}
 			}
 			
@@ -172,7 +179,51 @@ function todayDay(dow, guild, now)
 
 			toWed = setTimeout(function()
 			{
-				coolestCat.send(msg);
+				// if coolestCat is a string, fetch the thread by searching all the channels for the thread with the id of coolestCat
+				if (typeof coolestCat === 'string' || coolestCat instanceof String)
+				{
+					foundme = false;
+					for (let currenter of channels) 
+					{
+						if (currenter[1].type == 0 && !foundme)
+						{
+							currenter[1].threads.fetch().then(threads =>
+							{
+								threads.threads.forEach(thread => 
+								{
+									if (thread.id == coolestCat)
+									{
+										thread.send(msg);
+										foundme = true;
+									}
+								});
+							});
+							
+							if (!foundme)
+							{
+								currenter[1].threads.fetchArchived().then(threads =>
+								{
+									threads.threads.forEach(thread => 
+									{
+										if (thread.id == coolestCat)
+										{
+											thread.send(msg);
+										}
+									});
+								});
+							}
+						}
+
+						if (foundme)
+						{
+							break;
+						}
+					}
+				}
+				else
+				{
+					coolestCat.send(msg);
+				}
 				toWed = null;
 			}, rndTime);
 		})
@@ -183,6 +234,7 @@ function todayDay(dow, guild, now)
 
 function dailyCall(bot, guild)
 {
+	global.DailyErrors = 0;
 	let rawdataBB = fs.readFileSync(__dirname + '/babotdata.json');
 	babadata = JSON.parse(rawdataBB);
 
@@ -263,6 +315,8 @@ var cleanupFn = function cleanup()
 	if (toTyp != null)
 		clearTimeout(toTyp);
 }
+
+global.DailyCallCleanup = cleanupFn;
 
 process.on('SIGINT', cleanupFn);
 process.on('SIGTERM', cleanupFn);

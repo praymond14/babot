@@ -166,7 +166,7 @@ function HPLGenUsers(callback)
 {
 	if (timeoutCT > 0) return callback(null);
 
-	con.query("SELECT haiku.PersonName as Name, DiscordID as ID, Count(*) as Count, SUM(IF(Accidental = '1', 1, 0)) as Accidental, SUM(IF(Accidental = '1', 1, 0))/COUNT(Accidental) * 100 As Purity FROM haiku Left Join userval on haiku.PersonName = userval.PersonName Group by haiku.PersonName", function (err, result) 
+	con.query("SELECT haiku.PersonName as Name, DiscordID as ID, Count(*) as Count, SUM(IF(Accidental = '1', 1, 0)) as Accidental, SUM(IF(Accidental = '1', 1, 0))/COUNT(Accidental) * 100 As Purity FROM haiku Left Join userval on haiku.PersonName = userval.PersonName Group by haiku.PersonName, DiscordID", function (err, result) 
 	{
 		if (err)
 		{
@@ -286,7 +286,7 @@ function HPLSelectUser(callback, msgContent)
 	con.query(`SELECT haiku.PersonName as Name, DiscordID as ID, Count(*) as Count, SUM(IF(Accidental = '1', 1, 0)) as Accidental, SUM(IF(Accidental = '1', 1, 0))/COUNT(Accidental) * 100 As Purity FROM haiku 
 	Left Join userval on haiku.PersonName = userval.PersonName
 	Where ` + searchPerson(msgContent) +
-	` Group by haiku.PersonName`, function (err, result)
+	` Group by haiku.PersonName, DiscordID`, function (err, result)
 	{
 		if (err)
 		{
@@ -477,7 +477,7 @@ function HaikuSelection(callback, by, msgContent)
 
 			queueueueu += addquery.join(" AND ");
 
-			queueueueu += " " + (pMode == "chans" ? "Group by haiku.ChannelID" : (pMode == "users" ? "Group by haiku.PersonName" : "Group by date"));
+			queueueueu += " " + (pMode == "chans" ? "Group by haiku.ChannelID" : (pMode == "users" ? "Group by haiku.PersonName, DiscordID" : "Group by date"));
 			queueueueu += " order by count desc, purity desc, name desc";
 
 			console.log(queueueueu);
@@ -717,6 +717,8 @@ var cleanupFn = function cleanup()
 		clearTimeout(timeoutDisconnect);
 	}
 }
+
+global.DBVoiceCleanup = cleanupFn;
 
 function userVoiceChange(queryz, userID, channelID, guild, subtext)
 {
@@ -1023,6 +1025,10 @@ function cacheDOW()
 	var tempfridayloops = JSON.parse(rawloops);
 	var newfridayloops = null;
 
+	let rawcontrol = fs.readFileSync(babadata.datalocation + "/DOWcontrol.json");
+	var tempdowcontrol = JSON.parse(rawcontrol);
+	var newdowcontrol = null;
+
 	global.channelCache = {};
 	con.query(`Select * from channelval`,
 		function (err, result)
@@ -1066,6 +1072,43 @@ function cacheDOW()
 				var res = result[i];
 				global.userCache[res.DiscordID] = res.PersonName;
 			}
+		}
+	);
+
+	con.query(`Select * from timegates`,
+		function (err, result)
+		{
+			var opts = [];
+			if (err)
+			{
+				if (validErrorCodes(err.code))
+				{
+					EnterDisabledMode(err);
+					return;
+				}
+				else
+					throw err;
+			}
+
+			for (var i = 0; i < result.length; i++)
+			{
+				var res = result[i];
+
+				var ctimez = new Date(res.DateTime);
+				var offset = ctimez.getTimezoneOffset();
+				ctimez.setMinutes(ctimez.getMinutes() - offset);
+
+				var resj = 
+				{
+					"VersionNumber": res.VersionNumber,
+					"DateTime": ctimez,
+				}
+
+				opts.push(resj);
+			}
+
+			var data = JSON.stringify(opts);
+			fs.writeFileSync(babadata.datalocation + "/TimeGates.json", data);
 		}
 	);
 
@@ -1558,6 +1601,8 @@ Left Join userval on pleasedOverides.UserID = userval.DiscordID;`,
 			var data = JSON.stringify(opts);
 
 			fs.writeFileSync(babadata.datalocation + "/DOWcontrol.json", data);
+
+			newdowcontrol = opts;
 		}
 	);
 
@@ -1613,6 +1658,24 @@ Left Join userval on pleasedOverides.UserID = userval.DiscordID;`,
 			}
 		}
 
+		if (!changes)
+		{
+			// compare newdowcontrol to tempdowcontrol
+			if (newdowcontrol.length != tempdowcontrol.length)
+				changes = true;
+			else
+			{
+				for (var i = 0; i < newdowcontrol.length; i++)
+				{
+					if (newdowcontrol[i].Control != tempdowcontrol[i].Control)
+					{
+						changes = true;
+						break;
+					}
+				}
+			}
+		}
+
 		if (changes)
 		{
 			console.log("Changes Detected, Saving Cache");
@@ -1624,21 +1687,71 @@ Left Join userval on pleasedOverides.UserID = userval.DiscordID;`,
 
 			// save tempfridayloops to babadata.datalocation + "/FridayCache/FridayLoops" + fcacheitems + ".json";
 			var fcacheitems = 0;
-			// set to number of files in directory / 2
+			// set to number of files in directory / 3
 			fs.readdir(babadata.datalocation + "/FridayCache", (err, files) => {
-				fcacheitems = files.length / 2;
+				fcacheitems = files.length / 3;
 				var data = JSON.stringify(tempfridayloops);
 				fs.writeFileSync(babadata.datalocation + "/FridayCache/FridayLoops" + fcacheitems + ".json", data);
 			});
 
 			// save tempdowcache to babadata.datalocation + "/FridayCache/DOWcache" + dcacheitems + ".json";
 			var dcacheitems = 0;
-			// set to number of files in directory / 2
+			// set to number of files in directory / 3
 			fs.readdir(babadata.datalocation + "/FridayCache", (err, files) => {
-				dcacheitems = files.length / 2;
+				dcacheitems = files.length / 3;
 				var data = JSON.stringify(tempdowcache);
 				fs.writeFileSync(babadata.datalocation + "/FridayCache/DOWcache" + dcacheitems + ".json", data);
 			});
+
+			// save tempdowcontrol to babadata.datalocation + "/FridayCache/DOWcontrol" + dcontrolitems + ".json";
+			var dcontrolitems = 0;
+			// set to number of files in directory / 3
+			fs.readdir(babadata.datalocation + "/FridayCache", (err, files) => {
+				dcontrolitems = files.length / 3;
+				var data = JSON.stringify(tempdowcontrol);
+				fs.writeFileSync(babadata.datalocation + "/FridayCache/DOWcontrol" + dcontrolitems + ".json", data);
+			});
+
+
+			// update TimeGates.json by adding another row (items + 1)
+			let rawdata = fs.readFileSync(babadata.datalocation + "/TimeGates.json");
+			var tempTimeGates = JSON.parse(rawdata);
+			// get length of tempTimeGates
+			var items = tempTimeGates.length;
+
+			var ctimez = new Date();
+			var offset = ctimez.getTimezoneOffset();
+			ctimez.setMinutes(ctimez.getMinutes() - offset);
+
+			// add new row to tempTimeGates
+			var newboy = {
+				"VersionNumber": items,
+				"DateTime": ctimez
+			}
+			tempTimeGates.push(newboy);
+
+			// save tempTimeGates to TimeGates.json
+			var data = JSON.stringify(tempTimeGates);
+			fs.writeFileSync(babadata.datalocation + "/TimeGates.json", data);
+
+			if (babadata.testing === undefined)
+			{
+				// update db with newboy
+				con.query(`INSERT INTO timegates (VersionNumber, DateTime) VALUES ("${items}", "${newboy.DateTime.toISOString().slice(0, 19).replace('T', ' ')}")`, 
+				function (err, result)
+				{
+					if (err)
+					{
+						if (validErrorCodes(err.code))
+						{
+							EnterDisabledMode(err);
+							return;
+						}
+						else
+							throw err;
+					}
+				});
+			}
 		}
 	}, 10000);
 }
@@ -1872,7 +1985,7 @@ function IncrementFridayCounter(fridayJson)
 		var mpre1 = d1.getMonth() + 1 < 10 ? 0 : "";
 		var dpre1 = d1.getUTCDate() < 10 ? 0 : "";
 
-		var time = `${d1.getFullYear()}-${mpre1}${d1.getMonth() + 1}-${dpre1}${d1.getUTCDate()} ${d1.getHours()}:${d1.getMinutes()}:${d1.getSeconds()}`
+		var time = `${d1.getFullYear()}-${mpre1}${d1.getMonth() + 1}-${dpre1}${d1.getDate()} ${d1.getHours()}:${d1.getMinutes()}:${d1.getSeconds()}`
 		
 		var msg = fmdItem.Text;
 		// replace all " with ""
@@ -2352,10 +2465,15 @@ async function getHurricaneInfo()
 						if (res.Year != new Date().getFullYear())
 							continue;
 						
+						// convert lastupdated to current timezone
+						var ctimez = new Date(res.LastUpdated);
+						var offset = ctimez.getTimezoneOffset();
+						ctimez.setMinutes(ctimez.getMinutes() - offset);
+
 						var resj = 
 						{
 							"ID": res.id,
-							"LastUpdated": res.LastUpdated,
+							"LastUpdated": ctimez,
 							"Name": res.name,
 							"Number": res.number,
 							"Type": res.type,
@@ -2366,6 +2484,7 @@ async function getHurricaneInfo()
 							"Updated": false,
 							"OverideText": null
 						}
+
 		
 						opts.push(resj);
 					}

@@ -9,7 +9,7 @@ const options = { year: 'numeric', month: 'long', day: 'numeric' }; // for date 
 const { dateDiffInDays, antiDelay, GetDate, GetSimilarName, uExist } = require('./basicHelpers.js');
 const { getHurricaneInfo, saveUpdatedHurrInfo } = require('../databaseandvoice.js');
 
-var to = null;
+var to = [];
 
 function getErrorFlag()
 {
@@ -213,11 +213,16 @@ function reverseDelay(message, hiddenChan, mess, delay)
 	if (delay < 0)
 		antiDelay(message);
 	else
-		to = setTimeout(function()
+	{
+		var newto = setTimeout(function()
 		{
 			hiddenChan.sendTyping();
 			hiddenChan.send(mess);
+			to.splice(to.indexOf(newto), 1);
 		}, delay);
+
+		to.push(newto);
+	}
 }
 
 function SingleHaiku(haiku, simnames, page, pagetotal)
@@ -323,8 +328,10 @@ function EmbedHaikuGen(haiku, simnames)
 			{
 				nButton.setDisabled(true);
 			}
+
+			var jumpButton = new Discord.ButtonBuilder().setCustomId("jumpToHaiku").setLabel("Jump to ...").setStyle(3);
 	
-			row.addComponents(pButton, nButton);
+			row.addComponents(pButton, jumpButton, nButton);
 			
 			if (haiku.length > 100) 
 			{
@@ -490,6 +497,7 @@ async function checkHurricaneStuff(hurricanename)
 			var lastUpdatedDate = parseHurricaneDate(lastUpdated);
 			// if lastUpdated is different than hurricaneJson[i].lastUpdated, update the hurricaneJson[i].lastUpdated
 			var newDay = new Date(lastUpdatedDate);
+			//  dbDay is hurricaneJson[i].LastUpdated as local time
 			var dbDay = new Date(hurricaneJson[i].LastUpdated);
 			if (newDay > dbDay)
 			{
@@ -626,8 +634,10 @@ var cleanupFn = function cleanup()
 {
 	console.log("Ending Delayed Messages");
 	if (to != null)  
-		clearTimeout(to);
+		to.forEach(clearTimeout);
 }
+
+global.CommandHelperCleanup = cleanupFn;
 
 process.on('SIGINT', cleanupFn);
 process.on('SIGTERM', cleanupFn);
