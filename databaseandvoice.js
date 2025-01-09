@@ -20,6 +20,8 @@ function validErrorCodes(err)
 function dbErrored(err)
 {
 	console.error(err);
+	con.end();
+	con = null;
 	handleDisconnect("Error");
 }
 
