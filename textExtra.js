@@ -419,7 +419,7 @@ function TextCommandBackup(bot, message, sentvalid, msgContent, g)
 										{
 											items[i] = items[i].match(/(\d+)/)[0];
 										}
-										console.log(items[i]);
+										
 										mehstagw.react(items[i]).catch(console.error);
 									}
 									message.author.send("SUCC cess");
@@ -436,7 +436,7 @@ function TextCommandBackup(bot, message, sentvalid, msgContent, g)
 								{
 									items[i] = items[i].match(/(\d+)/)[0];
 								}
-								console.log(items[i]);
+								
 								mehstagw.react(items[i]).catch(console.error);
 							}
 							message.author.send("SUCC cess");

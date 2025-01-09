@@ -250,7 +250,7 @@ function babaHaikuEmbed(purity, list, chans, mye, buy, msgContent, pagestuff, ca
     { 
         HaikuSelection(function(haiku, simnames)
         {
-            console.log(haiku);
+            console.log(haiku, true);
             if (haiku == null) return callback([{content: "No Haiku Found, or the DB is Disabled!"}]);
 
             return callback(EmbedHaikuGen(haiku, simnames));
@@ -793,7 +793,7 @@ async function babaHurricane(hurricanename, callback)
        // after download completed close filestream
         file.on("finish", () => {
             file.close();
-            console.log("Download Completed");
+            console.log("Download Completed for " + hurricanename);
 
             var vv = hfull === undefined ? " for all Hurricanes" : hfull;
            
@@ -819,7 +819,7 @@ function babaCat(callback)
        // after download completed close filestream
        file.on("finish", () => {
            file.close();
-           console.log("Download Completed");
+           console.log("Download Completed for Cat");
 
            callback({ content: "Baba Cat", files: [tempFilePath] });
        });
@@ -847,7 +847,7 @@ function babaWeather(mode, city, callback)
        // after download completed close filestream
        file.on("finish", () => {
            file.close();
-           console.log("Download Completed");
+           console.log("Download Completed for Weather");
 
            var newAttch = new Discord.AttachmentBuilder(tempFilePath, 
                { name: city + '.png', description : "Weather info for " + city}); //makes a new discord attachment
@@ -912,7 +912,7 @@ function babaAurora(time, callback)
         // after download completed close filestream
          file.on("finish", () => {
              file.close();
-             console.log("Download Completed");
+             console.log("Download Completed for Aurora");
  
              var vv = "Aurora Forecast for " + time;
             
@@ -926,7 +926,6 @@ function babaAurora(time, callback)
 
 function babaGoodberrys(callback)
 {
-    console.log("Goodberrys");
     publicGoogleCalendar = new PublicGoogleCalendar({ calendarId: '24gbb7942jsn557e7l93in7itjmo5lqj@import.calendar.google.com' });
 
     publicGoogleCalendar.getEvents(function(err, events) 

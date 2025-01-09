@@ -267,7 +267,7 @@ async function buttonInfo(interaction, bot)
             .addComponents(
                 new Discord.ButtonBuilder()
                     .setCustomId('generateHaikuList')
-                    .setLabel(cid === "purity" ? 'Generate Purity Score List' : (cid === "haiku" ? 'Generate Single Haiku' : 'Generate Multiple Haikus'))
+                    .setLabel(cid === "purity" ? 'Generate Purity Score List' : (cid === "haiku" ? 'Open Haiku Search Form' : 'Open Multi-Haiku Search Form'))
                     .setStyle(1),
             );
 
