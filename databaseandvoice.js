@@ -605,46 +605,49 @@ function HaikuSelection(callback, by, msgContent)
 }
 
 
-function ObtainDBHolidays(callback)
+function ObtainDBHolidays()
 {
-	con.query("SELECT * FROM event left join alteventnames on event.EventID = alteventnames.EventID;", function (err, result) 
+	return new Promise((resolve, reject) =>
 	{
-		if (err)
+		con.query("SELECT * FROM event left join alteventnames on event.EventID = alteventnames.EventID;", function (err, result) 
 		{
-			if (validErrorCodes(err.code))
+			if (err)
 			{
-				EnterDisabledMode(err);
-				return;
+				if (validErrorCodes(err.code))
+				{
+					EnterDisabledMode(err);
+					return;
+				}
+				else
+					dbErrored(err)
 			}
-			else
-				dbErrored(err)
-		}
-		var retme = {};
-		for (var i = 0; i < result.length; i++)
-		{
-			var retter = retme;
-			if (result[i].ParentEventID != null) retter = GetParent(retme, result[i].ParentEventID);
-			var e = retter[result[i].EventRealName];
-			if (e == undefined)
+			var retme = {};
+			for (var i = 0; i < result.length; i++)
 			{
-				retter[result[i].EventRealName] = {};
-				e = retter[result[i].EventRealName];
-				e.safename = result[i].EventFrogName;
-				e.mode = result[i].Mode;
-				e.id = result[i].EventID;
+				var retter = retme;
+				if (result[i].ParentEventID != null) retter = GetParent(retme, result[i].ParentEventID);
+				var e = retter[result[i].EventRealName];
+				if (e == undefined)
+				{
+					retter[result[i].EventRealName] = {};
+					e = retter[result[i].EventRealName];
+					e.safename = result[i].EventFrogName;
+					e.mode = result[i].Mode;
+					e.id = result[i].EventID;
+		
+					if (result[i].Day != null) e.day = result[i].Day;
+					if (result[i].Month != null) e.month = result[i].Month;
+					if (result[i].Week != null) e.week = result[i].Week;
+					if (result[i].DOW != null) e.dayofweek = result[i].DOW;
+		
+					e.name = [];
 	
-				if (result[i].Day != null) e.day = result[i].Day;
-				if (result[i].Month != null) e.month = result[i].Month;
-				if (result[i].Week != null) e.week = result[i].Week;
-				if (result[i].DOW != null) e.dayofweek = result[i].DOW;
-	
-				e.name = [];
-
-				if (e.mode == -1) e.sub = {};
+					if (e.mode == -1) e.sub = {};
+				}
+				e.name.push(result[i].EventName);
 			}
-			e.name.push(result[i].EventName);
-		}
-		return callback(retme);
+			return resolve(retme);
+		});
 	});
 }
 

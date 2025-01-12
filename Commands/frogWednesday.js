@@ -2,6 +2,7 @@ const { babaWednesday } = require("../commandFunctions.js");
 const { SlashCommandBuilder } = require('@discordjs/builders');
 const Discord = require('discord.js'); //discord module for interation with discord api
 const { FrogButtons } = require("../HelperFunctions/basicHelpers.js");
+const { splitStringInto2000CharChunksonNewLine } = require("../HelperFunctions/slashFridayHelpers.js");
 
 module.exports = {
 	data: new SlashCommandBuilder()
@@ -16,17 +17,40 @@ module.exports = {
         var event = interaction.options.getString("event");
         var message = await interaction.fetchReply();
         
-        await babaWednesday(`${event} wednesday`, interaction.user, function(texts) 
+        var texts = await babaWednesday(`${event} wednesday`, interaction.user);
+        
+        if (texts.length > 1)
         {
-            setTimeout(function()
+            setTimeout(async function()
             {
-                if (texts.length > 1)
-                {
-                    FrogButtons(texts, interaction, message);
-                    interaction.editReply(texts[0]);
-                }
-                else interaction.editReply(texts[0]);
+                FrogButtons(texts, interaction, message);
+                await interaction.editReply(texts[0]);
             }, 1000);
-        });
+        }
+        else 
+        {
+            if (texts[0].files == null)
+            {
+                var text = texts[0].content;
+    
+                var chunks = splitStringInto2000CharChunksonNewLine(text);
+    
+                await interaction.editReply(chunks[0]);
+    
+                var message = await interaction.fetchReply();
+                // send the rest of the chunks as replys to each other
+                for (var i = 1; i < chunks.length; i++)
+                {
+                    msg = await msg.reply(chunks[i]);
+                }	
+            }
+            else 
+            {
+                setTimeout(async function()
+                {
+                    await interaction.editReply(texts[0]);
+                }, 1000);
+            }
+        }
 	},
 };

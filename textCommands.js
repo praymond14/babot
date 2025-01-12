@@ -25,7 +25,7 @@ const { normalizeMSG } = require("./HelperFunctions/dbHelpers.js");
 const { Console } = require('console');
 const { SSL_OP_SSLEAY_080_CLIENT_DH_BUG } = require('constants');
 const { TextCommandBackup } = require("./textExtra.js");
-const { funnyDOWTextSaved } = require("./HelperFunctions/slashFridayHelpers.js");
+const { funnyDOWTextSaved, splitStringInto2000CharChunksonNewLine } = require("./HelperFunctions/slashFridayHelpers.js");
 //const { spawn } = require("child_process");
 /* [ 	["christmas", 12, 25, 0, 0], 
 	["thanksgiving", 11, 0, 4, 4], 
@@ -178,10 +178,16 @@ async function babaMessage(bot, message)
 			var tod = new Date();
 			if (tod.getDay() != 5)
 			{
-
 				var text = await funnyDOWTextSaved(5, message.author.id);
 
-				message.channel.send(text);
+				var chunks = splitStringInto2000CharChunksonNewLine(text);
+				
+				var msg = await message.channel.send(chunks[0]);
+				// send the rest of the chunks as replys to each other
+				for (var i = 1; i < chunks.length; i++)
+				{
+					msg = await msg.reply(chunks[i]);
+				}	
 			}
 			else
 			{
@@ -360,18 +366,28 @@ async function babaMessage(bot, message)
 			if (msgContent.includes('days until next wednesday'))
 				message.channel.send(babaDayNextWed());
 
-			await babaWednesday(msgContent, message.author, function(texts)
-			{
-				var templocal = babadata.datalocation + "FrogHolidays/"; //creates the output frog image
+			var texts = await babaWednesday(msgContent, message.author);
+			
+			var templocal = babadata.datalocation + "FrogHolidays/"; //creates the output frog image
 
-				for ( var i = 0; i < texts.length; i++)
+			for ( var i = 0; i < texts.length; i++)
+			{
+				if (texts[i].files == null)
 				{
-					if (texts[i].files == null)
-						message.channel.send(texts[i]);
-					else
-						timedOutFrog(i, texts, message, templocal);
+					var text = texts[i].content;
+
+					var chunks = splitStringInto2000CharChunksonNewLine(text);
+					
+					var msg = await message.channel.send(chunks[0]);
+					// send the rest of the chunks as replys to each other
+					for (var i = 1; i < chunks.length; i++)
+					{
+						msg = await msg.reply(chunks[i]);
+					}	
 				}
-			});
+				else
+					timedOutFrog(i, texts, message, templocal);
+			}
 		}
 	}
 	if(msgContent.includes('!bdelete')) //code to del and move to log

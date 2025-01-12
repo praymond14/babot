@@ -9,6 +9,24 @@ function resetRNG()
 	theRNG = new RNG();
 }
 
+function splitStringInto2000CharChunksonNewLine(str)
+{
+	var chunks = [];
+	var chunk = "";
+	var lines = str.split("\n");
+	for (var i = 0; i < lines.length; i++)
+	{
+		if (chunk.length + lines[i].length > 2000)
+		{
+			chunks.push(chunk);
+			chunk = "";
+		}
+		chunk += lines[i] + "\n";
+	}
+	chunks.push(chunk);
+	return chunks;
+}
+
 async function funnyDOWTextSaved(dowNum, authorID, seedSet = -1, dontSave = false)
 {
 	var cacheVersion = -1;
@@ -30,6 +48,10 @@ async function funnyDOWTextSaved(dowNum, authorID, seedSet = -1, dontSave = fals
 
 	var textGroup = await funnyDOWText(cacheVersion, !dontSave, [during, utod, udf], dowNum, calledAs != null ? calledAs : authorID);
 	var text = textGroup[0];
+	
+	// console.log("Condensed Notation: " + textGroup[1]);
+	// console.log("Condensed Notation Info: " + textGroup[2]);
+
 	if (!dontSave && text != "")
 	{
 		var condensedNotation = textGroup[1];
@@ -55,8 +77,13 @@ async function funnyDOWTextSaved(dowNum, authorID, seedSet = -1, dontSave = fals
 			x[cnFull] = cnYung;
 			cnFull = x;
 		}
-	
 
+		var count = Math.floor(Math.random() * 10) + 1;
+		for (var i = 0; i < count; i++)
+		{
+			theRNG.nextInt();
+		}
+	
 		fs.readdir(babadata.datalocation + "/FridayCache", (err, files) => {
 			fcacheitems = files.length / 3;
 
@@ -435,11 +462,11 @@ async function funnyDOWText(cacheVersion, saveToFile, DateOveride, dowNum, autho
 
 	text = text.replaceAll("\\n", "\n");
 
-	// if length is greater than 1000, call again
-	if (text.length > 2000)
-	{
-		return funnyDOWText(cacheVersion, saveToFile, DateOveride, dowNum, authorID);
-	}
+	// // if length is greater than 1000, call again
+	// if (text.length > 2000)
+	// {
+	// 	return funnyDOWText(cacheVersion, saveToFile, DateOveride, dowNum, authorID);
+	// }
 
 	// if recusion level is 0, save ToBeCounted to file
 	if (recrused == 0 && saveToFile)
@@ -484,8 +511,27 @@ async function funnyDOWText(cacheVersion, saveToFile, DateOveride, dowNum, autho
 	textC = repeatCheck(cacheVersion, text);
 	text = textC[0];
 	if (textC[1].length > 0)
-		condensedNotation += "*" + textC[1].join("*");
+	{
+		var listOfCDs = textC[1];
 
+		// loop through list of CDs in reverse order
+		for (var i = listOfCDs.length - 1; i >= 0; i--)
+		{
+			var item = listOfCDs[i];
+			// if text starts with Number- then remove item from list and concat to index of said number (ex 0-6s -> ItemAt0*6s)
+			if (item.split("-").length > 1)
+			{
+				var split = item.split("-");
+				var index = parseInt(split[0]);
+				var item = split[1];
+				listOfCDs.splice(i, 1);
+				listOfCDs[index] += "*" + item;
+			}
+		}
+		
+		condensedNotation += ">" + listOfCDs.join(",");
+	}
+	
 	return [text, condensedNotation, cnYung];
 }
 
@@ -580,14 +626,40 @@ function repeatCheck(cacheVersion, text, prefix = "")
 		match = match2;
 		match = match.map(x => x.slice(0, -1));
 	}
+	
+	var indexesDealtWith = [];
+	var hasChildren = [];
+	var matchedChildren = [];
+
+	var validCountoAdd = true;
 
 	var counto = [];
-
 	while (match != null)
 	{
 		for (var i = 0; i < match.length; i++)
 		{
+			var countoPrefix = "";
+			validCountoAdd = true;
 			var matchi = match[i];
+
+			if (matchedChildren.includes(matchi))
+			{
+				validCountoAdd = false;
+				var mCIndex = matchedChildren.indexOf(matchi);
+				var parentIndex = hasChildren[mCIndex];
+				if (!indexesDealtWith.includes(parentIndex))
+				{
+					countoPrefix = parentIndex + "-";
+					validCountoAdd = true;
+
+					// remove from hasChildren and matchedChildren
+					hasChildren.splice(mCIndex, 1);
+					matchedChildren.splice(mCIndex, 1);
+
+					// add parentIndex to indexesDealtWith
+					indexesDealtWith.push(parentIndex);
+				}
+			}
 			
 			if (prefix == "b")
 			{
@@ -607,7 +679,8 @@ function repeatCheck(cacheVersion, text, prefix = "")
 			var containsN = matchi.split(":")[0].toLowerCase().includes("n");
 
 			// add num to counto
-			counto.push(num + (containsS ? "s" : "") + (containsN ? "n" : ""));
+			if (validCountoAdd)
+				counto.push(countoPrefix + "" + num + (containsS ? "s" : "") + (containsN ? "n" : ""));
 
 			var newString = "";
 			for (var j = 0; j < num; j++)
@@ -616,6 +689,24 @@ function repeatCheck(cacheVersion, text, prefix = "")
 			}
 
 			text = text.replace(match[i], newString);
+
+			var subMatch = newString.match(RegexExpress);
+			var subMatch2 = newString.match(RegexExpress2);
+			if (subMatch2 != null) 
+			{
+				subMatch = subMatch2;
+				subMatch = subMatch.map(x => x.slice(0, -1));
+			}
+
+			if (subMatch != null)
+			{
+				// add all submatches to matchedChildren
+				for (var j = 0; j < subMatch.length; j++)
+				{
+					hasChildren.push(0);
+					matchedChildren.push(subMatch[j]);
+				}
+			}
 		}
 
 		match = text.match(RegexExpress);
@@ -890,5 +981,6 @@ module.exports = {
     funnyDOWTextSaved,
     funnyFrogText,
 	removeCountRuin,
-	resetRNG
+	resetRNG,
+	splitStringInto2000CharChunksonNewLine
 };

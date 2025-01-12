@@ -24,6 +24,8 @@ global.loggedVCC = [];
 
 global.Bot = null;
 
+uignoreErrors = false;
+
 // append to existing log file without overwriting
 var log_file = fs.createWriteStream(babadata.temp + 'debug.log', {flags : 'a'});
 var log_stdout = process.stdout;
@@ -40,7 +42,8 @@ console.error = function(d)
 	log_file.write('Caught Exception:\n');
 	log_file.write(util.format(d) + '\n');
 	log_file.write('---------------------------------\n');
-	log_stdout.write(util.format(d) + '\n');
+	if (!uignoreErrors)
+		log_stdout.write(util.format(d) + '\n');
 };
 
 console.log("Starting up on " + global.starttime);
@@ -213,6 +216,8 @@ process.on('SIGTERM', cleanupFn);
 process.on('uncaughtException', function (err) 
 {
 	global.DailyErrors++;
+	if (uignoreErrors)
+		return;
 	console.log("---------------------------------");
 	console.log("Uncaught Exception:");
 	console.log("Incrementing DailyErrors to " + global.DailyErrors);

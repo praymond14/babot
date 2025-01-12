@@ -7,7 +7,7 @@ const fs = require('fs');
 const https = require('https')
 const fetch = require('node-fetch');
 const { PermissionsBitField } = require('discord.js');
-const { funnyDOWTextSaved, resetRNG } = require('./slashFridayHelpers');
+const { funnyDOWTextSaved, resetRNG, splitStringInto2000CharChunksonNewLine } = require('./slashFridayHelpers');
 const { ModalBuilder, ActionRowBuilder, TextInputBuilder } = require('discord.js');
 const { ComponentType } = require('discord.js');
 
@@ -736,8 +736,15 @@ async function preformEasterEggs(message, msgContent, bot)
 
 			if (tesxt != null)
 			{
+				var chunks = splitStringInto2000CharChunksonNewLine(tesxt);
 				console.log(outputstringdebug);
-				message.channel.send(tesxt);
+				
+				var msg = await message.channel.send(chunks[0]);
+				// send the rest of the chunks as replys to each other
+				for (var i = 1; i < chunks.length; i++)
+				{
+					msg = await msg.reply(chunks[i]);
+				}				
 			}
 
 			resetRNG();
