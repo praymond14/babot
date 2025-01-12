@@ -17,6 +17,14 @@ function validErrorCodes(err)
 	return catchCodes.includes(err);
 }
 
+function dbErrored(err)
+{
+	console.error(err);
+	con.end();
+	con = null;
+	handleDisconnect("Error");
+}
+
 function handleDisconnect(print) 
 {
 	console.log(print + " - Starting Database Connection");
@@ -156,7 +164,7 @@ function HPLGenChannel(callback)
 		if (err) 
 		{
 			console.log(err);
-			throw err;
+			dbErrored(err)
 		}
 		return callback(result);
 	});
@@ -176,7 +184,7 @@ function HPLGenUsers(callback)
 				return;
 			}
 			else
-				throw err;
+				dbErrored(err)
 		}
 		return callback(result);
 	});
@@ -196,7 +204,7 @@ function HPLGenD8(callback)
 				return;
 			}
 			else
-				throw err;
+				dbErrored(err)
 		}
 		return callback(result);
 	});
@@ -251,7 +259,7 @@ function HPLSelectChannel(callback, msgContent)
 				return;
 			}
 			else
-				throw err;
+				dbErrored(err)
 		}
 		return callback(result);
 	});
@@ -273,7 +281,7 @@ function HPLSelectDate(callback, msgContent)
 				return;
 			}
 			else
-				throw err;
+				dbErrored(err)
 		}
 		return callback(result);
 	});
@@ -296,7 +304,7 @@ function HPLSelectUser(callback, msgContent)
 				return;
 			}
 			else
-				throw err;
+				dbErrored(err)
 		}
 		return callback(result);
 	});
@@ -491,7 +499,7 @@ function HaikuSelection(callback, by, msgContent)
 						return;
 					}
 					else
-						throw err;
+						dbErrored(err)
 				}
 				return callback(result);
 			});
@@ -517,7 +525,7 @@ function HaikuSelection(callback, by, msgContent)
 				return;
 			}
 			else
-				throw err;
+				dbErrored(err)
 		}
 		
 		if (by == 6)
@@ -597,46 +605,49 @@ function HaikuSelection(callback, by, msgContent)
 }
 
 
-function ObtainDBHolidays(callback)
+function ObtainDBHolidays()
 {
-	con.query("SELECT * FROM event left join alteventnames on event.EventID = alteventnames.EventID;", function (err, result) 
+	return new Promise((resolve, reject) =>
 	{
-		if (err)
+		con.query("SELECT * FROM event left join alteventnames on event.EventID = alteventnames.EventID;", function (err, result) 
 		{
-			if (validErrorCodes(err.code))
+			if (err)
 			{
-				EnterDisabledMode(err);
-				return;
+				if (validErrorCodes(err.code))
+				{
+					EnterDisabledMode(err);
+					return;
+				}
+				else
+					dbErrored(err)
 			}
-			else
-				throw err;
-		}
-		var retme = {};
-		for (var i = 0; i < result.length; i++)
-		{
-			var retter = retme;
-			if (result[i].ParentEventID != null) retter = GetParent(retme, result[i].ParentEventID);
-			var e = retter[result[i].EventRealName];
-			if (e == undefined)
+			var retme = {};
+			for (var i = 0; i < result.length; i++)
 			{
-				retter[result[i].EventRealName] = {};
-				e = retter[result[i].EventRealName];
-				e.safename = result[i].EventFrogName;
-				e.mode = result[i].Mode;
-				e.id = result[i].EventID;
+				var retter = retme;
+				if (result[i].ParentEventID != null) retter = GetParent(retme, result[i].ParentEventID);
+				var e = retter[result[i].EventRealName];
+				if (e == undefined)
+				{
+					retter[result[i].EventRealName] = {};
+					e = retter[result[i].EventRealName];
+					e.safename = result[i].EventFrogName;
+					e.mode = result[i].Mode;
+					e.id = result[i].EventID;
+		
+					if (result[i].Day != null) e.day = result[i].Day;
+					if (result[i].Month != null) e.month = result[i].Month;
+					if (result[i].Week != null) e.week = result[i].Week;
+					if (result[i].DOW != null) e.dayofweek = result[i].DOW;
+		
+					e.name = [];
 	
-				if (result[i].Day != null) e.day = result[i].Day;
-				if (result[i].Month != null) e.month = result[i].Month;
-				if (result[i].Week != null) e.week = result[i].Week;
-				if (result[i].DOW != null) e.dayofweek = result[i].DOW;
-	
-				e.name = [];
-
-				if (e.mode == -1) e.sub = {};
+					if (e.mode == -1) e.sub = {};
+				}
+				e.name.push(result[i].EventName);
 			}
-			e.name.push(result[i].EventName);
-		}
-		return callback(retme);
+			return resolve(retme);
+		});
 	});
 }
 
@@ -659,7 +670,7 @@ async function NameFromUserIDID(id)
 						return;
 					}
 					else
-						throw err;
+						dbErrored(err)
 				}
 				resolve(result);
 			}
@@ -682,7 +693,7 @@ function NameFromUserID(callback, user)
 					return;
 				}
 				else
-					throw err;
+					dbErrored(err)
 			}
 			return callback(result);
 		}
@@ -763,7 +774,7 @@ function userVoiceChange(queryz, userID, channelID, guild, subtext)
 			{
 				if (err)
 				{
-					throw err;
+					dbErrored(err)
 				}
 			}		
 		}
@@ -826,7 +837,7 @@ function checkAndCreateUser(userID, userName, callback)
 					return;
 				}
 				else
-					throw err;
+					dbErrored(err)
 			}
 			if (result.length == 0)
 			{
@@ -856,7 +867,7 @@ function checkAndCreateChannel(channelID, channelName, callback)
 					return;
 				}
 				else
-					throw err;
+					dbErrored(err)
 			}
 			if (result.length == 0)
 			{
@@ -873,7 +884,7 @@ function checkAndCreateChannel(channelID, channelName, callback)
 								return;
 							}
 							else
-								throw err;
+								dbErrored(err)
 						}
 						return callback();
 					}
@@ -897,7 +908,7 @@ function optIn(user, type, callback)
 					return;
 				}
 				else
-					throw err;
+					dbErrored(err)
 			}
 			if (result.affectedRows == 0)
 			{
@@ -913,7 +924,7 @@ function optIn(user, type, callback)
 								return;
 							}
 							else
-								throw err;
+								dbErrored(err)
 						}
 						cacheOpts();
 						return callback();
@@ -943,7 +954,7 @@ function optOut(user, type, callback)
 					return;
 				}
 				else
-					throw err;
+					dbErrored(err)
 			}
 
 			if (result.affectedRows == 0)
@@ -960,7 +971,7 @@ function optOut(user, type, callback)
 								return;
 							}
 							else
-								throw err;
+								dbErrored(err)
 						}
 						cacheOpts();
 						return callback();
@@ -1041,7 +1052,7 @@ function cacheDOW()
 					return;
 				}
 				else
-					throw err;
+					dbErrored(err)
 			}
 
 			for (var i = 0; i < result.length; i++)
@@ -1064,7 +1075,7 @@ function cacheDOW()
 					return;
 				}
 				else
-					throw err;
+					dbErrored(err)
 			}
 			
 			for (var i = 0; i < result.length; i++)
@@ -1087,7 +1098,7 @@ function cacheDOW()
 					return;
 				}
 				else
-					throw err;
+					dbErrored(err)
 			}
 
 			for (var i = 0; i < result.length; i++)
@@ -1123,7 +1134,7 @@ function cacheDOW()
 					return;
 				}
 				else
-					throw err;
+					dbErrored(err)
 			}
 			var adam = {};
 			for (var i = 0; i < result.length; i++)
@@ -1147,7 +1158,7 @@ function cacheDOW()
 							return;
 						}
 						else
-							throw err;
+							dbErrored(err)
 					}
 					for (var i = 0; i < result.length; i++)
 					{
@@ -1178,7 +1189,7 @@ function cacheDOW()
 					return;
 				}
 				else
-					throw err;
+					dbErrored(err)
 			}
 			for (var i = 0; i < result.length; i++)
 			{
@@ -1246,7 +1257,7 @@ function cacheDOW()
 					return;
 				}
 				else
-					throw err;
+					dbErrored(err)
 			}
 			for (var i = 0; i < result.length; i++)
 			{
@@ -1282,7 +1293,7 @@ function cacheDOW()
 					return;
 				}
 				else
-					throw err;
+					dbErrored(err)
 			}
 			for (var i = 0; i < result.length; i++)
 			{
@@ -1321,7 +1332,7 @@ Left Join userval on pleasedOverides.UserID = userval.DiscordID;`,
 					return;
 				}
 				else
-					throw err;
+					dbErrored(err)
 			}
 			for (var i = 0; i < result.length; i++)
 			{
@@ -1359,7 +1370,7 @@ Left Join userval on pleasedOverides.UserID = userval.DiscordID;`,
 					return;
 				}
 				else
-					throw err;
+					dbErrored(err)
 			}
 			for (var i = 0; i < result.length; i++)
 			{
@@ -1396,7 +1407,7 @@ Left Join userval on pleasedOverides.UserID = userval.DiscordID;`,
 				return;
 			}
 			else
-				throw err;
+				dbErrored(err)
 		}
 
 		for (var i = 0; i < result.length; i++)
@@ -1499,7 +1510,7 @@ Left Join userval on pleasedOverides.UserID = userval.DiscordID;`,
 					return;
 				}
 				else
-					throw err;
+					dbErrored(err)
 			}
 			for (var i = 0; i < result.length; i++)
 			{
@@ -1550,7 +1561,7 @@ Left Join userval on pleasedOverides.UserID = userval.DiscordID;`,
 					return;
 				}
 				else
-					throw err;
+					dbErrored(err)
 			}
 			for (var i = 0; i < result.length; i++)
 			{
@@ -1583,7 +1594,7 @@ Left Join userval on pleasedOverides.UserID = userval.DiscordID;`,
 					return;
 				}
 				else
-					throw err;
+					dbErrored(err)
 			}
 			for (var i = 0; i < result.length; i++)
 			{
@@ -1748,7 +1759,7 @@ Left Join userval on pleasedOverides.UserID = userval.DiscordID;`,
 							return;
 						}
 						else
-							throw err;
+							dbErrored(err)
 					}
 				});
 			}
@@ -1770,7 +1781,7 @@ function controlDOW(id, level, prefix)
 					return;
 				}
 				else
-					throw err;
+					dbErrored(err)
 			}
 			if (result.length == 0)
 			{
@@ -1785,7 +1796,7 @@ function controlDOW(id, level, prefix)
 								return;
 							}
 							else
-								throw err;
+								dbErrored(err)
 						}
 						cacheDOW();
 					}
@@ -1804,7 +1815,7 @@ function controlDOW(id, level, prefix)
 								return;
 							}
 							else
-								throw err;
+								dbErrored(err)
 						}
 						cacheDOW();
 					}
@@ -1828,7 +1839,7 @@ function cacheOpts(callback)
 					return callback();
 				}
 				else
-					throw err;
+					dbErrored(err)
 			}
 			
 			for (var i = 0; i < result.length; i++)
@@ -1856,10 +1867,10 @@ function saveSlashFridayJson(testingOveride = false)
 {
 	var retVal = "Friday Counter has not been updated, as it is Empty";
 	// if fridayCounter.json doesn't exist, create it
-	if (!fs.existsSync(babadata.datalocation + "/fridayCounter.json"))
-	{
-		fs.writeFileSync(babadata.datalocation + "/fridayCounter.json", "");
-	}
+	// if (!fs.existsSync(babadata.datalocation + "/fridayCounter.json"))
+	// {
+	// 	fs.writeFileSync(babadata.datalocation + "/fridayCounter.json", "");
+	// }
 
 	// check for db access
 	if ((global.dbAccess[1] && global.dbAccess[0]))
@@ -1909,57 +1920,57 @@ function saveSlashFridayJson(testingOveride = false)
 
 function IncrementFridayCounter(fridayJson)
 {
-	// parse json
-	var friday = JSON.parse(fridayJson);
-	var qureyStart = "INSERT INTO layersdeep (FridayUID,LoopsOrDOW,LayersDeep,Count,HeadingLevel,Sender) VALUES "
-	var qureyEnd = `AS newDeepLayers ON DUPLICATE KEY UPDATE layersdeep.Count = layersdeep.Count + newDeepLayers.Count;`;
-	var queryMiddle = "";
-	for (var i = 0; i < Object.keys(friday).length; i++)
-	{
-		var key = Object.keys(friday)[i];
-		var layersdeeps = friday[key];
+	// // parse json
+	// var friday = JSON.parse(fridayJson);
+	// var qureyStart = "INSERT INTO layersdeep (FridayUID,LoopsOrDOW,LayersDeep,Count,HeadingLevel,Sender) VALUES "
+	// var qureyEnd = `AS newDeepLayers ON DUPLICATE KEY UPDATE layersdeep.Count = layersdeep.Count + newDeepLayers.Count;`;
+	// var queryMiddle = "";
+	// for (var i = 0; i < Object.keys(friday).length; i++)
+	// {
+	// 	var key = Object.keys(friday)[i];
+	// 	var layersdeeps = friday[key];
 
-		// uid is key before --, group is key after --
-		var uid = key.split("--")[0];
-		var group = key.split("--")[1];
-		var user = key.split("--")[2];
+	// 	// uid is key before --, group is key after --
+	// 	var uid = key.split("--")[0];
+	// 	var group = key.split("--")[1];
+	// 	var user = key.split("--")[2];
 
 
-		// update the value in the database for each layer in value, on new entry add it
-		for (var deepness = 0; deepness < layersdeeps.length; deepness++)
-		{
-			var headingLevels = layersdeeps[deepness];
-			if (headingLevels != null)
-			{
-				for (var heding = 0; heding < headingLevels.length; heding++)
-				{
-					var count = headingLevels[heding];
-					if (count != null)
-						queryMiddle += `("${uid}", "${group}", "${deepness}", "${count}", "${heding}", "${user}"),`;
-				}
-			}
-		}
-	}
+	// 	// update the value in the database for each layer in value, on new entry add it
+	// 	for (var deepness = 0; deepness < layersdeeps.length; deepness++)
+	// 	{
+	// 		var headingLevels = layersdeeps[deepness];
+	// 		if (headingLevels != null)
+	// 		{
+	// 			for (var heding = 0; heding < headingLevels.length; heding++)
+	// 			{
+	// 				var count = headingLevels[heding];
+	// 				if (count != null)
+	// 					queryMiddle += `("${uid}", "${group}", "${deepness}", "${count}", "${heding}", "${user}"),`;
+	// 			}
+	// 		}
+	// 	}
+	// }
 
-	// remove last comma
-	queryMiddle = queryMiddle.slice(0, -1);
+	// // remove last comma
+	// queryMiddle = queryMiddle.slice(0, -1);
 
-	// add to database
-	con.query(qureyStart + queryMiddle + qureyEnd,
-		function (err, result)
-		{
-			if (err)
-			{
-				if (validErrorCodes(err.code))
-				{
-					EnterDisabledMode(err);
-					return;
-				}
-				else
-					throw err;
-			}
-		}
-	);
+	// // add to database
+	// con.query(qureyStart + queryMiddle + qureyEnd,
+	// 	function (err, result)
+	// 	{
+	// 		if (err)
+	// 		{
+	// 			if (validErrorCodes(err.code))
+	// 			{
+	// 				EnterDisabledMode(err);
+	// 				return;
+	// 			}
+	// 			else
+	// 				dbErrored(err)
+	// 		}
+	// 	}
+	// );
 
 
 	// fridaymessages.json
@@ -2019,12 +2030,11 @@ function IncrementFridayCounter(fridayJson)
 					return;
 				}
 				else
-					throw err;
+					dbErrored(err)
 			}
 		}
 	);
 
-	// clear the file
 	fs.writeFileSync(babadata.datalocation + "/fridaymessages.json", "[]");
 }
 
@@ -2087,7 +2097,7 @@ function eventDB(event, change, user)
 						return;
 					}
 					else
-						throw err;
+						dbErrored(err)
 				}
 			});
 		}
@@ -2104,7 +2114,7 @@ function eventDB(event, change, user)
 						return;
 					}
 					else
-						throw err;
+						dbErrored(err)
 				}
 			});
 		}
@@ -2121,7 +2131,7 @@ function eventDB(event, change, user)
 						return;
 					}
 					else
-						throw err;
+						dbErrored(err)
 				}
 			});
 		}
@@ -2146,7 +2156,7 @@ function eventDB(event, change, user)
 						return;
 					}
 					else
-						throw err;
+						dbErrored(err)
 				}
 
 				if (result.affectedRows == 0)
@@ -2162,7 +2172,7 @@ function eventDB(event, change, user)
 								return;
 							}
 							else
-								throw err;
+								dbErrored(err)
 						}
 					});
 				}
@@ -2181,7 +2191,7 @@ function eventDB(event, change, user)
 						return;
 					}
 					else
-						throw err;
+						dbErrored(err)
 				}
 			});
 		}
@@ -2423,7 +2433,7 @@ async function saveUpdatedHurrInfo()
 							return;
 						}
 						else
-							throw err;
+							dbErrored(err)
 					}
 				});
 	
@@ -2455,7 +2465,7 @@ async function getHurricaneInfo()
 							return;
 						}
 						else
-							throw err;
+							dbErrored(err)
 					}
 		
 					for (var i = 0; i < result.length; i++)

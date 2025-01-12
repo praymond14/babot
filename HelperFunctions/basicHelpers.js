@@ -7,7 +7,7 @@ const fs = require('fs');
 const https = require('https')
 const fetch = require('node-fetch');
 const { PermissionsBitField } = require('discord.js');
-const { funnyDOWTextSaved, resetRNG } = require('./slashFridayHelpers');
+const { funnyDOWTextSaved, resetRNG, splitStringInto2000CharChunksonNewLine } = require('./slashFridayHelpers');
 const { ModalBuilder, ActionRowBuilder, TextInputBuilder } = require('discord.js');
 const { ComponentType } = require('discord.js');
 
@@ -736,8 +736,15 @@ async function preformEasterEggs(message, msgContent, bot)
 
 			if (tesxt != null)
 			{
+				var chunks = splitStringInto2000CharChunksonNewLine(tesxt);
 				console.log(outputstringdebug);
-				message.channel.send(tesxt);
+				
+				var msg = await message.channel.send(chunks[0]);
+				// send the rest of the chunks as replys to each other
+				for (var i = 1; i < chunks.length; i++)
+				{
+					msg = await msg.reply(chunks[i]);
+				}				
 			}
 
 			resetRNG();
@@ -1064,56 +1071,60 @@ function FrogButtons(texts, interaction, message)
 	handleButtonsEmbed(interaction.channel, message, interaction.user.id, texts);
 }
 
+function buttonsAwaitMessageComponent(message, userid, data, collector)
+{
+	const collectorFilter = i => {
+		return i.user.id === userid && i.message.id === message.id && i.customId.includes("jumpToHaiku");
+	};
+
+	message.awaitMessageComponent({ filter: collectorFilter, componentType: ComponentType.Button, time: 100000 })
+	.then(async initialInteraction => 
+		{
+			// open a modal with a text input for the user to enter the haiku number
+			const modal = new ModalBuilder()
+				.setCustomId('jumpToNumber')
+				.setTitle('Jump to Custom Haiku');
+
+			const input = new TextInputBuilder()
+				.setCustomId('haikuNum')
+				.setLabel("The number of the haiku you want to jump to")
+				.setStyle(1)
+				.setRequired(true)
+				.setPlaceholder("Haiku Number");
+
+			const firstActionRow = new ActionRowBuilder().addComponents(input);
+			modal.addComponents(firstActionRow);
+
+			initialInteraction.showModal(modal);
+
+			await initialInteraction.awaitModalSubmit({
+				filter: (i) =>
+					  i.customId === "jumpToNumber" &&
+					  i.user.id === userid,
+				time: 60000,
+			}).then(async (modalInteraction) => {
+				modalInteraction.deferUpdate();
+				var chansend = modalInteraction.fields.getTextInputValue("haikuNum");
+				var num = parseInt(chansend);
+				if (num != null && num > 0 && num <= data.length)
+				{
+					// update the message to show the haiku at the given number
+					message.edit(data[num - 1]);
+					collector.resetTimer();
+					buttonsAwaitMessageComponent(message, userid, data, collector);
+				}
+			});
+		}
+	)
+	.catch(err => console.error(err));
+}
+
 function handleButtonsEmbed(channel, message, userid, data)
 {
 	console.log("Handling buttons embed");
 	const filter = i => (i.customId.includes("page")) 
 						&& i.message.id === message.id && i.user.id === userid;
 
-	const collectorFilter = i => {
-		return i.user.id === userid && i.message.id === message.id && i.customId.includes("jumpToHaiku");
-	};
-
-	message.awaitMessageComponent({ filter: collectorFilter, componentType: ComponentType.Button, time: 300 })
-		.then(async initialInteraction => 
-			{
-				// open a modal with a text input for the user to enter the haiku number
-				const modal = new ModalBuilder()
-					.setCustomId('jumpToNumber')
-					.setTitle('Jump to Custom Haiku');
-	
-				const input = new TextInputBuilder()
-					.setCustomId('haikuNum')
-					.setLabel("The number of the haiku you want to jump to")
-					.setStyle(1)
-					.setRequired(true)
-					.setPlaceholder("Haiku Number");
-	
-				const firstActionRow = new ActionRowBuilder().addComponents(input);
-				modal.addComponents(firstActionRow);
-	
-				initialInteraction.showModal(modal);
-
-				await initialInteraction.awaitModalSubmit({
-					filter: (i) =>
-					  	i.customId === "jumpToNumber" &&
-					  	i.user.id === userid,
-					time: 60000,
-				}).then(async (modalInteraction) => {
-					modalInteraction.deferUpdate();
-					var chansend = modalInteraction.fields.getTextInputValue("haikuNum");
-					var num = parseInt(chansend);
-					if (num != null && num > 0 && num <= data.length)
-					{
-						// update the message to show the haiku at the given number
-						message.edit(data[num - 1]);
-					}
-				}).error((err) => {
-					console.error(err);
-				});
-			}
-		)
-		.catch(err => console.log('No interactions were collected.'));
 	
 	const collector = channel.createMessageComponentCollector({ filter, time: 30000 });
 	collector.on('collect', async i => {
@@ -1128,6 +1139,8 @@ function handleButtonsEmbed(channel, message, userid, data)
 			//await i.update({ content: 'A button was clicked!', components: [] });
 		}
 	});
+
+	buttonsAwaitMessageComponent(message, userid, data, collector);
 
 	collector.on('end', collected => message.edit({components: []}));
 }

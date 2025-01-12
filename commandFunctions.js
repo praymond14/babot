@@ -250,7 +250,7 @@ function babaHaikuEmbed(purity, list, chans, mye, buy, msgContent, pagestuff, ca
     { 
         HaikuSelection(function(haiku, simnames)
         {
-            console.log(haiku);
+            console.log(haiku, true);
             if (haiku == null) return callback([{content: "No Haiku Found, or the DB is Disabled!"}]);
 
             return callback(EmbedHaikuGen(haiku, simnames));
@@ -427,275 +427,273 @@ function babaJeremy()
     return { content: "```" + adjective + animal + "```" };
 }
 
-async function babaWednesday(msgContent, author, callback)
+async function babaWednesday(msgContent, author)
 {
     msgContent = normalizeMSG(msgContent);
     var outs = [];
     //let rawdata = fs.readFileSync(babadata.datalocation + "FrogHolidays/" + 'frogholidays.json'); //load file each time of calling wednesday
     //let holidays = JSON.parse(rawdata);
 
-    if (!(global.dbAccess[1] && global.dbAccess[0])) return callback([{content: await funnyDOWTextSaved(3, author.id) }]);
+    if (!(global.dbAccess[1] && global.dbAccess[0])) return [{content: await funnyDOWTextSaved(3, author.id) }];
 
-    ObtainDBHolidays(async function(holidays)
+    var holidays = await ObtainDBHolidays();
+
+    let d1 = getD1(); //get today
+    var yr = d1.getFullYear();
+    var dow_d1 = (d1.getDay() + 4) % 7;//get day of week (making wed = 0)
+    let d1_useage = new Date(d1.getFullYear(), d1.getMonth(), 1); //today that has been wednesday shifted
+    d1_useage.setDate(d1.getDate() - dow_d1); //modify today for wednesdays
+
+    var IsHoliday = CheckHoliday(msgContent, holidays); //get the holidays that are reqested
+    var IsDate = FindDate(msgContent);
+
+    if (IsDate != null)
+        IsHoliday.push(IsDate);
+
+    if (msgContent.includes('next event'))
     {
-        let d1 = getD1(); //get today
-        var yr = d1.getFullYear();
-        var dow_d1 = (d1.getDay() + 4) % 7;//get day of week (making wed = 0)
-        let d1_useage = new Date(d1.getFullYear(), d1.getMonth(), 1); //today that has been wednesday shifted
-        d1_useage.setDate(d1.getDate() - dow_d1); //modify today for wednesdays
-    
-        var IsHoliday = CheckHoliday(msgContent, holidays); //get the holidays that are reqested
-        var IsDate = FindDate(msgContent);
-
-        if (IsDate != null)
-            IsHoliday.push(IsDate);
-    
-        if (msgContent.includes('next event'))
+        var hols = FindNextHoliday(d1, yr, CheckHoliday("ALL", holidays));
+        for ( var i = 0; i < hols.length; i++) //loop through the holidays that are requested
         {
-            var hols = FindNextHoliday(d1, yr, CheckHoliday("ALL", holidays));
-            for ( var i = 0; i < hols.length; i++) //loop through the holidays that are requested
-            {
-                IsHoliday.push(hols[i]);
-            }
+            IsHoliday.push(hols[i]);
         }
-        
-        if (msgContent.includes('next birthday'))
+    }
+    
+    if (msgContent.includes('next birthday'))
+    {
+        var hols = FindNextHoliday(d1, yr, CheckHoliday("BIRTHDAY", holidays));
+        for ( var i = 0; i < hols.length; i++) //loop through the holidays that are requested
         {
-            var hols = FindNextHoliday(d1, yr, CheckHoliday("BIRTHDAY", holidays));
-            for ( var i = 0; i < hols.length; i++) //loop through the holidays that are requested
-            {
-                IsHoliday.push(hols[i]);
-            }
+            IsHoliday.push(hols[i]);
         }
-    
-        if(IsHoliday.length > 0) //reply with password file string if baba password
-        {
-            var templocationslist = [];
-    
-            for ( var i = 0; i < IsHoliday.length; i++) //loop through the holidays that are requested
-            {
-                var holidayinfo = IsHoliday[i];
-                if (holidayinfo.name != "date" && holidayinfo.year)
-                    yr = holidayinfo.year;
-    
-                console.log("holidayinfo: " + holidayinfo.name);
-                let d2 = GetDate(d1, yr, holidayinfo);
+    }
 
-                if (isNaN(d2))
+    if(IsHoliday.length > 0) //reply with password file string if baba password
+    {
+        var templocationslist = [];
+
+        for ( var i = 0; i < IsHoliday.length; i++) //loop through the holidays that are requested
+        {
+            var holidayinfo = IsHoliday[i];
+            if (holidayinfo.name != "date" && holidayinfo.year)
+                yr = holidayinfo.year;
+
+            console.log("holidayinfo: " + holidayinfo.name);
+            let d2 = GetDate(d1, yr, holidayinfo);
+
+            if (isNaN(d2))
+            {
+                var fronge = new Discord.AttachmentBuilder(babadata.datalocation + "FrogHolidays/error.png", 
+                    { name: 'ErrorFrog.png', description : "Brug, run commands better bud hee!"});
+
+                outs.push({ content: "The date does not exist so BABA will give you ERROR frog!", files: [fronge] });
+                continue;
+            }
+
+            var additionaltext = "";
+            var showwed = false;
+
+            if (msgContent.includes('wednesday'))
+                showwed = true;
+
+            if (msgContent.includes('when is')) //outputs the next occurance of the event
+            {
+                var bonustext = holidayinfo.year != undefined ? " " + holidayinfo.year : "";
+                
+                var whenistext = "";
+                if (IsDate != null)
+                    whenistext += "\n" + holidayinfo.safename;
+                else
                 {
-                    var fronge = new Discord.AttachmentBuilder(babadata.datalocation + "FrogHolidays/error.png", 
-                        { name: 'ErrorFrog.png', description : "Brug, run commands better bud hee!"});
-
-                    outs.push({ content: "The date does not exist so BABA will give you ERROR frog!", files: [fronge] });
-                    continue;
+                    if (holidayinfo.year != undefined)
+                        // whenistext += "\n" + holidayinfo.safename + bonustext + " is on " + d2.toLocaleDateString('en-US', options);
+                        whenistext += "\n" + holidayinfo.safename + bonustext + " is on <t:" + d2.getTime() / 1000 + ":D>";
+                    else
+                    {
+                        //whenistext += "\nThe next occurance of " + holidayinfo.safename + " is on " + d2.toLocaleDateString('en-US', options);
+                        whenistext += "\nThe next occurance of " + holidayinfo.safename + " is on <t:" + d2.getTime() / 1000 + ":D>";
+                        
+                    }
                 }
-    
-                var additionaltext = "";
-                var showwed = false;
-    
-                if (msgContent.includes('wednesday'))
+                
+                additionaltext += whenistext + "\n";
+            }
+            
+            if (msgContent.includes('day of week')) //custom days until text output - for joseph
+            {
+                var bonustext = holidayinfo.year != undefined ? " " + holidayinfo.year : "";
+                var dowtext = holidayinfo.safename + bonustext + " is on " + d2.toLocaleDateString('en-US', {weekday: 'long'}); //future text
+                
+                additionaltext += dowtext + "\n";
+            }
+
+            if (msgContent.includes('days until')) //custom days until text output - for joseph
+            {
+                var int = dateDiffInDays(d1, d2); //convert to days difference
+                var bonustext = holidayinfo.year != undefined ? " " + holidayinfo.year : "";
+
+                var dutext = "";
+                if (int != 0)
+                {
+                    // if (int == 1)
+                    //     dutext = int + " Day until " + holidayinfo.safename; //future text
+                    // else
+                    //     dutext = int + " Days until " + holidayinfo.safename + bonustext; //future text
+                    
+                    dutext = holidayinfo.safename + bonustext + " is <t:" + d2.getTime() / 1000 + ":R>" + (int > 31 ? " which is in " + int + " day" + (int == 1 ? "" : "s") : "");
+
+                    additionaltext += dutext + "\n";
+                }
+                else
                     showwed = true;
-    
-                if (msgContent.includes('when is')) //outputs the next occurance of the event
-                {
-                    var bonustext = holidayinfo.year != undefined ? " " + holidayinfo.year : "";
-                    
-                    var whenistext = "";
-                    if (IsDate != null)
-                        whenistext += "\n" + holidayinfo.safename;
-                    else
-                    {
-                        if (holidayinfo.year != undefined)
-                            // whenistext += "\n" + holidayinfo.safename + bonustext + " is on " + d2.toLocaleDateString('en-US', options);
-                            whenistext += "\n" + holidayinfo.safename + bonustext + " is on <t:" + d2.getTime() / 1000 + ":D>";
-                        else
-                        {
-                            //whenistext += "\nThe next occurance of " + holidayinfo.safename + " is on " + d2.toLocaleDateString('en-US', options);
-                            whenistext += "\nThe next occurance of " + holidayinfo.safename + " is on <t:" + d2.getTime() / 1000 + ":D>";
-                            
-                        }
-                    }
-                    
-                    additionaltext += whenistext + "\n";
-                }
+            }
+
+            if (msgContent.includes('days since')) //custom days until text output - for joseph
+            {
+                var int = dateDiffInDays(d1, d2); //convert to days difference
+                var bonustext = holidayinfo.year != undefined ? " " + holidayinfo.year : "";
                 
-                if (msgContent.includes('day of week')) //custom days until text output - for joseph
+                int = 3;
+                var dutext = "";
+                if (int != 0)
                 {
-                    var bonustext = holidayinfo.year != undefined ? " " + holidayinfo.year : "";
-                    var dowtext = holidayinfo.safename + bonustext + " is on " + d2.toLocaleDateString('en-US', {weekday: 'long'}); //future text
-                    
-                    additionaltext += dowtext + "\n";
-                }
-    
-                if (msgContent.includes('days until')) //custom days until text output - for joseph
-                {
-                    var int = dateDiffInDays(d1, d2); //convert to days difference
-                    var bonustext = holidayinfo.year != undefined ? " " + holidayinfo.year : "";
-    
-                    var dutext = "";
-                    if (int != 0)
-                    {
-                        // if (int == 1)
-                        //     dutext = int + " Day until " + holidayinfo.safename; //future text
-                        // else
-                        //     dutext = int + " Days until " + holidayinfo.safename + bonustext; //future text
-                        
-                        dutext = holidayinfo.safename + bonustext + " is <t:" + d2.getTime() / 1000 + ":R>" + (int > 31 ? " which is in " + int + " day" + (int == 1 ? "" : "s") : "");
-
-                        additionaltext += dutext + "\n";
-                    }
+                    if (int == 1)
+                        dutext = int + " Day until " + holidayinfo.safename; //future text
                     else
-                        showwed = true;
-                }
-
-                if (msgContent.includes('days since')) //custom days until text output - for joseph
-                {
-                    var int = dateDiffInDays(d1, d2); //convert to days difference
-                    var bonustext = holidayinfo.year != undefined ? " " + holidayinfo.year : "";
+                        dutext = int + " Days until " + holidayinfo.safename + bonustext; //future text
                     
-                    int = 3;
-                    var dutext = "";
-                    if (int != 0)
+                    dutext = "Since for Events Coming Soon";
+                    additionaltext += dutext + "\n";
+                }
+                else
+                    showwed = true;
+            }
+            
+            if (additionaltext !== "")
+            {
+                outs.push({ content: additionaltext });
+
+                if (!showwed)
+                    continue;
+            }
+
+            var dow_d2 = (d2.getDay() + 4) % 7;//get day of week (making wed = 0)
+            let d2_useage = new Date(d2.getFullYear(), d2.getMonth(), 1); //holiday that has been wednesday shifted
+            d2_useage.setDate(d2.getDate() - dow_d2);// modify holiday for wednesdays
+
+            let weeks = Math.abs((d1_useage.getTime() - d2_useage.getTime()) / 3600000 / 24 / 7); // how many weeks
+            
+            if (weeks < .3) //for when it is the week before and set to .142
+                weeks = 0;
+
+            weeks = Math.round(weeks);
+
+            var wednesdayoverlay = "Wednesday_Plural.png"; //gets the wednesday portion
+            if (weeks == 1)
+                wednesdayoverlay = "Wednesday_Single.png"; //one week means single info
+
+            var templocal = babadata.datalocation + "FrogHolidays/"; //creates the output frog image
+
+            var outputname = "outputfrog_" + i + ".png"; //default output name
+            if (d1.getTime() - d2.getTime() == 0)
+            {
+                outputname =  holidayinfo.name + ".png"; //if today is the event, show something cool
+
+                var custom = false;
+                if (holidayinfo.name == "date")
+                {
+                    custom = true;
+                }
+                else
+                {
+                    try
                     {
-                        if (int == 1)
-                            dutext = int + " Day until " + holidayinfo.safename; //future text
-                        else
-                            dutext = int + " Days until " + holidayinfo.safename + bonustext; //future text
-                        
-                        dutext = "Since for Events Coming Soon";
-                        additionaltext += dutext + "\n";
-                    }
-                    else
-                        showwed = true;
-                }
-                
-                if (additionaltext !== "")
-                {
-                    outs.push({ content: additionaltext });
-    
-                    if (!showwed)
-                        continue;
-                }
-    
-                var dow_d2 = (d2.getDay() + 4) % 7;//get day of week (making wed = 0)
-                let d2_useage = new Date(d2.getFullYear(), d2.getMonth(), 1); //holiday that has been wednesday shifted
-                d2_useage.setDate(d2.getDate() - dow_d2);// modify holiday for wednesdays
-    
-                let weeks = Math.abs((d1_useage.getTime() - d2_useage.getTime()) / 3600000 / 24 / 7); // how many weeks
-                
-                if (weeks < .3) //for when it is the week before and set to .142
-                    weeks = 0;
-
-                weeks = Math.round(weeks);
-    
-                var wednesdayoverlay = "Wednesday_Plural.png"; //gets the wednesday portion
-                if (weeks == 1)
-                    wednesdayoverlay = "Wednesday_Single.png"; //one week means single info
-    
-                var templocal = babadata.datalocation + "FrogHolidays/"; //creates the output frog image
-    
-                var outputname = "outputfrog_" + i + ".png"; //default output name
-                if (d1.getTime() - d2.getTime() == 0)
-                {
-                    outputname =  holidayinfo.name + ".png"; //if today is the event, show something cool
-
-                    var custom = false;
-                    if (holidayinfo.name == "date")
+                        fs.accessSync(templocal + outputname, fs.constants.R_OK | fs.constants.W_OK);
+                    } 
+                    catch (err)
                     {
                         custom = true;
-                    }
-                    else
-                    {
-                        try
-                        {
-                            fs.accessSync(templocal + outputname, fs.constants.R_OK | fs.constants.W_OK);
-                        } 
-                        catch (err)
-                        {
-                            custom = true;
-                            outputname = "date.png";
-                        }
-                    }
-    
-                    if (custom)
-                    {
-                        // images(templocal + outputname).save(templocal + "outputfrog_0.png");
-    
-                        Jimp.read(templocal + outputname)
-                            .then(function (image) {
-                                loadedImage = image;
-                                return Jimp.loadFont(Jimp.FONT_SANS_32_BLACK);
-                            })
-                            .then(function (font) {
-                                loadedImage.print(font, 190, 20, holidayinfo.safename)
-                                        .write(templocal + "outputfrog_0.png");
-                            })
-                            .catch(function (err) {
-                                console.error(err);
-                            });
-                        outputname = "outputfrog_0.png";
+                        outputname = "date.png";
                     }
                 }
-                else
+
+                if (custom)
                 {
-                    weeks = Math.floor(weeks);
-                    if (weeks > 999999) weeks = 1000000;
-                    var base = holidayinfo.name + "_base.png";
-    
-                    try 
-                    {
-                        await MakeImage(templocal, base, wednesdayoverlay, weeks, outputname, holidayinfo, false);
-                    }
-                    catch(err) // probably not nessisary
-                    {
-                        await MakeImage(templocal, "date_base.png", wednesdayoverlay, weeks, outputname, holidayinfo, true);
-                    }
-                    
+                    // images(templocal + outputname).save(templocal + "outputfrog_0.png");
+
+                    Jimp.read(templocal + outputname)
+                        .then(function (image) {
+                            loadedImage = image;
+                            return Jimp.loadFont(Jimp.FONT_SANS_32_BLACK);
+                        })
+                        .then(function (font) {
+                            loadedImage.print(font, 190, 20, holidayinfo.safename)
+                                    .write(templocal + "outputfrog_0.png");
+                        })
+                        .catch(function (err) {
+                            console.error(err);
+                        });
+                    outputname = "outputfrog_0.png";
                 }
-                
-                var tempFilePath = templocal + outputname; // temp file location
-                templocationslist.push(tempFilePath);
             }
-    
-            for (var j = 0; j < templocationslist.length; j++)
-            {
-                var newAttch = new Discord.AttachmentBuilder(templocationslist[j], 
-                    { name: IsHoliday[j].name + '.png', description : "It is " + IsHoliday[j].name + ", my dudes"}); //makes a new discord attachment
-                try
-                {
-                    fs.accessSync(templocationslist[j], fs.constants.R_OK | fs.constants.W_OK);
-                } 
-                catch (err)
-                {
-                    var newAttch = new Discord.AttachmentBuilder(templocal + "error.png", 
-                        { name: 'error.png', description : "It is error time, my dudes! Brug why you erroring baba?"}); //makes a new discord attachment (default fail image)
-                }
-                
-                var op = { content: "It is Wednesday, My BABAs", files: [newAttch] }
-                outs.push(op);
-            }
-        }
-        else
-        {
-		    var tod = new Date();
-            if (tod.getDay() == 3)
-                outs.push({ content: "It is Wednesday, My Dudes" });
             else
             {
-                if (msgContent.replace("wednesday", "").replace("when is", "").replace("day of week", "").replace("days until", "").trim() == "next")
-                    outs.push({ content: "The definition of insanity is doing the same thing over and over expecting a different result" });
-                else
-                    outs.push({ content: await funnyDOWTextSaved(3, author.id) });
+                weeks = Math.floor(weeks);
+                if (weeks > 999999) weeks = 1000000;
+                var base = holidayinfo.name + "_base.png";
+
+                try 
+                {
+                    await MakeImage(templocal, base, wednesdayoverlay, weeks, outputname, holidayinfo, false);
+                }
+                catch(err) // probably not nessisary
+                {
+                    await MakeImage(templocal, "date_base.png", wednesdayoverlay, weeks, outputname, holidayinfo, true);
+                }
+                
             }
+            
+            var tempFilePath = templocal + outputname; // temp file location
+            templocationslist.push(tempFilePath);
         }
 
-        if (outs.length == 0)
-            outs.push({ content: "Baba Broke Getting that Event!" });
-        
-        return callback(outs);
-    });
+        for (var j = 0; j < templocationslist.length; j++)
+        {
+            var newAttch = new Discord.AttachmentBuilder(templocationslist[j], 
+                { name: IsHoliday[j].name + '.png', description : "It is " + IsHoliday[j].name + ", my dudes"}); //makes a new discord attachment
+            try
+            {
+                fs.accessSync(templocationslist[j], fs.constants.R_OK | fs.constants.W_OK);
+            } 
+            catch (err)
+            {
+                var newAttch = new Discord.AttachmentBuilder(templocal + "error.png", 
+                    { name: 'error.png', description : "It is error time, my dudes! Brug why you erroring baba?"}); //makes a new discord attachment (default fail image)
+            }
+            
+            var op = { content: "It is Wednesday, My BABAs", files: [newAttch] }
+            outs.push(op);
+        }
+    }
+    else
+    {
+        var tod = new Date();
+        if (tod.getDay() == 3)
+            outs.push({ content: "It is Wednesday, My Dudes" });
+        else
+        {
+            if (msgContent.replace("wednesday", "").replace("when is", "").replace("day of week", "").replace("days until", "").trim() == "next")
+                outs.push({ content: "The definition of insanity is doing the same thing over and over expecting a different result" });
+            else
+                outs.push({ content: await funnyDOWTextSaved(3, author.id) });
+        }
+    }
 
+    if (outs.length == 0)
+        outs.push({ content: "Baba Broke Getting that Event!" });
     
+    return outs;
+
     //if (msgContent.includes('super cursed'))
     //{
     //	setTimeout(function()
@@ -793,7 +791,7 @@ async function babaHurricane(hurricanename, callback)
        // after download completed close filestream
         file.on("finish", () => {
             file.close();
-            console.log("Download Completed");
+            console.log("Download Completed for " + hurricanename);
 
             var vv = hfull === undefined ? " for all Hurricanes" : hfull;
            
@@ -819,7 +817,7 @@ function babaCat(callback)
        // after download completed close filestream
        file.on("finish", () => {
            file.close();
-           console.log("Download Completed");
+           console.log("Download Completed for Cat");
 
            callback({ content: "Baba Cat", files: [tempFilePath] });
        });
@@ -847,7 +845,7 @@ function babaWeather(mode, city, callback)
        // after download completed close filestream
        file.on("finish", () => {
            file.close();
-           console.log("Download Completed");
+           console.log("Download Completed for Weather");
 
            var newAttch = new Discord.AttachmentBuilder(tempFilePath, 
                { name: city + '.png', description : "Weather info for " + city}); //makes a new discord attachment
@@ -912,7 +910,7 @@ function babaAurora(time, callback)
         // after download completed close filestream
          file.on("finish", () => {
              file.close();
-             console.log("Download Completed");
+             console.log("Download Completed for Aurora");
  
              var vv = "Aurora Forecast for " + time;
             
@@ -926,7 +924,6 @@ function babaAurora(time, callback)
 
 function babaGoodberrys(callback)
 {
-    console.log("Goodberrys");
     publicGoogleCalendar = new PublicGoogleCalendar({ calendarId: '24gbb7942jsn557e7l93in7itjmo5lqj@import.calendar.google.com' });
 
     publicGoogleCalendar.getEvents(function(err, events) 

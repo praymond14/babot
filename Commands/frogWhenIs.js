@@ -1,6 +1,7 @@
 const { babaWednesday } = require("../commandFunctions.js");
 const { SlashCommandBuilder } = require('@discordjs/builders');
 const { FrogButtons } = require("../HelperFunctions/basicHelpers.js");
+const { splitStringInto2000CharChunksonNewLine } = require("../HelperFunctions/slashFridayHelpers.js");
 
 module.exports = {
 	data: new SlashCommandBuilder()
@@ -19,14 +20,34 @@ module.exports = {
         var event = interaction.options.getString("event");
         var message = await interaction.fetchReply();
         
-        await babaWednesday(`${event} when is`, interaction.user, function(texts) 
+        var texts = await babaWednesday(`${event} when is`, interaction.user);
+        
+        if (texts.length > 1)
         {
-            if (texts.length > 1)
+            FrogButtons(texts, interaction, message);
+            await interaction.editReply(texts[0]);
+        }
+        else 
+        {
+            if (texts[0].files == null)
             {
-                FrogButtons(texts, interaction, message);
-                interaction.editReply(texts[0]);
+                var text = texts[0].content;
+    
+                var chunks = splitStringInto2000CharChunksonNewLine(text);
+    
+                await interaction.editReply(chunks[0]);
+    
+                var message = await interaction.fetchReply();
+                // send the rest of the chunks as replys to each other
+                for (var i = 1; i < chunks.length; i++)
+                {
+                    msg = await msg.reply(chunks[i]);
+                }	
             }
-            else interaction.editReply(texts[0]);
-        });
+            else 
+            {
+                await interaction.editReply(texts[0]);
+            }
+        }
 	},
 };

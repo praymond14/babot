@@ -7,6 +7,7 @@ const { SetHolidayChan, CreateChannel, MonthsPlus, getD1 } = require('./HelperFu
 const { FindNextHoliday, CheckHoliday } = require('./HelperFunctions/commandHelpers.js');
 
 const { cacheDOW, ObtainDBHolidays, saveSlashFridayJson } = require('./databaseandvoice');
+const { resetRNG } = require('./HelperFunctions/slashFridayHelpers.js');
 
 var to = null;
 var toWed = null;
@@ -23,39 +24,38 @@ function dailyCallStart(bot)
 	});
 }
 
-function DisplayBirthdays(guild)
+async function DisplayBirthdays(guild)
 {
 	if ((global.dbAccess[1] && global.dbAccess[0]))
 	{
-		ObtainDBHolidays(function(holidays)
-		{
-			let d1 = getD1(); //get today
-			var yr = d1.getFullYear();
-			var hols = FindNextHoliday(d1, yr, CheckHoliday("BIRTHDAY", holidays));
-			global.BirthdayToday = null;
+		var holidays = await ObtainDBHolidays();
+		
+		let d1 = getD1(); //get today
+		var yr = d1.getFullYear();
+		var hols = FindNextHoliday(d1, yr, CheckHoliday("BIRTHDAY", holidays));
+		global.BirthdayToday = null;
 
-			var generalChan = guild.channels.fetch(babadata.generalchan).then(channel => {
-				if (hols.length > 0)
+		var generalChan = guild.channels.fetch(babadata.generalchan).then(channel => {
+			if (hols.length > 0)
+			{
+				var names = [];
+				for (var i = 0; i < hols.length; i++)
 				{
-					var names = [];
-					for (var i = 0; i < hols.length; i++)
+					if (hols[i].day == d1.getDate() && hols[i].month == d1.getMonth() + 1)
 					{
-						if (hols[i].day == d1.getDate() && hols[i].month == d1.getMonth() + 1)
-						{
-							names.push(hols[i]["safename"]);
-						}
-					}
-					if (names.length > 0)
-					{
-						global.BirthdayToday = names;
-						channel.sendTyping();
-						console.log("Celebrating: " + names.join(" and "))
-						channel.send("!baba wednesday " + names.join(" and "));
+						names.push(hols[i]["safename"]);
 					}
 				}
-			})
-			.catch(console.error);
-		});
+				if (names.length > 0)
+				{
+					global.BirthdayToday = names;
+					channel.sendTyping();
+					console.log("Celebrating: " + names.join(" and "))
+					channel.send("!baba wednesday " + names.join(" and "));
+				}
+			}
+		})
+		.catch(console.error);
 	}
 }
 
@@ -234,6 +234,7 @@ function todayDay(dow, guild, now)
 
 function dailyCall(bot, guild)
 {
+	resetRNG();
 	global.DailyErrors = 0;
 	let rawdataBB = fs.readFileSync(__dirname + '/babotdata.json');
 	babadata = JSON.parse(rawdataBB);
