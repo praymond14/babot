@@ -228,5 +228,6 @@ process.on('uncaughtException', function (err)
 	{
 		console.log("Too many errors, shutting down");
 		global.CleanupEverything();
+		throw new Error("Too many errors, shutting down");
 	}
 });

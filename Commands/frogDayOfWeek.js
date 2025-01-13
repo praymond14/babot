@@ -33,7 +33,7 @@ module.exports = {
     
                 await interaction.editReply(chunks[0]);
     
-                var message = await interaction.fetchReply();
+                var msg = await interaction.fetchReply();
                 // send the rest of the chunks as replys to each other
                 for (var i = 1; i < chunks.length; i++)
                 {
