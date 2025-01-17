@@ -738,7 +738,7 @@ async function preformEasterEggs(message, msgContent, bot)
 			{
 				var chunks = splitStringInto2000CharChunksonNewLine(tesxt);
 				console.log(outputstringdebug);
-				
+
 				var msg = await message.channel.send(chunks[0]);
 				// send the rest of the chunks as replys to each other
 				for (var i = 1; i < chunks.length; i++)
@@ -1287,6 +1287,7 @@ function getTimeFromString(timestring)
 	var minute = 0;
 	var second = 0;
 
+	var hourtime = null;
 	if (time.length == 3)
 	{
 		hour = parseInt(time[0]);
@@ -1305,14 +1306,14 @@ function getTimeFromString(timestring)
 
 	var timepossibles = [];
 	var newTime;
-	var hourtime = null;
+	
 	if (!isNaN(hour))
 	{
 		newTime = new Date(currentTime.getFullYear(), currentTime.getMonth(), currentTime.getDate(), hour, minute, second);
 		// if time is in the past, add a day
 
 		// if contians am or pm convert to 24 hour time
-		if (timestring.toLowerCase().includes("pm"))
+		if (timestring.toLowerCase().includes("pm") && newTime.getHours() < 12)
 		{
 			newTime.setHours(newTime.getHours() + 12);
 		}
@@ -1325,46 +1326,29 @@ function getTimeFromString(timestring)
 		hourtime = newTime;
 		timepossibles.push(newTime);
 	}
+	console.log("Time possibles: " + timepossibles);
+	// Group OVERRIDE: (these take precedence over all other time strings)
+	// midnight -> midnight of the next day
+	// noon -> the next noon
+
+	// Group A: 
+	// tonight -> caps the time period from 6pm to 12am of day sent, if it is past 6pm it will be from current time to 12am
+	// tomorrow -> caps the time period from 7am to 10pm of the next day
+
+	// morning -> caps the time period from 7am to 11am of the day sent, can be used with tomorrow
+	// afternoon -> caps the time period from 12pm to 5pm of the day sent, can be used with tomorrow
+
+	// later -> uses existing time caps, has to also be > 1-2 (random) hours from current time, adds 2 hours to end of cap (if exists, else 6hrs from current time)
+	// sometime -> uses existing time caps, 
 	
-	if (timestring.toLowerCase().includes("tonight"))
-	{
-		// generate random time from 7pm to 11pm
-		var hour = Math.floor(Math.random() * 5) + 19;
-		newTime = new Date(currentTime.getFullYear(), currentTime.getMonth(), currentTime.getDate(), hour, 0, 0);
-		newTime = GambaRoll(newTime);
-		timepossibles.push(newTime);
-	}
-	else if (timestring.toLowerCase().includes("tomorrow"))
-	{
-		// generate random time from 7am to 11pm
-		var hour = Math.floor(Math.random() * 17) + 7;
-		newTime = new Date(currentTime.getFullYear(), currentTime.getMonth(), currentTime.getDate() + 1, hour, 0, 0);
-		newTime = GambaRoll(newTime);
-		timepossibles.push(newTime);
-	}
-	else if (timestring.toLowerCase().includes("later"))
-	{
-		// generate random time from 7am to 11pm
-		var hour = Math.floor(Math.random() * 17) + 7;
-		newTime = new Date(currentTime.getFullYear(), currentTime.getMonth(), currentTime.getDate(), hour, 0, 0);
-		newTime = GambaRoll(newTime);
-		timepossibles.push(newTime);
-	}
-	else if (timestring.toLowerCase().includes("sometime"))
-	{
-		// generate random time from 7am to 11pm for a random day in next 10 days
-		var hour = Math.floor(Math.random() * 17) + 7;
-		var day = Math.floor(Math.random() * 10);
-		newTime = new Date(currentTime.getFullYear(), currentTime.getMonth(), currentTime.getDate() + day, hour, 0, 0);
-		newTime = GambaRoll(newTime);
-		timepossibles.push(newTime);
-	}
-	else if (timestring.toLowerCase().includes("midnight"))
+	if (timestring.toLowerCase().includes("midnight"))
 	{
 		newTime = new Date(currentTime.getFullYear(), currentTime.getMonth(), currentTime.getDate() + 1, 0, 0, 0);
 		timepossibles.push(newTime);
 	}
-	else if (timestring.toLowerCase().includes("noon"))
+	
+	console.log("Time possibles: " + timepossibles);
+	if (timestring.toLowerCase().includes("noon") && !timestring.toLowerCase().includes("afternoon"))
 	{
 		var day = currentTime.getDate();
 		if (currentTime.getHours() >= 12)
@@ -1372,28 +1356,247 @@ function getTimeFromString(timestring)
 		newTime = new Date(currentTime.getFullYear(), currentTime.getMonth(), day, 12, 0, 0);
 		timepossibles.push(newTime);
 	}
-	else if (timestring.toLowerCase().includes("morning"))
+
+	if (timestring.toLowerCase().includes("tonight"))
 	{
-		// generate random time from 7am to 11am
-		var hour = Math.floor(Math.random() * 5) + 7;
-		newTime = new Date(currentTime.getFullYear(), currentTime.getMonth(), currentTime.getDate(), hour, 0, 0);
-		newTime = GambaRoll(newTime);
+		var day = currentTime.getDate();
+		var hourT = 18;
+		var minuteT = 0;
+		var secondT = 0;
+
+		var extraSeconds = Math.random() * 60 * 60 * 2;
+
+		if (currentTime.getHours() >= 18)
+		{
+			hourT = currentTime.getHours();
+			minuteT = currentTime.getMinutes();
+			secondT = currentTime.getSeconds();
+		}
+
+		var newTimeStart = new Date(currentTime.getFullYear(), currentTime.getMonth(), day, hourT, minuteT, secondT);
+		var newTimeEnd = new Date(currentTime.getFullYear(), currentTime.getMonth(), day, 23, 59, 59);
+
+		if (timestring.toLowerCase().includes("later") && hourtime == null)
+		{
+			newTimeStart.setSeconds(newTimeStart.getSeconds() + extraSeconds);
+			newTimeEnd.setSeconds(newTimeEnd.getSeconds() + extraSeconds);
+		}
+		
+		// if hourtime falls within the range, use that time
+		if (hourtime != null && hourtime.getTime() >= newTimeStart.getTime() && hourtime.getTime() <= newTimeEnd.getTime())
+		{
+			hourT = hourtime.getHours();
+			minuteT = hourtime.getMinutes();
+			secondT = hourtime.getSeconds();
+			hourTEd = hourtime.getHours();
+			minuteTEd = hourtime.getMinutes();
+			secondTEd = hourtime.getSeconds();
+		}
+
+		// get a time between start and end
+		newTime = new Date(newTimeStart.getTime() + Math.random() * (newTimeEnd.getTime() - newTimeStart.getTime()));
+		
 		timepossibles.push(newTime);
 	}
-	else if (timestring.toLowerCase().includes("afternoon"))
+
+	if (timestring.toLowerCase().includes("tomorrow"))
 	{
-		// generate random time from 12pm to 5pm
-		var hour = Math.floor(Math.random() * 5) + 12;
-		newTime = new Date(currentTime.getFullYear(), currentTime.getMonth(), currentTime.getDate(), hour + 12, 0, 0);
-		newTime = GambaRoll(newTime);
+		var day = currentTime.getDate() + 1;
+		var hourT = 7;
+		var minuteT = 0;
+		var secondT = 0;
+
+		var hourTEd = 22;
+		var minuteTEd = 0;
+		var secondTEd = 0;
+
+		if (timestring.toLowerCase().includes("morning"))
+		{
+			hourT = 7;
+			hourTEd = 11;
+		}
+		else if (timestring.toLowerCase().includes("afternoon"))
+		{
+			hourT = 12;
+			hourTEd = 17;
+		}
+		else if (timestring.toLowerCase().includes("evening"))
+		{
+			hourT = 18;
+			hourTEd = 21;
+		}
+		else if (timestring.toLowerCase().includes("night"))
+		{
+			hourT = 22;
+			hourTEd = 23;
+			minuteTEd = 59;
+			secondTEd = 59;
+		}
+		else if (timestring.toLowerCase().includes("sometime"))
+		{
+			hourT = 0;
+			hourTEd = 23;
+			minuteTEd = 59;
+			secondTEd = 59;
+		}
+
+		if (hourtime != null)
+		{
+			hourT = hourtime.getHours();
+			minuteT = hourtime.getMinutes();
+			secondT = hourtime.getSeconds();
+			hourTEd = hourtime.getHours();
+			minuteTEd = hourtime.getMinutes();
+			secondTEd = hourtime.getSeconds();
+		}
+
+		var newTimeStart = new Date(currentTime.getFullYear(), currentTime.getMonth(), day, hourT, minuteT, secondT);
+		var newTimeEnd = new Date(currentTime.getFullYear(), currentTime.getMonth(), day, hourTEd, minuteTEd, secondTEd);
+
+		if (timestring.toLowerCase().includes("later") && hourtime == null)
+		{
+			newTimeStart.setSeconds(newTimeStart.getSeconds() + extraSeconds);
+			newTimeEnd.setSeconds(newTimeEnd.getSeconds() + extraSeconds);
+		}
+
+		newTime = new Date(newTimeStart.getTime() + Math.random() * (newTimeEnd.getTime() - newTimeStart.getTime()));
+		
 		timepossibles.push(newTime);
+	}
+
+	if (!timestring.toLowerCase().includes("tomorrow") && !timestring.toLowerCase().includes("tonight"))
+	{
+		if (timestring.toLowerCase().includes("later"))
+		{
+			var extraSeconds = Math.random() * 60 * 60 * 2;
+			var extraSecondsLength = Math.random() * 60 * 60 * 5;
+	
+			if (hourtime != null)
+			{
+				newTime = new Date(hourtime.getTime() + extraSeconds);
+			}
+			else
+			{
+				newTime = new Date(currentTime.getTime() + extraSeconds + extraSecondsLength);
+			}
+			timepossibles.push(newTime);
+		}
+	
+		if (timestring.toLowerCase().includes("sometime"))
+		{
+			// pick a random time in next 5 days
+			var seconds = Math.random() * 60 * 60 * 24 * 5;
+			newTime = new Date(currentTime.getTime() + seconds);
+			timepossibles.push(newTime);
+		}
+
+		if (timestring.toLowerCase().includes("morning"))
+		{
+			var day = currentTime.getDate();
+			var hourT = 7;
+			var minuteT = 0;
+			var secondT = 0;
+			var hourTEd = 11;
+			var minuteTEd = 0;
+			var secondTEd = 0;
+
+			if (hourtime != null && hourtime.getHours() >= 7 && hourtime.getHours() <= 11)
+			{
+				hourT = hourtime.getHours();
+				minuteT = hourtime.getMinutes();
+				secondT = hourtime.getSeconds();
+				hourTEd = hourtime.getHours();
+				minuteTEd = hourtime.getMinutes();
+				secondTEd = hourtime.getSeconds();
+			}
+
+			var newTimeStart = new Date(currentTime.getFullYear(), currentTime.getMonth(), day, hourT, minuteT, secondT);
+			var newTimeEnd = new Date(currentTime.getFullYear(), currentTime.getMonth(), day, hourTEd, minuteTEd, secondTEd);
+
+			newTime = new Date(newTimeStart.getTime() + Math.random() * (newTimeEnd.getTime() - newTimeStart.getTime()));
+
+			// if time is in the past, add a day
+			if (newTime.getTime() < currentTime.getTime())
+			{
+				newTime.setDate(newTime.getDate() + 1);
+			}
+
+			timepossibles.push(newTime);
+		}
+
+		if (timestring.toLowerCase().includes("afternoon"))
+		{
+			var day = currentTime.getDate();
+			var hourT = 12;
+			var minuteT = 0;
+			var secondT = 0;
+			var hourTEd = 17;
+			var minuteTEd = 0;
+			var secondTEd = 0;
+
+			if (hourtime != null && hourtime.getHours() >= 12 && hourtime.getHours() <= 17)
+			{
+				hourT = hourtime.getHours();
+				minuteT = hourtime.getMinutes();
+				secondT = hourtime.getSeconds();
+				hourTEd = hourtime.getHours();
+				minuteTEd = hourtime.getMinutes();
+				secondTEd = hourtime.getSeconds();
+			}
+
+			var newTimeStart = new Date(currentTime.getFullYear(), currentTime.getMonth(), day, hourT, minuteT, secondT);
+			var newTimeEnd = new Date(currentTime.getFullYear(), currentTime.getMonth(), day, hourTEd, minuteTEd, secondTEd);
+
+			newTime = new Date(newTimeStart.getTime() + Math.random() * (newTimeEnd.getTime() - newTimeStart.getTime()));
+
+			// if time is in the past, add a day
+			if (newTime.getTime() < currentTime.getTime())
+			{
+				newTime.setDate(newTime.getDate() + 1);
+			}
+
+			timepossibles.push(newTime);
+		}
+
+		if (timestring.toLowerCase().includes("evening"))
+		{
+			var day = currentTime.getDate();
+			var hourT = 18;
+			var minuteT = 0;
+			var secondT = 0;
+			var hourTEd = 21;
+			var minuteTEd = 0;
+			var secondTEd = 0;
+
+			if (hourtime != null && hourtime.getHours() >= 18 && hourtime.getHours() <= 21)
+			{
+				hourT = hourtime.getHours();
+				minuteT = hourtime.getMinutes();
+				secondT = hourtime.getSeconds();
+				hourTEd = hourtime.getHours();
+				minuteTEd = hourtime.getMinutes();
+				secondTEd = hourtime.getSeconds();
+			}
+
+			var newTimeStart = new Date(currentTime.getFullYear(), currentTime.getMonth(), day, hourT, minuteT, secondT);
+			var newTimeEnd = new Date(currentTime.getFullYear(), currentTime.getMonth(), day, hourTEd, minuteTEd, secondTEd);
+
+			newTime = new Date(newTimeStart.getTime() + Math.random() * (newTimeEnd.getTime() - newTimeStart.getTime()));
+
+			// if time is in the past, add a day
+			if (newTime.getTime() < currentTime.getTime())
+			{
+				newTime.setDate(newTime.getDate() + 1);
+			}
+
+			timepossibles.push(newTime);
+		}
 	}
 
 	// pick a random time from the possible times
 	var time = timepossibles[Math.floor(Math.random() * timepossibles.length)];
 	// convert to current timezone
-	var timeoutp = new Date(time.getTime() - (time.getTimezoneOffset() * 60000));
-	console.log("Time: " + timeoutp);
+	console.log(timepossibles);
 
 	// hourtime = new Date(hourtime.getTime() - (hourtime.getTimezoneOffset() * 60000));
 

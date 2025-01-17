@@ -19,7 +19,10 @@ module.exports = {
         var actualtime = await babaRemind(message, time, date, interaction);
         var milisec = actualtime.getTime() / 1000;
         // add timezone offset
-        milisec += actualtime.getTimezoneOffset() * 60;
+        // milisec += actualtime.getTimezoneOffset() * 60;
+        
+        // round to nearest second
+        milisec = Math.round(milisec);
 
         await interaction.editReply({ content: "Reminder Set: <t:" + milisec + ":R> which is <t:" + milisec + ":F>, if baba crashes, tough luck no reminder!", ephemeral: true });
 	},
