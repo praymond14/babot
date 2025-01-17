@@ -221,8 +221,8 @@ async function funnyDOWText(cacheVersion, saveToFile, DateOveride, dowNum, autho
 	var text = textos[Math.floor(theRNG.nextFloat() * textos.length)];
 
 	// Manual Override ---------------------------------------
-	if (recrused == 0)
-		text = "If you are reading this then Baba Pizza is going to be completed in {brepeat:[IntMedSmall]:[Num]} days!";
+	// if (recrused == 0 && babadata.testing !== undefined)
+	// 	text = "If you are reading this then Baba Pizza is going to be completed in {brepeat:[IntMedSmall]:[Num]} days!";
 	// -------------------------------------------------------
 
 	condensedNotation = pretext.UID + "";
