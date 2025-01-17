@@ -872,7 +872,6 @@ async function babaRemind(message, time, date, interaction)
 
     var now = new Date();
     // convert now to correct timezone
-	now = new Date(now.getTime() - (now.getTimezoneOffset() * 60000));
 
     var timeuntilTheTimeFromNow = theTime.getTime() - now.getTime();
     var timeuntilthetimefromMidnight = theTime.getTime() - new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();

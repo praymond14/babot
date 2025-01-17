@@ -220,6 +220,11 @@ async function funnyDOWText(cacheVersion, saveToFile, DateOveride, dowNum, autho
 
 	var text = textos[Math.floor(theRNG.nextFloat() * textos.length)];
 
+	// Manual Override ---------------------------------------
+	if (recrused == 0)
+		text = "If you are reading this then Baba Pizza is going to be completed in {brepeat:[IntMedSmall]:[Num]} days!";
+	// -------------------------------------------------------
+
 	condensedNotation = pretext.UID + "";
 	if (text.startsWith("#"))
 	{
@@ -233,7 +238,14 @@ async function funnyDOWText(cacheVersion, saveToFile, DateOveride, dowNum, autho
 	}
 
 	//text = `{brepeatN:[INTMed]:{repeatS:[INTMed]:Frog}}`
-	text = repeatCheck(cacheVersion, text, "b");
+
+	var textCounto = repeatCheck(cacheVersion, text, "b");
+	text = textCounto[0];
+	
+	if (textCounto[1] != "")
+	{
+		condensedNotation += condensedNotationCreator(textCounto[1], "%");
+	}
 
 	// set headLevel to number of # at start of text
 	if (text.startsWith("#") && recrused == 0)
@@ -508,12 +520,18 @@ async function funnyDOWText(cacheVersion, saveToFile, DateOveride, dowNum, autho
 		fs.writeFileSync(babadata.datalocation + "/fridayCounter.json", JSON.stringify(fc));
 	}
 
-	textC = repeatCheck(cacheVersion, text);
+	var textC = repeatCheck(cacheVersion, text);
 	text = textC[0];
-	if (textC[1].length > 0)
-	{
-		var listOfCDs = textC[1];
+	condensedNotation += condensedNotationCreator(textC[1], ">");
+	
+	return [text, condensedNotation, cnYung];
+}
 
+function condensedNotationCreator(listOfCDs, prefix)
+{
+	var condensedNotation = "";
+	if (listOfCDs.length > 0)
+	{
 		// loop through list of CDs in reverse order
 		for (var i = listOfCDs.length - 1; i >= 0; i--)
 		{
@@ -529,10 +547,10 @@ async function funnyDOWText(cacheVersion, saveToFile, DateOveride, dowNum, autho
 			}
 		}
 		
-		condensedNotation += ">" + listOfCDs.join(",");
+		condensedNotation += prefix + listOfCDs.join("+");
 	}
-	
-	return [text, condensedNotation, cnYung];
+
+	return condensedNotation;
 }
 
 function replaceNested(cacheVersion, text, ToBeCounted = null, recrused = 0, headLevel = 0, authorID = 0)
@@ -597,6 +615,44 @@ function replaceNested(cacheVersion, text, ToBeCounted = null, recrused = 0, hea
 
 function repeatCheck(cacheVersion, text, prefix = "")
 {
+	if (text.includes("{RECURSIVE}"))
+		text = text.replaceAll("{RECURSIVE}", "𓃐RECURSIVE𓃐");
+
+	if (text.includes("{REVERSE}"))
+		text = text.replaceAll("{REVERSE}", "𓃐REVERSE𓃐")
+
+	var matchsplitter = "{" + prefix + "[rR][eE][pP][eE][aA][tT][sSnN]?:(\\{[^{}]*\\}|[^{}]+):(\\{[^{}]*\\}|[^{}]+)\\}"
+
+	var RegexExpress = new RegExp(matchsplitter, "g");
+
+	var cd = [];
+	var match = text.match(RegexExpress);
+
+	if (match != null)
+	{
+		for (var i = 0; i < match.length; i++)
+		{
+			var matchi = match[i];
+			var textI = repeatCheckInner(cacheVersion, matchi, prefix);
+	
+			text = text.replace(matchi, textI[0]);
+	
+			// append all textI[1] to cd
+			cd = cd.concat(textI[1]);
+		}
+	}
+
+	if (text.includes("𓃐RECURSIVE𓃐"))
+		text = text.replaceAll("𓃐RECURSIVE𓃐", "{RECURSIVE}");
+
+	if (text.includes("𓃐REVERSE𓃐"))
+		text = text.replaceAll("𓃐REVERSE𓃐", "{REVERSE}");
+
+	return [text, cd];
+}
+
+function repeatCheckInner(cacheVersion, text, prefix = "")
+{
 	// new /friday option tag items go here:
 	// {repeat:x:[Value]} - repeat the value x times
 	// repeat is not case sensitive in the regex
@@ -621,17 +677,24 @@ function repeatCheck(cacheVersion, text, prefix = "")
 	var RegexExpress2 = new RegExp(regexString + ":", "g");
 	var match = text.match(RegexExpress);
 	var match2 = text.match(RegexExpress2);
+
+	var validCountoAdd = true;
 	if (match2 != null) 
 	{
+		if (prefix == "b")
+			validCountoAdd = false;
 		match = match2;
 		match = match.map(x => x.slice(0, -1));
+	}
+	else
+	{
+		if (prefix == "b")
+			validCountoAdd = true;
 	}
 	
 	var indexesDealtWith = [];
 	var hasChildren = [];
 	var matchedChildren = [];
-
-	var validCountoAdd = true;
 
 	var counto = [];
 	while (match != null)
@@ -639,7 +702,10 @@ function repeatCheck(cacheVersion, text, prefix = "")
 		for (var i = 0; i < match.length; i++)
 		{
 			var countoPrefix = "";
-			validCountoAdd = true;
+
+			if (prefix != "b")
+				validCountoAdd = true;
+
 			var matchi = match[i];
 
 			if (matchedChildren.includes(matchi))
@@ -703,7 +769,7 @@ function repeatCheck(cacheVersion, text, prefix = "")
 				// add all submatches to matchedChildren
 				for (var j = 0; j < subMatch.length; j++)
 				{
-					hasChildren.push(0);
+					hasChildren.push(j);
 					matchedChildren.push(subMatch[j]);
 				}
 			}
@@ -713,19 +779,19 @@ function repeatCheck(cacheVersion, text, prefix = "")
 		match2 = text.match(RegexExpress2);
 		if (match2 != null) 
 		{
+			if (prefix == "b")
+				validCountoAdd = false;
 			match = match2;
 			match = match.map(x => x.slice(0, -1));
 		}
+		else
+		{
+			if (prefix == "b")
+				validCountoAdd = true;
+		}
 	}
 
-	if (prefix == "b")
-	{
-		return text;
-	}
-	else
-	{
-		return [text, counto];
-	}
+	return [text, counto];
 }
 
 function onlyLettersNumbers(text)
