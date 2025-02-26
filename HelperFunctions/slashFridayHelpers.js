@@ -34,19 +34,27 @@ async function funnyDOWTextSaved(dowNum, authorID, seedSet = -1, dontSave = fals
 	var during = null;
 	var utod = null;
 	var udf = null;
+	var customString = null;
 	if (seedSet != -1)
 	{
-		theRNG.setSeed(seedSet[0]);
-		cacheVersion = seedSet[1];
-		calledAs = seedSet[2];
-		during = seedSet[3];
-		utod = seedSet[4];
-		udf = seedSet[5];
+		if (seedSet.length == 6)
+		{
+			theRNG.setSeed(seedSet[0]);
+			cacheVersion = seedSet[1];
+			calledAs = seedSet[2];
+			during = seedSet[3];
+			utod = seedSet[4];
+			udf = seedSet[5];
+		}
+		else if (seedSet.length == 1)
+		{
+			customString = seedSet[0];
+		}
 	}
 
 	var seed = theRNG.getState();
 
-	var textGroup = await funnyDOWText(cacheVersion, !dontSave, [during, utod, udf], dowNum, calledAs != null ? calledAs : authorID);
+	var textGroup = await funnyDOWText(cacheVersion, !dontSave, [during, utod, udf], dowNum, calledAs != null ? calledAs : authorID, 0, [], 0, customString);
 	var text = textGroup[0];
 	
 	// console.log("Condensed Notation: " + textGroup[1]);
@@ -83,6 +91,8 @@ async function funnyDOWTextSaved(dowNum, authorID, seedSet = -1, dontSave = fals
 		{
 			theRNG.nextInt();
 		}
+
+		theRNG = new RNG(theRNG.getState());
 	
 		fs.readdir(babadata.datalocation + "/FridayCache", (err, files) => {
 			fcacheitems = files.length / 3;
@@ -97,10 +107,13 @@ async function funnyDOWTextSaved(dowNum, authorID, seedSet = -1, dontSave = fals
 	if (text == "")
 		text = "You are not allowed to enjoy this command, you are a bad person!";
 
+	if (global.DebugFriday)
+		text += " " + seed;
+
 	return text;
 }
 
-async function funnyDOWText(cacheVersion, saveToFile, DateOveride, dowNum, authorID, recrused = 0, ToBeCounted = [], headLevel = 0)
+async function funnyDOWText(cacheVersion, saveToFile, DateOveride, dowNum, authorID, recrused = 0, ToBeCounted = [], headLevel = 0, customString = null)
 {
 	let path = babadata.datalocation + "/DOWcache.json";
 	var condensedNotation = "";
@@ -222,7 +235,7 @@ async function funnyDOWText(cacheVersion, saveToFile, DateOveride, dowNum, autho
 
 	// Manual Override ---------------------------------------
 	// if (recrused == 0 && babadata.testing !== undefined)
-	// 	text = "If you are reading this then Baba Pizza is going to be completed in {brepeat:[IntMedSmall]:[Num]} days!";
+	// 	text = "Oh no, Repeat Mode is Activated Watch out!\n{brepeatN:[IntMedSmall]:{brepeatS:[IntMedSmall]:{RECURSIVE}}}\nPhew we survived! oh wait there is more!\n{brepeatS:[IntMedSmall]:{RECURSIVE}}";
 	// -------------------------------------------------------
 
 	condensedNotation = pretext.UID + "";
@@ -236,6 +249,9 @@ async function funnyDOWText(cacheVersion, saveToFile, DateOveride, dowNum, autho
 
 		condensedNotation = hasstr + condensedNotation;
 	}
+
+	if (customString != null && customString != "" && recrused == 0)
+		text = customString;
 
 	//text = `{brepeatN:[INTMed]:{repeatS:[INTMed]:Frog}}`
 
@@ -386,30 +402,66 @@ async function funnyDOWText(cacheVersion, saveToFile, DateOveride, dowNum, autho
 	text = text.replaceAll("[intDAY<-]", idayN);
 	text = text.replaceAll("[intDAY+1<-]", idayPplus1);
 
-	if (text.includes("[TS-"))
+	while (text.includes("[TS-") || text.includes("[td"))
 	{
-		subtext = "";
-		pickedDay = nextActualDOW;
-		if (text.includes("<-"))
+		if (text.includes("[TS-"))
 		{
-			pickedDay = prevActualDOW;
-			subtext = "<-";
-		}
-		else if (text.includes("->"))
-			subtext = "->";
+			// get first instance of [TS- until ] (length varies)
+			var start = text.indexOf("[TS-");
+			var end = text.indexOf("]", start);
+			var parttext = text.substring(start, end + 1);
 
-		if (text.includes("E59"))
+			subtext = "";
+			pickedDay = nextActualDOW;
+			if (parttext.includes("<-"))
+			{
+				pickedDay = prevActualDOW;
+				subtext = "<-";
+			}
+			else if (parttext.includes("->"))
+				subtext = "->";
+
+			if (parttext.includes("E59"))
+			{
+				subtext += "E59";
+				pickedDay = new Date(pickedDay.getFullYear(), pickedDay.getMonth(), pickedDay.getDate(), 23, 59, 59, 999);
+			}
+
+			if (parttext.includes("-R"))
+				text = text.replaceAll("[TS-R" + subtext + "]", "<t:" + Math.floor(pickedDay.getTime() / 1000) + ":R>");
+			if (parttext.includes("-D"))
+				text = text.replaceAll("[TS-D" + subtext + "]", "<t:" + Math.floor(pickedDay.getTime() / 1000) + ":D>");
+			if (parttext.includes("-F"))
+				text = text.replaceAll("[TS-F" + subtext + "]", "<t:" + Math.floor(pickedDay.getTime() / 1000) + ":F>");
+		}
+
+		if (text.includes("[td"))
 		{
-			subtext += "E59";
-			pickedDay = new Date(pickedDay.getFullYear(), pickedDay.getMonth(), pickedDay.getDate(), 23, 59, 59, 999);
-		}
+			// get first instance of [td until ] (length varies)
+			var start = text.indexOf("[td");
+			var end = text.indexOf("]", start);
+			var parttext = text.substring(start, end + 1);
 
-		if (text.includes("-R"))
-			text = text.replaceAll("[TS-R" + subtext + "]", "<t:" + Math.floor(pickedDay.getTime() / 1000) + ":R>");
-		else if (text.includes("-D"))
-			text = text.replaceAll("[TS-D" + subtext + "]", "<t:" + Math.floor(pickedDay.getTime() / 1000) + ":D>");
-		else if (text.includes("-F"))
-			text = text.replaceAll("[TS-F" + subtext + "]", "<t:" + Math.floor(pickedDay.getTime() / 1000) + ":F>");
+			subtext = "";
+			pickedDay = tod;
+			if (parttext.includes("Mid"))
+			{
+				pickedDay = todOnlyDate;
+				subtext = "Mid";
+			}
+			else if (parttext.includes("EOD"))
+			{
+				pickedDay = new Date(tod.getFullYear(), tod.getMonth(), tod.getDate(), 23, 59, 59, 999);
+				subtext = "EOD";
+			}
+			
+			if (parttext.includes("-R"))
+				text = text.replaceAll("[td" + subtext + " TS-R]", "<t:" + Math.floor(pickedDay.getTime() / 1000) + ":R>");
+			else if (parttext.includes("-D"))
+				text = text.replaceAll("[td" + subtext + " TS-D]", "<t:" + Math.floor(pickedDay.getTime() / 1000) + ":D>");
+			else if (parttext.includes("-F"))
+				text = text.replaceAll("[td" + subtext + " TS-F]", "<t:" + Math.floor(pickedDay.getTime() / 1000) + ":F>");
+		}
 	}
 
 	// text = text.replaceAll("[TS-R<-]", "<t:" + Math.floor(prevActualDOW.getTime() / 1000) + ":R>");
@@ -430,9 +482,9 @@ async function funnyDOWText(cacheVersion, saveToFile, DateOveride, dowNum, autho
 
 			// make sure to replace [SENDER] with the name of the user who called the command, needs to wait for the result
 			
-			var { NameFromUserIDID } = require('../databaseandvoice.js');
+			var { NameFromUserID } = require('../databaseandvoice.js');
 
-			var res = await NameFromUserIDID(authorID);
+			var res = await NameFromUserID(authorID);
 
 			// res is an object promise, need to get the value from it
 
@@ -446,30 +498,6 @@ async function funnyDOWText(cacheVersion, saveToFile, DateOveride, dowNum, autho
 				text = text.replaceAll("[SENDER]", res[0].PersonName);
 			}			
 		}
-	}
-
-
-	if (text.includes("[td"))
-	{
-		subtext = "";
-		pickedDay = tod;
-		if (text.includes("Mid"))
-		{
-			pickedDay = todOnlyDate;
-			subtext = "Mid";
-		}
-		else if (text.includes("EOD"))
-		{
-			pickedDay = new Date(tod.getFullYear(), tod.getMonth(), tod.getDate(), 23, 59, 59, 999);
-			subtext = "EOD";
-		}
-		
-		if (text.includes("-R"))
-			text = text.replaceAll("[td" + subtext + " TS-R]", "<t:" + Math.floor(pickedDay.getTime() / 1000) + ":R>");
-		else if (text.includes("-D"))
-			text = text.replaceAll("[td" + subtext + " TS-D]", "<t:" + Math.floor(pickedDay.getTime() / 1000) + ":D>");
-		else if (text.includes("-F"))
-			text = text.replaceAll("[td" + subtext + " TS-F]", "<t:" + Math.floor(pickedDay.getTime() / 1000) + ":F>");
 	}
 
 	text = text.replaceAll("\\n", "\n");

@@ -1,5 +1,5 @@
 var babadata = require('./babotdata.json'); //baba configuration file
-const { controlDOW, cacheDOW, saveSlashFridayJson, clearVCCList } = require("./databaseandvoice");
+const { controlDOW, LoadAllTheCache, SaveSlashFridayJson, clearVCCList, DMMePlease } = require("./databaseVoiceController");
 const fs = require('fs');
 const https = require('https');
 const fetch = require('node-fetch');
@@ -449,13 +449,39 @@ function TextCommandBackup(bot, message, sentvalid, msgContent, g)
 		{
 			if ((global.dbAccess[1] && global.dbAccess[0]))
 			{
-				cacheDOW();
+				LoadAllTheCache().catch(() => {console.log("Error loading cache")});
 				message.author.send("DOW cache updated (hopefully)");
 			}
 			else
 			{
 				message.author.send("DOW cache not updated");
 			}
+		}
+		else if (msgContent.includes("showthefridaydebug"))
+		{
+			global.DebugFriday = !global.DebugFriday;
+
+			message.author.send("Debug Friday set to " + global.DebugFriday);
+		}
+		else if (msgContent.includes("testthedmming"))
+		{
+			DMMePlease("Test DM");
+		}
+		else if (msgContent.includes("babapleaseitistimetosleepforalittlebit"))
+		{
+			DMMePlease("Baba is going to sleep for a little bit");
+			message.author.send("Baba is going to sleep for a little bit");
+			global.CleanupEverything();
+			setTimeout(function()
+			{
+				// Initialize Discord Bot
+				var bot = global.MakeBot();
+				global.BotOn(bot);
+				setTimeout(function()
+				{
+					DMMePlease("Baba is back");
+				}, 2000);
+			}, 2000);
 		}
 		else if (msgContent.includes("rbcontdow") || msgContent.includes("rbcontfrog")) //probably would break adams brain
 		{
@@ -493,8 +519,13 @@ function TextCommandBackup(bot, message, sentvalid, msgContent, g)
 		else if (msgContent.includes("manuela"))
 		{
 			var toveride = msgContent.includes("overide");
-			var mesg = saveSlashFridayJson(toveride);
-			message.author.send(mesg);
+			SaveSlashFridayJson(toveride).then((result) => 
+			{
+				message.author.send(result);
+			}).catch((error) => {
+				console.error(error);
+				message.author.send("Error: " + error);
+			});
 		}
 		// dm a user via baba
 		else if (msgContent.includes("amhours"))
@@ -600,11 +631,24 @@ function TextCommandBackup(bot, message, sentvalid, msgContent, g)
 			// send attachment
 			message.author.send({ files: [{ attachment: Buffer.from(logFile), name: 'debug.log' }] });
 		}
+		else if (msgContent.includes("dabees"))
+		{
+			var logFile = fs.readFileSync(babadata.temp + "DBdebug.log");
+
+			// send attachment
+			message.author.send({ files: [{ attachment: Buffer.from(logFile), name: 'DBdebug.log' }] });
+		}
 		else if (msgContent.includes("treecapitator"))
 		{
 			// reset the debug log to empty
 			fs.writeFileSync(babadata.temp + "debug.log", "");
 			message.author.send("Debug Log Cleared");
+		}
+		else if (msgContent.includes("dabeecapitator"))
+		{
+			// reset the debug log to empty
+			fs.writeFileSync(babadata.temp + "DBdebug.log", "");
+			message.author.send("DB Debug Log Cleared");
 		}
 		// add new one to download a csv of all the vcc logs and one to upload a csv of all the vcc logs
 		// add a thing to convert a datetime to utc

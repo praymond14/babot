@@ -2,7 +2,7 @@ var babadata = require('./babotdata.json'); //baba configuration file
 const { ModalBuilder, ActionRowBuilder, TextInputBuilder } = require('discord.js');
 
 const { movetoChannel } = require('./HelperFunctions/adminHelpers.js');
-const { babaHaikuEmbed } = require('./commandFunctions');
+const { babaHaikuEmbed, babaHaikuLinks } = require('./commandFunctions');
 const { handleButtonsEmbed } = require('./HelperFunctions/basicHelpers');
 
 const Discord = require('discord.js');
@@ -167,14 +167,16 @@ async function modalInfo(interaction, bot)
 
         var message = await interaction.fetchReply();
         var info = {"ipp": 5, "page": 0}
-        babaHaikuEmbed(purity, list, chans, 0, buy, msgstr, info, function(cont) 
+
+
+        var cont = babaHaikuEmbed(purity, buy, msgstr, info);
+        var deadData = purity ? null : babaHaikuLinks(cont);
+
+        interaction.editReply(cont[info.page]);
+        if (cont[info.page].components != null)
         {
-            interaction.editReply(cont[info.page]);
-            if (cont[info.page].components != null)
-            {
-                handleButtonsEmbed(interaction.channel, message, interaction.user.id, cont);
-            }
-        });
+            handleButtonsEmbed(interaction.channel, message, interaction.user.id, cont, deadData);
+        }
     }
 }
 
@@ -198,14 +200,14 @@ async function buttonInfo(interaction, bot)
 
         var message = await interaction.fetchReply();
         var info = {"ipp": 5, "page": 0}
-        babaHaikuEmbed(purity, list, chans, mye, buy, msgstr, info, function(cont) 
+
+        var cont = babaHaikuEmbed(purity, buy, msgstr, info);
+
+        interaction.editReply(cont[info.page]);
+        if (cont[info.page].components != null)
         {
-            interaction.editReply(cont[info.page]);
-            if (cont[info.page].components != null)
-            {
-                handleButtonsEmbed(interaction.channel, message, interaction.user.id, cont);
-            }
-        });
+            handleButtonsEmbed(interaction.channel, message, interaction.user.id, cont);
+        }
     }
     else if (cid === "purity" || cid === "haiku" || cid === "haiku_list")
     {

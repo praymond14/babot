@@ -6,7 +6,8 @@ const { loadInDBFSV } = require('./HelperFunctions/dbHelpers.js');
 const { SetHolidayChan, CreateChannel, MonthsPlus, getD1 } = require('./HelperFunctions/basicHelpers.js');
 const { FindNextHoliday, CheckHoliday } = require('./HelperFunctions/commandHelpers.js');
 
-const { cacheDOW, ObtainDBHolidays, saveSlashFridayJson } = require('./databaseandvoice');
+const { ObtainDBHolidays } = require('./databaseandvoice');
+const { LoadAllTheCache, SaveSlashFridayJson } = require('./databaseVoiceController');
 const { resetRNG } = require('./HelperFunctions/slashFridayHelpers.js');
 
 var to = null;
@@ -28,7 +29,7 @@ async function DisplayBirthdays(guild)
 {
 	if ((global.dbAccess[1] && global.dbAccess[0]))
 	{
-		var holidays = await ObtainDBHolidays();
+		var holidays = ObtainDBHolidays();
 		
 		let d1 = getD1(); //get today
 		var yr = d1.getFullYear();
@@ -265,7 +266,7 @@ function dailyCall(bot, guild)
 
 	if ((global.dbAccess[1] && global.dbAccess[0]))
 	{
-		cacheDOW();
+		LoadAllTheCache().catch(() => {console.log("Error loading cache")});
 	}
 
 	DisplayBirthdays(guild);
@@ -276,7 +277,7 @@ function dailyCall(bot, guild)
 	
 	todayDay(d1.getDay(), guild, now);
 
-	saveSlashFridayJson();
+	SaveSlashFridayJson();
 
 	console.log("Calling next command in: " + timeToMidnight / 1000 / 60 + " minutes");
 	to = setTimeout(function()

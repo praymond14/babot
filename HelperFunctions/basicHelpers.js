@@ -653,91 +653,114 @@ async function preformEasterEggs(message, msgContent, bot)
 	}
 
 	var dowIntIncluded = msgIncDay(msgContent);
-	if (dowIntIncluded > -1 && msgContent.includes("archive-"))
+	if (dowIntIncluded > -1 && (msgContent.includes("archive-") || msgContent.includes(`setstring-"`))) 
 	{
-		var outputstringdebug = "Archive DOW for " + dowIntIncluded;
-		// get all text after archive- until space (ex. archive-1-BIKUSFRIDAY -> BIKUSFRIDAY or archive-2-FRFRF -> FRFRF)
-		var frday = msgContent.match(/archive-([^ ]*)/)[1];
-
-		var as = null;
-		if (msgContent.includes("being-"))
+		if (msgContent.includes("archive-"))
 		{
-			as = msgContent.match(/being-([^ ]*)/)[1];
-
-			// make sure it's a number and on error set to null
-			as = parseInt(as);
-			if (isNaN(as))
-				as = null;
-
-			if (as != null)
-				outputstringdebug += " as " + as;
-		}
-
-		var during = null;
-		if (msgContent.includes("dateof-"))
-		{
-			during = msgContent.match(/dateof-([^ ]*)/)[1];
-
-			// make sure it's a number and on error set to null
-			during = parseInt(during);
-			if (isNaN(during))
-				during = null;
-
-			if (during != null)
-				outputstringdebug += " during " + during;
-		}
-
-		var utod = null;
-		if (msgContent.includes("usetoday"))
-		{
-			utod = true;
-
-			outputstringdebug += " using today";
-		}
-
-		var udf = null;
-		if (msgContent.includes("usedf"))
-		{
-			udf = true;
-
-			outputstringdebug += " using default";
-		}
-		
-		// split 1-XXX into [NUM, LETTERS]
-		var frisplit = frday.split('-');
-		var numboVersion = -1;
-		if (frisplit.length == 1)
-		{
-			frday = frisplit[0];
+			var outputstringdebug = "Archive DOW for " + dowIntIncluded;
+			// get all text after archive- until space (ex. archive-1-BIKUSFRIDAY -> BIKUSFRIDAY or archive-2-FRFRF -> FRFRF)
+			var frday = msgContent.match(/archive-([^ ]*)/)[1];
+	
+			var as = null;
+			if (msgContent.includes("being-"))
+			{
+				as = msgContent.match(/being-([^ ]*)/)[1];
+	
+				// make sure it's a number and on error set to null
+				as = parseInt(as);
+				if (isNaN(as))
+					as = null;
+	
+				if (as != null)
+					outputstringdebug += " as " + as;
+			}
+	
+			var during = null;
+			if (msgContent.includes("dateof-"))
+			{
+				during = msgContent.match(/dateof-([^ ]*)/)[1];
+	
+				// make sure it's a number and on error set to null
+				during = parseInt(during);
+				if (isNaN(during))
+					during = null;
+	
+				if (during != null)
+					outputstringdebug += " during " + during;
+			}
+	
+			var utod = null;
+			if (msgContent.includes("usetoday"))
+			{
+				utod = true;
+	
+				outputstringdebug += " using today";
+			}
+	
+			var udf = null;
+			if (msgContent.includes("usedf"))
+			{
+				udf = true;
+	
+				outputstringdebug += " using default";
+			}
 			
-			outputstringdebug += " " + frday;
+			// split 1-XXX into [NUM, LETTERS]
+			var frisplit = frday.split('-');
+			var numboVersion = -1;
+			if (frisplit.length == 1)
+			{
+				frday = frisplit[0];
+				
+				outputstringdebug += " " + frday;
+			}
+			else
+			{
+				numboVersion = frisplit[0];
+				frday = frisplit[1];
+	
+				outputstringdebug += " " + numboVersion + " " + frday;
+			}
+	
+			// convert to lowercase
+			frday = frday.toLowerCase();
+			// trim to only include letters in validLetters
+			frday = frday.split('').filter(c => validLetters.includes(c)).join('');
+	
+			if (frday != null)
+			{
+				// convert to numbers based off index in validLetters
+				var frdayInt = frday.split('').map(c => validLetters.indexOf(c));
+				// convert to string with no spaces
+				frday = frdayInt.join('');
+	
+				var tesxt = await funnyDOWTextSaved(dowIntIncluded, message.author.id, [frday, numboVersion, as, during, utod, udf], true);
+	
+				if (tesxt != null)
+				{
+					var chunks = splitStringInto2000CharChunksonNewLine(tesxt);
+					console.log(outputstringdebug);
+	
+					var msg = await message.channel.send(chunks[0]);
+					// send the rest of the chunks as replys to each other
+					for (var i = 1; i < chunks.length; i++)
+					{
+						msg = await msg.reply(chunks[i]);
+					}				
+				}
+	
+				resetRNG();
+			}
 		}
-		else
+		else if (msgContent.includes(`setstring-"`))
 		{
-			numboVersion = frisplit[0];
-			frday = frisplit[1];
-
-			outputstringdebug += " " + numboVersion + " " + frday;
-		}
-
-		// convert to lowercase
-		frday = frday.toLowerCase();
-		// trim to only include letters in validLetters
-		frday = frday.split('').filter(c => validLetters.includes(c)).join('');
-
-		if (frday != null)
-		{
-			// convert to numbers based off index in validLetters
-			var frdayInt = frday.split('').map(c => validLetters.indexOf(c));
-			// convert to string with no spaces
-			frday = frdayInt.join('');
-
-			var tesxt = await funnyDOWTextSaved(dowIntIncluded, message.author.id, [frday, numboVersion, as, during, utod, udf], true);
+			var setStringValue = message.content.match(/[sS][eE][tT][sS][tT][rR][iI][nN][gG]-"([^𓃐]*)"/)[1];
+			
+			var tesxt = await funnyDOWTextSaved(dowIntIncluded, message.author.id, [setStringValue], true);
 
 			if (tesxt != null)
 			{
 				var chunks = splitStringInto2000CharChunksonNewLine(tesxt);
-				console.log(outputstringdebug);
 
 				var msg = await message.channel.send(chunks[0]);
 				// send the rest of the chunks as replys to each other
@@ -746,8 +769,6 @@ async function preformEasterEggs(message, msgContent, bot)
 					msg = await msg.reply(chunks[i]);
 				}				
 			}
-
-			resetRNG();
 		}
 	}
 
@@ -878,12 +899,12 @@ function pleaseChecker(message, msgContent, ames)
 				newPleaso[key] = pleaso[key];
 			}
 
-			if (ames.includes(please[i].Name.toLowerCase()))
+			if (ames.includes(please[i].PersonName.toLowerCase()))
 			{
-				if (!(message.author.bot && (msgContent.includes("indeed, " + please[i].Name.toLowerCase() + " please!") || msgContent.includes("indeed, " + please[i].Name.toLowerCase() + "please!"))))
+				if (!(message.author.bot && (msgContent.includes("indeed, " + please[i].PersonName.toLowerCase() + " please!") || msgContent.includes("indeed, " + please[i].PersonName.toLowerCase() + "please!"))))
 				{
 					var uid = message.author.id;
-					var ovrideval = pleaseOVERIDE[please[i].Name];
+					var ovrideval = pleaseOVERIDE[please[i].PersonName];
 
 					if (ovrideval != null)
 					{
@@ -901,7 +922,7 @@ function pleaseChecker(message, msgContent, ames)
 						}
 					}
 					
-					var stringDefault = "Indeed, " + please[i].Name + " Please!";
+					var stringDefault = "Indeed, " + please[i].PersonName + " Please!";
 					
 					var pleaselist = [];
 					for (var j = 0; j < newPleaso.DefaultNormalChance; j++)
@@ -1044,7 +1065,7 @@ function GetSimilarName(names)
 {
 	var num = Math.floor(Math.random() * names.length);
 	var nam = names[num];
-	return nam.DiscordName;
+	return nam;
 }
 
 function FrogButtons(texts, interaction, message)
@@ -1108,6 +1129,7 @@ function buttonsAwaitMessageComponent(message, userid, data, collector)
 				var num = parseInt(chansend);
 				if (num != null && num > 0 && num <= data.length)
 				{
+					global.paged[message.id] = num - 1;
 					// update the message to show the haiku at the given number
 					message.edit(data[num - 1]);
 					collector.resetTimer();
@@ -1119,8 +1141,11 @@ function buttonsAwaitMessageComponent(message, userid, data, collector)
 	.catch(err => console.error(err));
 }
 
-function handleButtonsEmbed(channel, message, userid, data)
+global.paged = {};
+
+function handleButtonsEmbed(channel, message, userid, data, deadData = null)
 {
+	global.paged[message.id] = 0;
 	console.log("Handling buttons embed");
 	const filter = i => (i.customId.includes("page")) 
 						&& i.message.id === message.id && i.user.id === userid;
@@ -1132,7 +1157,8 @@ function handleButtonsEmbed(channel, message, userid, data)
 		{
 			//i.deferUpdate();
 			var page = parseInt(i.customId.replace("page", ""));
-			
+			global.paged[message.id] = page;
+
 			i.update(data[page]);
 			collector.resetTimer();
 
@@ -1141,8 +1167,13 @@ function handleButtonsEmbed(channel, message, userid, data)
 	});
 
 	buttonsAwaitMessageComponent(message, userid, data, collector);
-
-	collector.on('end', collected => message.edit({components: []}));
+ 
+	collector.on('end', collected => {
+		if (deadData != null)
+			message.edit({components: deadData[global.paged[message.id]]});
+		else
+			message.edit({components: []});
+	});
 }
 
 async function uExist(url)

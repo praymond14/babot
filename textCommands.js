@@ -1,4 +1,4 @@
-const { babaFriday,  babaHelp, babaPlease, babaPizza, babaVibeFlag, babaYugo, babaHaikuEmbed, babaWednesday, babaDayNextWed, babaJeremy, babaHurricane, babaRepost, babaWeather, babaProgress, babaAurora, babaGoodberrys } = require("./commandFunctions.js");
+const { babaFriday,  babaHelp, babaPlease, babaPizza, babaVibeFlag, babaYugo, babaHaikuEmbed, babaWednesday, babaDayNextWed, babaJeremy, babaHurricane, babaRepost, babaWeather, babaProgress, babaAurora, babaGoodberrys, babaHaikuLinks } = require("./commandFunctions.js");
 const { Client, Intents } = require('discord.js'); //discord module for interation with discord api
 const Discord = require('discord.js'); //discord module for interation with discord api
 var babadata = require('./babotdata.json'); //baba configuration file
@@ -342,22 +342,20 @@ async function babaMessage(bot, message)
 		{
 			message.channel.sendTyping();
 			var purity = msgContent.includes("purity");
-			var list = msgContent.includes("list");
-			var chans = msgContent.includes("channels");
-			var mye = msgContent.includes("my") ? message.author.id : 0;
 			var buy = msgContent.includes("by");
 			var info = {"ipp": 5, "page": 0};
-			babaHaikuEmbed(purity, list, chans, mye, buy, msgContent, info, function(cont) 
+
+			var cont = babaHaikuEmbed(purity, buy, msgContent, info);
+			var deadData = purity ? null : babaHaikuLinks(cont);
+			
+			message.channel.send(cont[info.page]).then(m2 => 
 			{
-				message.channel.send(cont[info.page]).then(m2 => 
+				if (cont[info.page].components != null)
 				{
-					if (cont[info.page].components != null)
-					{
-						handleButtonsEmbed(message.channel, m2, message.author.id, cont);
-					}
-				})
-				.catch(console.error);;
-			});
+					handleButtonsEmbed(message.channel, m2, message.author.id, cont, deadData);
+				}
+			})
+			.catch(console.error);;
 		}
 
 		if (msgContent.includes('wednesday') || msgContent.includes('days until') || msgContent.includes('when is') || msgContent.includes('day of week'))
@@ -380,9 +378,9 @@ async function babaMessage(bot, message)
 					
 					var msg = await message.channel.send(chunks[0]);
 					// send the rest of the chunks as replys to each other
-					for (var i = 1; i < chunks.length; i++)
+					for (var j = 1; j < chunks.length; j++)
 					{
-						msg = await msg.reply(chunks[i]);
+						msg = await msg.reply(chunks[j]);
 					}	
 				}
 				else
