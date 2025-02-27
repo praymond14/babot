@@ -12,12 +12,7 @@ module.exports = {
         await interaction.deferReply();
         var user = interaction.options.getUser('discord_user');
 
-        babaWhomst(
-            user,
-            function(val)
-            {
-                interaction.editReply(val);
-            }
-        )
+        var val = await babaWhomst(user);
+        await interaction.editReply(val);
     }
 }

@@ -1,4 +1,4 @@
-const { babaHaikuEmbed } = require("../commandFunctions.js");
+const { babaHaikuEmbed, babaHaikuLinks } = require("../commandFunctions.js");
 const { SlashCommandBuilder } = require('@discordjs/builders');
 const { sqlEscapeStringThingforAdamBecauseHeWillDoanSQLInjectionOtherwise } = require("../HelperFunctions/dbHelpers.js");
 const { handleButtonsEmbed } = require("../HelperFunctions/basicHelpers.js");
@@ -113,11 +113,7 @@ module.exports = {
 		    await interaction.deferReply();
 
         var purity = false;
-        var list = false;
-        var chans = false;
-        var mye = 0;
         var buy = 0;
-        var embed;
         var msgstr = "";
 
         if (mohde === 'custom')
@@ -149,21 +145,21 @@ module.exports = {
                 );
             contenenent.components = [row];
 
-            console.log(contenenent);
             interaction.editReply(contenenent);
         }
         else
         {
             var message = await interaction.fetchReply();
             var info = {"ipp": 5, "page": 0}
-            babaHaikuEmbed(purity, list, chans, mye, buy, msgstr, info, function(cont) 
+
+            var cont = babaHaikuEmbed(purity, buy, msgstr, info);
+            var deadData = purity ? null : babaHaikuLinks(cont);
+            
+            interaction.editReply(cont[info.page]);
+            if (cont[info.page].components != null)
             {
-                interaction.editReply(cont[info.page]);
-                if (cont[info.page].components != null)
-                {
-                    handleButtonsEmbed(interaction.channel, message, interaction.user.id, cont);
-                }
-            });
+                handleButtonsEmbed(interaction.channel, message, interaction.user.id, cont, deadData);
+            }
         }
 
         // var subCommand = interaction.options.getSubcommand();

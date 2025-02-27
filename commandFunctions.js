@@ -1,6 +1,6 @@
-const { FormatPurityList, HPLGenChannel, HPLGenUsers, HPLSelectChannel, HPLSelectUser, HPLSelectDate, HaikuSelection, ObtainDBHolidays, NameFromUserID, HPLGenD8 } = require("./databaseandvoice.js");
-const { getD1, FindDate, GetDate, dateDiffInDays, uExist, getTimeFromString } = require("./HelperFunctions/basicHelpers.js");
-const { CheckHoliday, FindNextHoliday, MakeImage, EmbedHaikuGen, loadHurricaneHelpers, checkHurricaneStuff, monthFromInt, reverseDelay } = require("./HelperFunctions/commandHelpers.js");
+const { FormatPurityList, HaikuSelection, ObtainDBHolidays, NameFromUser } = require("./databaseandvoice.js");
+const { getD1, FindDate, GetDate, dateDiffInDays, getTimeFromString } = require("./HelperFunctions/basicHelpers.js");
+const { CheckHoliday, FindNextHoliday, MakeImage, EmbedHaikuGen, checkHurricaneStuff, monthFromInt, reverseDelay } = require("./HelperFunctions/commandHelpers.js");
 const { normalizeMSG } = require("./HelperFunctions/dbHelpers.js");
 const { funnyDOWTextSaved } = require("./HelperFunctions/slashFridayHelpers.js");
 
@@ -198,10 +198,30 @@ function babaRepost()
     return { files: [reppy] };
 }
 
-
-function babaHaikuEmbed(purity, list, chans, mye, buy, msgContent, pagestuff, callback)
+function babaHaikuLinks(cont)
 {
-    if (buy != 4)
+    var deadData = [];
+    for (var i = 0; i < cont.length; i++)
+    {
+        var cpu = cont[i].components[0].components;
+        // if cont[i].components[0].components[cpu.length - 1].data.style == 5
+        if (cont[i].components[0].components[cpu.length - 1].data.style == 5)
+        {
+            var row = new Discord.ActionRowBuilder();
+            var URLButton = new Discord.ButtonBuilder().setURL(cont[i].components[0].components[cpu.length - 1].data.url).setLabel("View Source").setStyle(5);
+            row.addComponents(URLButton);
+            
+            var cpu2 = [row];
+            deadData.push(cpu2);
+        }
+    }
+
+    return deadData;
+}
+
+function babaHaikuEmbed(purity, mode, msgContent, pagestuff)
+{
+    if (mode != 4)
         msgContent = normalizeMSG(msgContent);
     else
     {
@@ -211,8 +231,7 @@ function babaHaikuEmbed(purity, list, chans, mye, buy, msgContent, pagestuff, ca
                 msgContent[i] = normalizeMSG(msgContent[i]);
         }
     }
-    if (!(global.dbAccess[1] && global.dbAccess[0])) return callback([{content: "Database is not enabled so no haikus for you!"}]);
-
+    
     if (purity)
     {
         var hpl = {"retstring": ["No Haiku Purity Found!"], "total": 1};
@@ -222,39 +241,36 @@ function babaHaikuEmbed(purity, list, chans, mye, buy, msgContent, pagestuff, ca
 
         bonust = " List for ";
         bonust += (msgContent[6] == "chans" ? "Channels" : (msgContent[6] == "dates" ? "Dates" : "Users"));
-        HaikuSelection(function(result)
+        var result = HaikuSelection(msgContent, mode);
+
+        if (result == null) 
         {
-            if (result == null) 
-            {
-                haifou = true;
-                return callback([{content: "DB Probably not enabled! or no haikus found to make the purity!"}]);
-            }
+            haifou = true;
+            return [{content: "Result was null, something may have gone wrong, or no Haikus were found!"}];
+        }
 
-            hpl = FormatPurityList(result, (msgContent[6] == "chans" ? true : (msgContent[6] == "dates" ? 2 : false)), pagestuff);
+        hpl = FormatPurityList(result, (msgContent[6] == "chans" ? true : (msgContent[6] == "dates" ? 2 : false)), pagestuff);
 
-            if (hpl.retstring.length != 0)
-            {
-                haifou = true;
-                return callback(EmbedPurityGen(hpl, bonust, bonupr, pagestuff, msgContent));
-            }
-            else hpl = {"retstring": ["No Haiku Purity Found based on Selections"], "total": 1};
-        }, buy, msgContent);
+        if (hpl.retstring.length != 0)
+        {
+            haifou = true;
+            return EmbedPurityGen(hpl, bonust, bonupr, pagestuff, msgContent);
+        }
+        else hpl = {"retstring": ["No Haiku Purity Found based on Selections"], "total": 1};
 
-        setTimeout(function()
-	    { 
-            if (!haifou)
-                return callback(EmbedPurityGen(hpl, bonust, bonupr, pagestuff));
-        }, 1000);
+        if (!haifou)
+            return EmbedPurityGen(hpl, bonust, bonupr, pagestuff);
     }
     else
     { 
-        HaikuSelection(function(haiku, simnames)
-        {
-            console.log(haiku, true);
-            if (haiku == null) return callback([{content: "No Haiku Found, or the DB is Disabled!"}]);
+        var haikussimnames = HaikuSelection(msgContent, mode);
+        var haiku = haikussimnames[0];
+        var simnames = haikussimnames[1];
+        //console.log(haiku, true);
 
-            return callback(EmbedHaikuGen(haiku, simnames));
-        }, buy, msgContent);
+        if (haiku == null) return [{content: "No Haiku Found, or the DB is Disabled!"}];
+
+        return EmbedHaikuGen(haiku, simnames);
     }
 }
 
@@ -286,7 +302,7 @@ function EmbedPurityGen(hpl, bonust, bonupr, pagestuff, msgContent)
                 {
                     var ids = ppl2s[1].split(",");
                     
-                    cont += "\t-> " + ids.map(id => global.userCache[id]).join(", ") + "\n";
+                    cont += "\t-> " + ids.map(id => global.userCache[id].PersonName).join(", ") + "\n";
                 }
                 if (ppl2s[0] != "")
                 {
@@ -436,7 +452,7 @@ async function babaWednesday(msgContent, author)
 
     if (!(global.dbAccess[1] && global.dbAccess[0])) return [{content: await funnyDOWTextSaved(3, author.id) }];
 
-    var holidays = await ObtainDBHolidays();
+    var holidays = ObtainDBHolidays();
 
     let d1 = getD1(); //get today
     var yr = d1.getFullYear();
@@ -713,25 +729,23 @@ async function babaWednesday(msgContent, author)
     //}
 }
 
-function babaWhomst(user, callback)
+async function babaWhomst(user)
 {
-    if (!(global.dbAccess[1] && global.dbAccess[0])) return callback({content: "Whomst mayhaps are they, BABA not know as BABA Databasen't" });
+    var result = await NameFromUser(user);
 
-    NameFromUserID(
-        function(result)
-        {
-            // do formatting on result
-            if (result.length == 0)
-            {
-                console.log(`Whomst lookup for id ${user.id} (${user.username}) returned no results`)
-                callback(`User ${user.username} not found!`);
-            }
-            else
-            {
-                callback(`User ${user.username} is ${result[0].PersonName}`);
-            }            
-        },
-        user);
+    if (result == null)
+        return "Baba could not find that user!";
+
+    // do formatting on result
+    if (result.length == 0)
+    {
+        console.log(`Whomst lookup for id ${user.id} (${user.username}) returned no results`)
+        return  `User ${user.username} not found!`;
+    }
+    else
+    {
+        return `User ${user.username} is ${result}`;
+    }
 }
 
 async function babaHurricane(hurricanename, callback)
@@ -939,7 +953,8 @@ module.exports = {
     babaPizza, 
     babaVibeFlag, 
     babaYugo, 
-    babaHaikuEmbed, 
+    babaHaikuEmbed,
+    babaHaikuLinks,
     babaWednesday, 
     babaDayNextWed,
     babaRepost,

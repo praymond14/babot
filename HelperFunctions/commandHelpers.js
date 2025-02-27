@@ -7,7 +7,7 @@ const fetch = require('node-fetch');
 
 const options = { year: 'numeric', month: 'long', day: 'numeric' }; // for date parsing to string
 const { dateDiffInDays, antiDelay, GetDate, GetSimilarName, uExist } = require('./basicHelpers.js');
-const { getHurricaneInfo, saveUpdatedHurrInfo } = require('../databaseandvoice.js');
+const { getHurricaneInfo, saveUpdatedHurrInfo } = require('../databaseVoiceController.js');
 
 var to = [];
 
@@ -296,30 +296,20 @@ function EmbedHaikuGen(haiku, simnames)
         return [obj];
     }
 
-	if (haiku.length == 1)
-		return [SingleHaiku(haiku[0], simnames)];
-	else
+	var objs = [];
+	for (var e = 0; e < haiku.length; e++)
 	{
-		var objs = [];
-		for (var e = 0; e < haiku.length; e++)
+		var ovb = null;
+		var row = new Discord.ActionRowBuilder();
+
+		var URLButton = new Discord.ButtonBuilder().setURL(haiku[e].URL == null ? "https://discord.com/channels/454457880825823252/979881683790733333/1183900512828006492" : haiku[e].URL).setLabel("View Source").setStyle(5);
+
+		if (haiku.length > 1)
 		{
-			var ovb = SingleHaiku(haiku[e], simnames, e, haiku.length);
-			
-			var row = new Discord.ActionRowBuilder();
-
-			if (haiku.length > 100) 
-			{
-				var p100btn = new Discord.ButtonBuilder().setCustomId("page"+(e - 100)).setLabel("-100").setStyle(1);
-				if (e < 100)
-				{
-					p100btn.setDisabled(true);
-				}
-				row.addComponents(p100btn);
-			}
-
+			ovb = SingleHaiku(haiku[e], simnames, e, haiku.length);
 			var pButton = new Discord.ButtonBuilder().setCustomId("page"+(e - 1)).setLabel("Previous").setStyle(1);
 			var nButton = new Discord.ButtonBuilder().setCustomId("page"+(1 + e)).setLabel("Next").setStyle(1);
-
+			
 			if (e == 0)
 			{
 				pButton.setDisabled(true);
@@ -332,23 +322,19 @@ function EmbedHaikuGen(haiku, simnames)
 			var jumpButton = new Discord.ButtonBuilder().setCustomId("jumpToHaiku").setLabel("Jump to ...").setStyle(3);
 	
 			row.addComponents(pButton, jumpButton, nButton);
-			
-			if (haiku.length > 100) 
-			{
-				var n100btn = new Discord.ButtonBuilder().setCustomId("page"+(e + 100)).setLabel("+100").setStyle(1);
-				if (e >= haiku.length - 100)
-				{
-					n100btn.setDisabled(true);
-				}
-				row.addComponents(n100btn);
-			}
-			
-			ovb.components = [row];
-			objs.push(ovb);
 		}
+		else
+		{
+			ovb = SingleHaiku(haiku[e], simnames);
+		}
+
+		row.addComponents(URLButton);
 		
-		return objs;
+		ovb.components = [row];
+		objs.push(ovb);
 	}
+	
+	return objs;
 }
 
 function CheckHoliday(msg, holdaylist) //checks if any of the holiday list is said in the message
