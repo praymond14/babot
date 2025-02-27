@@ -108,7 +108,7 @@ function botOn(bot)
 			StartDB("Initializing");
 		}
 	
-		var fridayJson = fs.readFileSync(babadata.datalocation + "/fridayCounter.json");
+		var fridayJson = fs.readFileSync(babadata.datalocation + "fridayCounter.json");
 		var fridayData = JSON.parse(fridayJson);
 		
 		if (fridayData.friday === undefined)

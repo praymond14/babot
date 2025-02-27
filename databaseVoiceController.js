@@ -27,7 +27,7 @@ function StartDB(printOut)
 
     if (timeoutCT <= 0)
     {
-	    var loggedUsersVCC = fs.readFileSync(babadata.datalocation + "/loggedUsersVCC.csv");
+	    var loggedUsersVCC = fs.readFileSync(babadata.datalocation + "loggedUsersVCC.csv");
         loggedUsersVCC = loggedUsersVCC.toString();
         var lines = loggedUsersVCC.split("\n");
         lines.pop();
@@ -493,20 +493,20 @@ function logVCC(newMemberID, newChannelID, oldMemberID, oldChannelID, guildID)
 	// save time as a number
 	time = time.getTime();
 
-	if (!fs.existsSync(babadata.datalocation + "/loggedUsersVCC.csv"))
+	if (!fs.existsSync(babadata.datalocation + "loggedUsersVCC.csv"))
 	{
-		fs.writeFileSync(babadata.datalocation + "/loggedUsersVCC.csv", "");
+		fs.writeFileSync(babadata.datalocation + "loggedUsersVCC.csv", "");
 	}
 
-	fs.appendFileSync(babadata.datalocation + "/loggedUsersVCC.csv", newMemberID + "," + newChannelID + "," + oldMemberID + "," + oldChannelID + "," + time + "," + guildID + "\n");
+	fs.appendFileSync(babadata.datalocation + "loggedUsersVCC.csv", newMemberID + "," + newChannelID + "," + oldMemberID + "," + oldChannelID + "," + time + "," + guildID + "\n");
 }
 
 function clearVCCList()
 {
 	// load loggedUsersVCC.json
-	var loggedUsersVCC = fs.readFileSync(babadata.datalocation + "/loggedUsersVCC.csv");
+	var loggedUsersVCC = fs.readFileSync(babadata.datalocation + "loggedUsersVCC.csv");
 	// clear the file
-	fs.writeFileSync(babadata.datalocation + "/loggedUsersVCC.csv", "");
+	fs.writeFileSync(babadata.datalocation + "loggedUsersVCC.csv", "");
 
 	loggedUsersVCC = loggedUsersVCC.toString();
 
@@ -614,7 +614,7 @@ function voiceChannelChange(newMember, oldMember)
 function userOptValue(guild, userID, val)
 {
     var PromisedOptVal = new Promise((resolve, reject) => {
-        let rawdata = fs.readFileSync(babadata.datalocation + "/optscache.json");
+        let rawdata = fs.readFileSync(babadata.datalocation + "optscache.json");
         let optscache = JSON.parse(rawdata);
     
         for (var i = 0 ; i < optscache.length; i++)
@@ -739,7 +739,7 @@ function FridayCounterIncrement()
 {
     var PromisedFridayCounter = new Promise((resolve, reject) =>
     {
-        var fridayJson = fs.readFileSync(babadata.datalocation + "/fridayCounter.json");
+        var fridayJson = fs.readFileSync(babadata.datalocation + "fridayCounter.json");
         var friday = JSON.parse(fridayJson);
         var qureyStart = "INSERT INTO layersdeep (FridayUID,LoopsOrDOW,LayersDeep,Count,HeadingLevel,Sender) VALUES "
         var qureyEnd = `AS newDeepLayers ON DUPLICATE KEY UPDATE layersdeep.Count = layersdeep.Count + newDeepLayers.Count;`;
@@ -777,7 +777,7 @@ function FridayCounterIncrement()
         callSQLQuery(query)
         .then((result) =>
         {
-            fs.writeFileSync(babadata.datalocation + "/fridayCounter.json", "");
+            fs.writeFileSync(babadata.datalocation + "fridayCounter.json", "");
             global.fridayCounter = {};
             resolve("SuccCess");
         })
@@ -795,7 +795,7 @@ function FridayMessagesUpdate()
 {
     var PromisedFridayMessages = new Promise((resolve, reject) =>
     {
-        var fridayMessages = fs.readFileSync(babadata.datalocation + "/fridaymessages.json");
+        var fridayMessages = fs.readFileSync(babadata.datalocation + "fridaymessages.json");
         var friday = JSON.parse(fridayMessages);
     
         if (friday.length == 0)
@@ -843,7 +843,7 @@ function FridayMessagesUpdate()
         callSQLQuery(query2)
         .then((result) =>
         {
-            fs.writeFileSync(babadata.datalocation + "/fridaymessages.json", "");
+            fs.writeFileSync(babadata.datalocation + "fridaymessages.json", "");
             resolve("SuccCess");
         })
         .catch((err) => 
@@ -946,7 +946,7 @@ function LoadEmojiCache()
 
         fetch(emojiurl).then(res => res.json()).then(json => {
             // save to emojiJSONCache
-            fs.writeFileSync(babadata.datalocation + "/emojiJSONCache.json", JSON.stringify(json));
+            fs.writeFileSync(babadata.datalocation + "emojiJSONCache.json", JSON.stringify(json));
             resolve("SuccCess");
         }).catch((err) => {reject("Emoji")});
     });
@@ -959,7 +959,7 @@ function LoadReactCache()
     var PromisedReact = new Promise((resolve, reject) =>
     {
         var query = `Select * from reacto`;
-        var jsonLocation = babadata.datalocation + "/REACTOcache.json";
+        var jsonLocation = babadata.datalocation + "REACTOcache.json";
 
         callSQLQuery(query)
         .then((result) =>
@@ -1063,7 +1063,7 @@ function LoadFishCache()
     var PromisedFish = new Promise((resolve, reject) =>
     {
         var query = `Select * from fishdb`;
-        var jsonLocation = babadata.datalocation + "/FISHcache.json";
+        var jsonLocation = babadata.datalocation + "FISHcache.json";
 
         callSQLQuery(query)
         .then((result) =>
@@ -1101,7 +1101,7 @@ function LoadFrogCache()
     var PromisedFrog = new Promise((resolve, reject) =>
     {
         var query = `Select * from frog`;
-        var jsonLocation = babadata.datalocation + "/FROGcache.json";
+        var jsonLocation = babadata.datalocation + "FROGcache.json";
 
         callSQLQuery(query)
         .then((result) =>
@@ -1136,7 +1136,7 @@ function LoadFrogControlCache()
     var PromisedFrogControl = new Promise((resolve, reject) =>
     {
         var query = `Select * from frogcontrol`;
-        var jsonLocation = babadata.datalocation + "/FROGcontrol.json";
+        var jsonLocation = babadata.datalocation + "FROGcontrol.json";
 
         callSQLQuery(query)
         .then((result) =>
@@ -1169,7 +1169,7 @@ function LoadDOWItemsCache()
     var PromisedDOWItems = new Promise((resolve, reject) =>
     {
         var query = `Select * from dow`;
-        var jsonLocation = babadata.datalocation + "/DOWItems.json";
+        var jsonLocation = babadata.datalocation + "DOWItems.json";
 
         callSQLQuery(query)
         .then((result) =>
@@ -1275,7 +1275,7 @@ function LoadPleasedCache()
     {
         var query = `SELECT PersonName, UserID, DefaultNormalChance, DefaultH1Chance, DefaultH2Chance, DefaultH3CHance, DefaultRNGFontChance, DefaultFlagChance FROM pleased
 	                 Left Join userval on pleased.UserID = userval.DiscordID;`;
-        var jsonLocation = babadata.datalocation + "/Pleasedcache.json";
+        var jsonLocation = babadata.datalocation + "Pleasedcache.json";
 
         callSQLQuery(query)
         .then((result) =>
@@ -1315,7 +1315,7 @@ function LoadPleasedOverideCache()
     {
         var query = `SELECT PersonName, OverideUserIDs, UserID, DefaultNormalChance, DefaultH1Chance, DefaultH2Chance, DefaultH3CHance, DefaultRNGFontChance, DefaultFlagChance FROM pleasedOverides
                      Left Join userval on pleasedOverides.UserID = userval.DiscordID;`;
-        var jsonLocation = babadata.datalocation + "/PleasedOVERIDEcache.json";
+        var jsonLocation = babadata.datalocation + "PleasedOVERIDEcache.json";
 
         callSQLQuery(query)
         .then((result) =>
@@ -1354,7 +1354,7 @@ function LoadOptCache()
     var PromisedOpt = new Promise((resolve, reject) =>
     {
         var query = `Select * from opting`;
-        var jsonLocation = babadata.datalocation + "/optscache.json";
+        var jsonLocation = babadata.datalocation + "optscache.json";
 
         callSQLQuery(query)
         .then((result) =>
@@ -1386,15 +1386,15 @@ function LoadAllSlashFridayStuff()
     var PromisedFriday = new Promise((resolve, reject) =>
     {
         // load in dowcache and fridayloops from json files
-        let rawdata = fs.readFileSync(babadata.datalocation + "/DOWcache.json");
+        let rawdata = fs.readFileSync(babadata.datalocation + "DOWcache.json");
         var tempdowcache = JSON.parse(rawdata);
         var newdowcache = null;
     
-        let rawloops = fs.readFileSync(babadata.datalocation + "/FridayLoops.json");
+        let rawloops = fs.readFileSync(babadata.datalocation + "FridayLoops.json");
         var tempfridayloops = JSON.parse(rawloops);
         var newfridayloops = null;
     
-        let rawcontrol = fs.readFileSync(babadata.datalocation + "/DOWcontrol.json");
+        let rawcontrol = fs.readFileSync(babadata.datalocation + "DOWcontrol.json");
         var tempdowcontrol = JSON.parse(rawcontrol);
         var newdowcontrol = null;
 
@@ -1487,42 +1487,42 @@ function LoadAllSlashFridayStuff()
             if (changes)
             {
                 console.log("Changes Detected, Saving Cache", false, true);
-                // if babadata.datalocation + "/FridayCache" doesn't exist, create it
-                if (!fs.existsSync(babadata.datalocation + "/FridayCache"))
+                // if babadata.datalocation + "FridayCache" doesn't exist, create it
+                if (!fs.existsSync(babadata.datalocation + "FridayCache"))
                 {
-                    fs.mkdirSync(babadata.datalocation + "/FridayCache");
+                    fs.mkdirSync(babadata.datalocation + "FridayCache");
                 }
 
-                // save tempfridayloops to babadata.datalocation + "/FridayCache/FridayLoops" + fcacheitems + ".json";
+                // save tempfridayloops to babadata.datalocation + "FridayCache/FridayLoops" + fcacheitems + ".json";
                 var fcacheitems = 0;
                 // set to number of files in directory / 3
-                fs.readdir(babadata.datalocation + "/FridayCache", (err, files) => {
+                fs.readdir(babadata.datalocation + "FridayCache", (err, files) => {
                     fcacheitems = files.length / 3;
                     var data = JSON.stringify(tempfridayloops);
-                    fs.writeFileSync(babadata.datalocation + "/FridayCache/FridayLoops" + fcacheitems + ".json", data);
+                    fs.writeFileSync(babadata.datalocation + "FridayCache/FridayLoops" + fcacheitems + ".json", data);
                 });
 
-                // save tempdowcache to babadata.datalocation + "/FridayCache/DOWcache" + dcacheitems + ".json";
+                // save tempdowcache to babadata.datalocation + "FridayCache/DOWcache" + dcacheitems + ".json";
                 var dcacheitems = 0;
                 // set to number of files in directory / 3
-                fs.readdir(babadata.datalocation + "/FridayCache", (err, files) => {
+                fs.readdir(babadata.datalocation + "FridayCache", (err, files) => {
                     dcacheitems = files.length / 3;
                     var data = JSON.stringify(tempdowcache);
-                    fs.writeFileSync(babadata.datalocation + "/FridayCache/DOWcache" + dcacheitems + ".json", data);
+                    fs.writeFileSync(babadata.datalocation + "FridayCache/DOWcache" + dcacheitems + ".json", data);
                 });
 
-                // save tempdowcontrol to babadata.datalocation + "/FridayCache/DOWcontrol" + dcontrolitems + ".json";
+                // save tempdowcontrol to babadata.datalocation + "FridayCache/DOWcontrol" + dcontrolitems + ".json";
                 var dcontrolitems = 0;
                 // set to number of files in directory / 3
-                fs.readdir(babadata.datalocation + "/FridayCache", (err, files) => {
+                fs.readdir(babadata.datalocation + "FridayCache", (err, files) => {
                     dcontrolitems = files.length / 3;
                     var data = JSON.stringify(tempdowcontrol);
-                    fs.writeFileSync(babadata.datalocation + "/FridayCache/DOWcontrol" + dcontrolitems + ".json", data);
+                    fs.writeFileSync(babadata.datalocation + "FridayCache/DOWcontrol" + dcontrolitems + ".json", data);
                 });
 
 
                 // update TimeGates.json by adding another row (items + 1)
-                let rawdata = fs.readFileSync(babadata.datalocation + "/TimeGates.json");
+                let rawdata = fs.readFileSync(babadata.datalocation + "TimeGates.json");
                 var tempTimeGates = JSON.parse(rawdata);
                 // get length of tempTimeGates
                 var items = tempTimeGates.length;
@@ -1540,7 +1540,7 @@ function LoadAllSlashFridayStuff()
 
                 // save tempTimeGates to TimeGates.json
                 var data = JSON.stringify(tempTimeGates);
-                fs.writeFileSync(babadata.datalocation + "/TimeGates.json", data);
+                fs.writeFileSync(babadata.datalocation + "TimeGates.json", data);
 
                 if (babadata.testing === undefined)
                 {
@@ -1578,7 +1578,7 @@ function LoadTimeGatesCache()
     var PromisedTimeGates = new Promise((resolve, reject) =>
     {
         var query = `Select * from timegates`;
-        var jsonLocation = babadata.datalocation + "/TimeGates.json";
+        var jsonLocation = babadata.datalocation + "TimeGates.json";
 
         callSQLQuery(query)
         .then((result) =>
@@ -1617,7 +1617,7 @@ function LoadFridayCache()
     var PromisedFriday = new Promise((resolve, reject) =>
     {
         var query = `SELECT * FROM dowfunny left join fridaytimegates on dowfunny.UID = fridaytimegates.fUID`;
-        var jsonLocation = babadata.datalocation + "/DOWcache.json";
+        var jsonLocation = babadata.datalocation + "DOWcache.json";
 
         callSQLQuery(query)
         .then((result) =>
@@ -1667,7 +1667,7 @@ function LoadFridayControlCache()
     var PromisedFridayControl = new Promise((resolve, reject) =>
     {
         var query = `Select * from dowcontrol`;
-        var jsonLocation = babadata.datalocation + "/DOWcontrol.json";
+        var jsonLocation = babadata.datalocation + "DOWcontrol.json";
 
         callSQLQuery(query)
         .then((result) =>
@@ -1701,7 +1701,7 @@ function LoadFridayLoopsCache()
     var PromisedFridayLoops = new Promise((resolve, reject) =>
     {
         var query = `Select * from fridaynestedloops`;
-        var jsonLocation = babadata.datalocation + "/FridayLoops.json";
+        var jsonLocation = babadata.datalocation + "FridayLoops.json";
 
         callSQLQuery(query)
         .then((result) =>
@@ -1724,8 +1724,8 @@ function LoadFridayLoopsCache()
 
 			// var data = JSON.stringify(opts);
 
-			// fs.writeFileSync(babadata.datalocation + "/FridayLoops.json", data);
-			// let rawloops = fs.readFileSync(babadata.datalocation + "/FridayLoops.json");
+			// fs.writeFileSync(babadata.datalocation + "FridayLoops.json", data);
+			// let rawloops = fs.readFileSync(babadata.datalocation + "FridayLoops.json");
 
 			var fridLoops = opts
 		
@@ -1770,7 +1770,7 @@ function LoadHolidaysCache()
     var PromisedHolidays = new Promise((resolve, reject) =>
     {
         var query = `SELECT * FROM event left join alteventnames on event.EventID = alteventnames.EventID`;
-        var jsonLocation = babadata.datalocation + "/HolidayFrogs.json";
+        var jsonLocation = babadata.datalocation + "HolidayFrogs.json";
 
         callSQLQuery(query)
         .then((result) =>
@@ -1813,7 +1813,7 @@ function LoadHaikusCache()
         var query = `SELECT * FROM haiku
                      Left Join userval on haiku.PersonName = userval.PersonName 
                      Left Join channelval on haiku.ChannelID = channelval.ChannelID`;
-        var jsonLocation = babadata.datalocation + "/HaikusCache.json";
+        var jsonLocation = babadata.datalocation + "HaikusCache.json";
 
         callSQLQuery(query)
         .then((result) =>
@@ -1900,7 +1900,7 @@ async function saveUpdatedHurrInfo()
 			fs.writeFileSync(babadata.datalocation + '/hurricanes.json', JSON.stringify([]));
 		}
 	
-		var data = fs.readFileSync(babadata.datalocation + "/hurricanes.json");
+		var data = fs.readFileSync(babadata.datalocation + "hurricanes.json");
 		var hurrInfo = JSON.parse(data);
 	
 		for (var i = 0; i < hurrInfo.length; i++)
@@ -1997,7 +1997,7 @@ async function getHurricaneInfo()
 		
 					var data = JSON.stringify(opts);
 		
-					fs.writeFileSync(babadata.datalocation + "/hurricanes.json", data);
+					fs.writeFileSync(babadata.datalocation + "hurricanes.json", data);
 				
 					resolve();
 				}
