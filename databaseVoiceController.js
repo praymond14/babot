@@ -777,7 +777,8 @@ function FridayCounterIncrement()
         callSQLQuery(query)
         .then((result) =>
         {
-            fs.writeFileSync(babadata.datalocation + "fridayCounter.json", "");
+			var data = {};
+			fs.writeFileSync(babadata.datalocation + "fridayCounter.json", JSON.stringify(data));
             global.fridayCounter = {};
             resolve("SuccCess");
         })
@@ -843,7 +844,8 @@ function FridayMessagesUpdate()
         callSQLQuery(query2)
         .then((result) =>
         {
-            fs.writeFileSync(babadata.datalocation + "fridaymessages.json", "");
+			var data = [];
+			fs.writeFileSync(babadata.datalocation + "fridaymessages.json", JSON.stringify(data));
             resolve("SuccCess");
         })
         .catch((err) => 
