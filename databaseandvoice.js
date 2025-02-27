@@ -287,7 +287,7 @@ function GetPurityList(haikuList, pMode)
 
 function HaikuSelection(messageTerm, mode)
 {
-    var haikuJson = fs.readFileSync(babadata.datalocation + "/HaikusCache.json");
+    var haikuJson = fs.readFileSync(babadata.datalocation + "HaikusCache.json");
     var haikuList = JSON.parse(haikuJson);
     var entierHaikuList = haikuList;
 
@@ -515,7 +515,7 @@ function GetParent(retme, id)
 
 function ObtainDBHolidays()
 {
-    let holidayJson = fs.readFileSync(babadata.datalocation + "/HolidayFrogs.json");
+    let holidayJson = fs.readFileSync(babadata.datalocation + "HolidayFrogs.json");
     var result = JSON.parse(holidayJson);
 
     var retme = {};

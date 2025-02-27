@@ -98,7 +98,7 @@ function genMessages(itemlist)
 
 function generateItems(dow)
 {
-	let path = babadata.datalocation + "/DOWitems.json";
+	let path = babadata.datalocation + "DOWitems.json";
 
 	if (!fs.existsSync(path)) 
 	{
@@ -109,7 +109,7 @@ function generateItems(dow)
 		return defaultItems;
 	}
 
-    let rawdata = fs.readFileSync(babadata.datalocation + "/DOWitems.json");
+    let rawdata = fs.readFileSync(babadata.datalocation + "DOWitems.json");
 
     var adam = JSON.parse(rawdata);
 	return adam;

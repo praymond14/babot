@@ -361,8 +361,8 @@ function TextCommandBackup(bot, message, sentvalid, msgContent, g)
 		}
 		else if (msgContent.includes("getthefries"))
 		{
-			// list all items in the directory of babadata.datalocation + "/FridayCache"
-			fs.readdir(babadata.datalocation + "/FridayCache", (err, files) => {
+			// list all items in the directory of babadata.datalocation + "FridayCache"
+			fs.readdir(babadata.datalocation + "FridayCache", (err, files) => {
 				if (err) {
 					message.author.send("An error occurred while reading the directory");
 					return;
@@ -382,8 +382,8 @@ function TextCommandBackup(bot, message, sentvalid, msgContent, g)
 
 			fetch(file.url).then(res => 
 			{
-				// save file to babadata  babadata.datalocation + "/FridayCache"
-				const local = babadata.datalocation + "/FridayCache/" + file.name;
+				// save file to babadata  babadata.datalocation + "FridayCache"
+				const local = babadata.datalocation + "FridayCache/" + file.name;
 				
 				const dest = fs.createWriteStream(local);
  
@@ -552,7 +552,7 @@ function TextCommandBackup(bot, message, sentvalid, msgContent, g)
 		else if (msgContent.includes("dbdownadam"))
 		{
 			var forceall = msgContent.includes("-force");
-			var loggedUsersVCC = fs.readFileSync(babadata.datalocation + "/loggedUsersVCC.csv");
+			var loggedUsersVCC = fs.readFileSync(babadata.datalocation + "loggedUsersVCC.csv");
 
 			loggedUsersVCC = loggedUsersVCC.toString();
 			var lines = loggedUsersVCC.split("\n");
@@ -619,7 +619,7 @@ function TextCommandBackup(bot, message, sentvalid, msgContent, g)
 		}
 		else if (msgContent.includes("dbdownbytheriver"))
 		{
-			var csv = fs.readFileSync(babadata.datalocation + "/loggedUsersVCC.csv");
+			var csv = fs.readFileSync(babadata.datalocation + "loggedUsersVCC.csv");
 
 			// send attachment
 			message.author.send({ files: [{ attachment: Buffer.from(csv), name: 'loggedUsersVCC.csv' }] });

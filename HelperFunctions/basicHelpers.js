@@ -800,7 +800,7 @@ function PersonalReact(ames, message, msgContent)
 	ames = ames.toLowerCase();
 	var mesageames = message.content.toLowerCase().replace(/\s+/g, '');
 
-	var u_reacts = JSON.parse(fs.readFileSync(babadata.datalocation + "/REACTOcache.json"));
+	var u_reacts = JSON.parse(fs.readFileSync(babadata.datalocation + "REACTOcache.json"));
 
 	var rct = 0;
 	for (var i = 0; i < u_reacts.length; i++)
@@ -881,8 +881,8 @@ function PersonalReact(ames, message, msgContent)
 
 function pleaseChecker(message, msgContent, ames)
 {
-	var pleasedata = fs.readFileSync(babadata.datalocation + "/Pleasedcache.json");
-	var pleaseOVERIDEdata = fs.readFileSync(babadata.datalocation + "/PleasedOVERIDEcache.json");
+	var pleasedata = fs.readFileSync(babadata.datalocation + "Pleasedcache.json");
+	var pleaseOVERIDEdata = fs.readFileSync(babadata.datalocation + "PleasedOVERIDEcache.json");
 
 	var please = JSON.parse(pleasedata);
 	var pleaseOVERIDE = JSON.parse(pleaseOVERIDEdata);
@@ -993,9 +993,9 @@ function RandFont(text, index = -1)
 
 function checkForFish(message, msgContent)
 {
-	// load babadata.datalocation + "/FISHcache.json"
+	// load babadata.datalocation + "FISHcache.json"
 	
-	var fishData = fs.readFileSync(babadata.datalocation + "/FISHcache.json");
+	var fishData = fs.readFileSync(babadata.datalocation + "FISHcache.json");
 
 	var fish = JSON.parse(fishData);
 
@@ -1637,8 +1637,8 @@ function getTimeFromString(timestring)
 
 async function extremeEmoji(message, msgContent, reactneeded=0)
 {
-	// load babadata.datalocation + "/emojiJSONCache.json
-	var rawdata = fs.readFileSync(babadata.datalocation + "/emojiJSONCache.json");
+	// load babadata.datalocation + "emojiJSONCache.json
+	var rawdata = fs.readFileSync(babadata.datalocation + "emojiJSONCache.json");
 	var emojis = JSON.parse(rawdata).emojis;
 
 	var goodfellas = {};

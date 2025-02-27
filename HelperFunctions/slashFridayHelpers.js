@@ -66,14 +66,14 @@ async function funnyDOWTextSaved(dowNum, authorID, seedSet = -1, dontSave = fals
 		var cnYung = textGroup[2];
 		// append text to fridaymessages.json
 
-		if (!fs.existsSync(babadata.datalocation + "/fridaymessages.json")) 
+		if (!fs.existsSync(babadata.datalocation + "fridaymessages.json")) 
 		{
 			console.log("No fridaymessages file found -- creating with local data");
 			var data = [];
-			fs.writeFileSync(babadata.datalocation + "/fridaymessages.json", JSON.stringify(data));
+			fs.writeFileSync(babadata.datalocation + "fridaymessages.json", JSON.stringify(data));
 		}
 
-		var fmpath = babadata.datalocation + "/fridaymessages.json";
+		var fmpath = babadata.datalocation + "fridaymessages.json";
 		var fmr = fs.readFileSync(fmpath);
 		var fmd = JSON.parse(fmr);
 		var tod = new Date();
@@ -94,7 +94,7 @@ async function funnyDOWTextSaved(dowNum, authorID, seedSet = -1, dontSave = fals
 
 		theRNG = new RNG(theRNG.getState());
 	
-		fs.readdir(babadata.datalocation + "/FridayCache", (err, files) => {
+		fs.readdir(babadata.datalocation + "FridayCache", (err, files) => {
 			fcacheitems = files.length / 3;
 
 			var fmdItem = { "UID": authorID, "Text": text, "Date": tod, "CondensedNotation": cnFull, "Seed": seed, "FileVersion": fcacheitems };
@@ -115,7 +115,7 @@ async function funnyDOWTextSaved(dowNum, authorID, seedSet = -1, dontSave = fals
 
 async function funnyDOWText(cacheVersion, saveToFile, DateOveride, dowNum, authorID, recrused = 0, ToBeCounted = [], headLevel = 0, customString = null)
 {
-	let path = babadata.datalocation + "/DOWcache.json";
+	let path = babadata.datalocation + "DOWcache.json";
 	var condensedNotation = "";
 	var cnYung = [];
 
@@ -139,13 +139,13 @@ async function funnyDOWText(cacheVersion, saveToFile, DateOveride, dowNum, autho
 
 	if (cacheVersion != -1)
 	{
-		path = babadata.datalocation + "/FridayCache/DOWcache" + cacheVersion + ".json";
+		path = babadata.datalocation + "FridayCache/DOWcache" + cacheVersion + ".json";
 
 		if (!fs.existsSync(path)) 
 		{
 			// return to normal cache
 			cacheVersion = -1;
-			path = babadata.datalocation + "/DOWcache.json";
+			path = babadata.datalocation + "DOWcache.json";
 		}
 	}
 	
@@ -545,7 +545,7 @@ async function funnyDOWText(cacheVersion, saveToFile, DateOveride, dowNum, autho
 		}
 
 		// save global.fridayCounter to file
-		fs.writeFileSync(babadata.datalocation + "/fridayCounter.json", JSON.stringify(fc));
+		fs.writeFileSync(babadata.datalocation + "fridayCounter.json", JSON.stringify(fc));
 	}
 
 	var textC = repeatCheck(cacheVersion, text);
@@ -585,17 +585,17 @@ function replaceNested(cacheVersion, text, ToBeCounted = null, recrused = 0, hea
 {
 	var replaced = true;
 	// get from FridayLoops.json
-	var path = babadata.datalocation + "/FridayLoops.json";
+	var path = babadata.datalocation + "FridayLoops.json";
 
 	if (cacheVersion != -1)
 	{
-		path = babadata.datalocation + "/FridayCache/FridayLoops" + cacheVersion + ".json";
+		path = babadata.datalocation + "FridayCache/FridayLoops" + cacheVersion + ".json";
 
 		if (!fs.existsSync(path))
 		{
 			// return to normal cache
 			cacheVersion = -1;
-			path = babadata.datalocation + "/FridayLoops.json";
+			path = babadata.datalocation + "FridayLoops.json";
 		}
 	}
 
@@ -870,7 +870,7 @@ function URLSafe(text)
 
 function funnyFrogText(authorID)
 {
-	let path = babadata.datalocation + "/FROGcache.json";
+	let path = babadata.datalocation + "FROGcache.json";
 
 	if (!fs.existsSync(path)) 
 	{
@@ -881,10 +881,10 @@ function funnyFrogText(authorID)
 		
 		var data = JSON.stringify(opttemp);
 		
-		fs.writeFileSync(babadata.datalocation + "/FROGcache.json", data);
+		fs.writeFileSync(babadata.datalocation + "FROGcache.json", data);
 	}
 
-    let rawdata = fs.readFileSync(babadata.datalocation + "/FROGcache.json");
+    let rawdata = fs.readFileSync(babadata.datalocation + "FROGcache.json");
 
 	var optionsFROG = JSON.parse(rawdata);
 
@@ -900,7 +900,7 @@ function funnyFrogText(authorID)
 
 function generateFrogOps(opsArray, authorID)
 {
-    let rawdata = fs.readFileSync(babadata.datalocation + "/FROGcontrol.json");
+    let rawdata = fs.readFileSync(babadata.datalocation + "FROGcontrol.json");
     var controlList = JSON.parse(rawdata);
 	var cLevel = 0;
 
@@ -938,7 +938,7 @@ function generateFrogOps(opsArray, authorID)
 function generateFridayOps(opsArray, authorID, prefix, DateOveride)
 {
 	// get TimeGates.json
-	var path = babadata.datalocation + "/TimeGates.json";
+	var path = babadata.datalocation + "TimeGates.json";
 	let raw = fs.readFileSync(path);
 
 	var TimeGates = JSON.parse(raw);
@@ -970,17 +970,17 @@ function generateFridayOps(opsArray, authorID, prefix, DateOveride)
 
 	// console.log("Today is " + tod.toDateString() + " for Items Date");
 
-    let rawdata = fs.readFileSync(babadata.datalocation + "/DOWcontrol.json");
+    let rawdata = fs.readFileSync(babadata.datalocation + "DOWcontrol.json");
 
 	if (prefix != -1)
 	{
-		path = babadata.datalocation + "/FridayCache/DOWcache" + prefix + ".json";
+		path = babadata.datalocation + "FridayCache/DOWcache" + prefix + ".json";
 
 		if (!fs.existsSync(path)) 
 		{
 			// return to normal cache
 			cacheVersion = -1;
-			path = babadata.datalocation + "/DOWcache.json";
+			path = babadata.datalocation + "DOWcache.json";
 		}
 	}
 

@@ -41,7 +41,7 @@ function sqlEscapeStringThingforAdamBecauseHeWillDoanSQLInjectionOtherwise(str)
 
 function loadInDBFSV()
 {
-	var rawdata = fs.readFileSync(babadata.datalocation + "/comparisions.fsv", {encoding:'utf8', flag:'r'});
+	var rawdata = fs.readFileSync(babadata.datalocation + "comparisions.fsv", {encoding:'utf8', flag:'r'});
 	//console.log(rawdata);
 	var result = rawdata.split(/\r?\n/);
 	for (var i = 1; i < result.length; i++)
