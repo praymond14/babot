@@ -96,6 +96,21 @@ function makeBot()
 
 function botOn(bot)
 {
+	var fjson1 = fs.readFileSync(babadata.datalocation + "fridayCounter.json");
+	var fjson2 = fs.readFileSync(babadata.datalocation + "fridaymessages.json");
+
+	// if fjason1 is empty, set it to an empty object {} and save
+	if (fjson1 == "")
+	{
+		fs.writeFileSync(babadata.datalocation + "fridayCounter.json", "{}");
+	}
+
+	// if fjason2 is empty, set it to an empty object [] and save
+	if (fjson2 == "")
+	{
+		fs.writeFileSync(babadata.datalocation + "fridaymessages.json", "[]");
+	}
+
 	bot.login(global.toke); //login
 
 	bot.on('ready', function (evt) 
