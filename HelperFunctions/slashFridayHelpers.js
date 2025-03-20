@@ -235,7 +235,7 @@ async function funnyDOWText(cacheVersion, saveToFile, DateOveride, dowNum, autho
 
 	// Manual Override ---------------------------------------
 	// if (recrused == 0 && babadata.testing !== undefined)
-	// 	text = "Oh no, Repeat Mode is Activated Watch out!\n{brepeatN:[IntMedSmall]:{brepeatS:[IntMedSmall]:{RECURSIVE}}}\nPhew we survived! oh wait there is more!\n{brepeatS:[IntMedSmall]:{RECURSIVE}}";
+	// 	text = "[SENDER]";
 	// -------------------------------------------------------
 
 	condensedNotation = pretext.UID + "";
@@ -486,17 +486,7 @@ async function funnyDOWText(cacheVersion, saveToFile, DateOveride, dowNum, autho
 
 			var res = await NameFromUserID(authorID);
 
-			// res is an object promise, need to get the value from it
-
-			if (res.length == 0)
-			{
-				console.log(`Whomst lookup for id ${id} returned no results`)
-				text = text.replaceAll("[SENDER]", "BUDDY");
-			}
-			else
-			{
-				text = text.replaceAll("[SENDER]", res[0].PersonName);
-			}			
+			text = text.replaceAll("[SENDER]", res);
 		}
 	}
 

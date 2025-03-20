@@ -1,4 +1,4 @@
-const { babaWednesday, babaDayNextWed } = require("../commandFunctions.js");
+const { babaDayNextWed, babaUntilHolidays } = require("../commandFunctions.js");
 const { SlashCommandBuilder } = require('@discordjs/builders');
 const { FrogButtons } = require("../HelperFunctions/basicHelpers.js");
 const { splitStringInto2000CharChunksonNewLine } = require("../HelperFunctions/slashFridayHelpers.js");
@@ -41,7 +41,7 @@ module.exports = {
         } 
         else 
         {
-            var texts = await babaWednesday(`${event} days ${til}`);
+            var texts = await babaUntilHolidays(`${event} days ${til}`, interaction.user, "04");
             
             if (texts.length > 1)
             {

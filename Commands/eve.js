@@ -1,39 +1,23 @@
-const { babaUntilHolidays } = require("../commandFunctions.js");
 const { SlashCommandBuilder } = require('@discordjs/builders');
+const { babaUntilHolidays } = require('../commandFunctions');
 const { FrogButtons } = require("../HelperFunctions/basicHelpers.js");
 const { splitStringInto2000CharChunksonNewLine } = require("../HelperFunctions/slashFridayHelpers.js");
 
 module.exports = {
 	data: new SlashCommandBuilder()
-    .setName('when')
-    .setDescription('Frog!')
-    .addSubcommand(subcommand =>
-        subcommand
-            .setName('is')
-            .setDescription('When is the specified event!')
-            .addStringOption(opt => 
-                opt.setName("event")
-                .setDescription("The event that will get used.")
-                .setRequired(true)))
-        .addSubcommand(subcommand =>
-            subcommand
-                .setName("isnt")
-                .setDescription('When is the specified event not occuring!')
-                .addStringOption(opt => 
-                    opt.setName("event")
-                    .setDescription("The event that will get used.")
-                    .setRequired(true))),
+		.setName('eve')
+		.setDescription('Gives the date in eves until or since!')
+		.addStringOption(opt => 
+			opt.setName("event")
+			.setDescription("The event that will get used.")
+			.setRequired(true)),
 	async execute(interaction, bot) {
 		await interaction.deferReply();
         var event = interaction.options.getString("event");
         var message = await interaction.fetchReply();
+        
+        var texts = await babaUntilHolidays(`${event} eves`, interaction.user, "04");
 
-        var subCommand = interaction.options.getSubcommand();
-        var nt = "";
-        if (subCommand === "isnt") nt = "nt";
-        
-        var texts = await babaUntilHolidays(`${event} when is${nt}`, interaction.user, "04");
-        
         if (texts.length > 1)
         {
             FrogButtons(texts, interaction, message);

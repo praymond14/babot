@@ -279,7 +279,7 @@ function GetPurityList(haikuList, pMode)
 
         obj.Count++;
         obj.Accidental += haiku.Accidental;
-        obj.Purity += obj.Accidental / obj.Count;
+        obj.Purity = obj.Accidental / obj.Count  * 100;
     }
 
     return purityList;
@@ -348,12 +348,12 @@ function HaikuSelection(messageTerm, mode)
                     endDate = temp;
                 }
 
-                haikuList = FilterDate(haikuList, "After", startDate.year, startDate.month - 1, startDate.day);
-                haikuList = FilterDate(haikuList, "Before", endDate.year, endDate.month - 1, endDate.day);
+                haikuList = FilterDate(haikuList, "After", startDate.year == 0 ? null : startDate.year, startDate.month == 0 ? null : startDate.month - 1, startDate.day == 0 ? null : startDate.day);
+                haikuList = FilterDate(haikuList, "Before", endDate.year == 0 ? null : endDate.year, endDate.month == 0 ? null : endDate.month - 1, endDate.day == 0 ? null : endDate.day);
             }
             else
             {
-                haikuList = FilterDate(haikuList, "Exact", startDate.year, startDate.month - 1, startDate.day);
+                haikuList = FilterDate(haikuList, "Exact", startDate.year == 0 ? null : startDate.year, startDate.month == 0 ? null : startDate.month - 1, startDate.day == 0 ? null : startDate.day);
             }
         }
 

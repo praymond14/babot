@@ -75,13 +75,12 @@ function FindDate(message, haiku = false) //Not Thanks to Jeremy's Link
 		if (year == 0 && !isDay) //set year to first year found
 		{
 			var iv = parseInt(item);
-			if (iv < 100)
+			if (!isNaN(iv) && iv >= 0)
 			{
-				year = iv + 2000;
-			}
-			if (iv >= 2018)
-			{
-				year = iv;
+				if (iv < 100)
+					year = iv + 2000;
+				else
+					year = iv;
 			}
 		}
 	}
@@ -178,6 +177,9 @@ function GetDate(d1, yr, holidayinfo) //Gets the specified date from the selecte
 			if (holidayinfo.year)
 			{
 				yr = holidayinfo.year;
+                var tempDate = new Date(yr, holidayinfo.month - 1, holidayinfo.day);
+				if (tempDate < d1)
+					yr--;
 				holidayinfo.year = 0;
 			}
 		case 0:
@@ -877,6 +879,8 @@ function PersonalReact(ames, message, msgContent)
 				});
 		}
 	}
+
+	return rct;
 }
 
 function pleaseChecker(message, msgContent, ames)
@@ -1138,7 +1142,7 @@ function buttonsAwaitMessageComponent(message, userid, data, collector)
 			});
 		}
 	)
-	.catch(err => console.error(err));
+	.catch(err => console.error(err, true));
 }
 
 global.paged = {};
@@ -1722,6 +1726,8 @@ async function extremeEmoji(message, msgContent, reactneeded=0)
 	// console.log("goodfellas: " + Object.keys(goodfellas).length);
 	
 	var slightlyusedcategories = {};
+
+	// console.log("Reacting with: " + reactneeded + " emojis.");
 
 	reactEmoji(goodfellas, slightlyusedcategories, message, reactneeded);
 }

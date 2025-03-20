@@ -1,4 +1,4 @@
-const { babaFriday,  babaHelp, babaPlease, babaPizza, babaVibeFlag, babaYugo, babaHaikuEmbed, babaWednesday, babaDayNextWed, babaJeremy, babaHurricane, babaRepost, babaWeather, babaProgress, babaAurora, babaGoodberrys, babaHaikuLinks } = require("./commandFunctions.js");
+const { babaFriday,  babaHelp, babaPlease, babaPizza, babaVibeFlag, babaYugo, babaHaikuEmbed, babaDayNextWed, babaJeremy, babaHurricane, babaRepost, babaWeather, babaProgress, babaAurora, babaGoodberrys, babaHaikuLinks, babaUntilHolidays } = require("./commandFunctions.js");
 const { Client, Intents } = require('discord.js'); //discord module for interation with discord api
 const Discord = require('discord.js'); //discord module for interation with discord api
 var babadata = require('./babotdata.json'); //baba configuration file
@@ -346,11 +346,11 @@ async function babaMessage(bot, message)
 			var info = {"ipp": 5, "page": 0};
 
 			var cont = babaHaikuEmbed(purity, buy, msgContent, info);
-			var deadData = purity ? null : babaHaikuLinks(cont);
+			var deadData = purity || cont[0].components == null ? null : babaHaikuLinks(cont);
 			
 			message.channel.send(cont[info.page]).then(m2 => 
 			{
-				if (cont[info.page].components != null)
+				if (cont[info.page].components != null && cont.length > 1)
 				{
 					handleButtonsEmbed(message.channel, m2, message.author.id, cont, deadData);
 				}
@@ -364,7 +364,7 @@ async function babaMessage(bot, message)
 			if (msgContent.includes('days until next wednesday'))
 				message.channel.send(babaDayNextWed());
 
-			var texts = await babaWednesday(msgContent, message.author);
+			var texts = await babaUntilHolidays(msgContent, message.author, "04");
 			
 			var templocal = babadata.datalocation + "FrogHolidays/"; //creates the output frog image
 
