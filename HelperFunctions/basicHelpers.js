@@ -204,6 +204,8 @@ function GetDate(d1, yr, holidayinfo) //Gets the specified date from the selecte
 
 			d2 = new Date(yr, mnth - 1, 1); //get first of specified month
 			var dtcalc = 1 + (holidayinfo.dayofweek - d2.getDay() - 7) % 7;
+			if (dtcalc == 1) dtcalc = -6;
+
 			dtcalc = dtcalc + (7 * wk); //calculate the day of the month
 
 			d2 = new Date(yr, mnth - 1, dtcalc); //get holiday
