@@ -1,6 +1,6 @@
 const { babaFriday } = require("../commandFunctions.js");
 const { SlashCommandBuilder } = require('@discordjs/builders');
-const { funnyDOWTextSaved, removeCountRuin, splitStringInto2000CharChunksonNewLine } = require("../HelperFunctions/slashFridayHelpers.js");
+const { removeCountRuin, functionPostFunnyDOW } = require("../HelperFunctions/slashFridayHelpers.js");
 
 module.exports = {
 	data: new SlashCommandBuilder()
@@ -31,18 +31,7 @@ module.exports = {
 			}
 			else
 			{
-				var text = await funnyDOWTextSaved(5, interaction.user.id);
-
-				var chunks = splitStringInto2000CharChunksonNewLine(text);
-				
-				await interaction.editReply(chunks[0]);
-
-				var msg = await interaction.fetchReply();
-				// send the rest of the chunks as replys to each other
-				for (var i = 1; i < chunks.length; i++)
-				{
-					msg = await msg.reply(chunks[i]);
-				}
+				await functionPostFunnyDOW("interaction", interaction, 5);
 			}
 		}
 		else

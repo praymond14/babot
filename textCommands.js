@@ -25,7 +25,7 @@ const { normalizeMSG } = require("./HelperFunctions/dbHelpers.js");
 const { Console } = require('console');
 const { SSL_OP_SSLEAY_080_CLIENT_DH_BUG } = require('constants');
 const { TextCommandBackup } = require("./textExtra.js");
-const { funnyDOWTextSaved, splitStringInto2000CharChunksonNewLine } = require("./HelperFunctions/slashFridayHelpers.js");
+const { functionPostFunnyDOW } = require("./HelperFunctions/slashFridayHelpers.js");
 //const { spawn } = require("child_process");
 /* [ 	["christmas", 12, 25, 0, 0], 
 	["thanksgiving", 11, 0, 4, 4], 
@@ -178,16 +178,7 @@ async function babaMessage(bot, message)
 			var tod = new Date();
 			if (tod.getDay() != 5)
 			{
-				var text = await funnyDOWTextSaved(5, message.author.id);
-
-				var chunks = splitStringInto2000CharChunksonNewLine(text);
-				
-				var msg = await message.channel.send(chunks[0]);
-				// send the rest of the chunks as replys to each other
-				for (var i = 1; i < chunks.length; i++)
-				{
-					msg = await msg.reply(chunks[i]);
-				}	
+				await functionPostFunnyDOW("message", message, 5);
 			}
 			else
 			{
@@ -374,14 +365,10 @@ async function babaMessage(bot, message)
 				{
 					var text = texts[i].content;
 
-					var chunks = splitStringInto2000CharChunksonNewLine(text);
-					
-					var msg = await message.channel.send(chunks[0]);
-					// send the rest of the chunks as replys to each other
-					for (var j = 1; j < chunks.length; j++)
-					{
-						msg = await msg.reply(chunks[j]);
-					}	
+					if (content == "FUNNYDOW")
+						await functionPostFunnyDOW("message", message, 3);
+					else
+						await message.channel.send(text);	
 				}
 				else
 					timedOutFrog(i, texts, message, templocal);

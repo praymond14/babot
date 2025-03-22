@@ -1,7 +1,7 @@
 const { babaDayNextWed, babaUntilHolidays } = require("../commandFunctions.js");
 const { SlashCommandBuilder } = require('@discordjs/builders');
 const { FrogButtons } = require("../HelperFunctions/basicHelpers.js");
-const { splitStringInto2000CharChunksonNewLine } = require("../HelperFunctions/slashFridayHelpers.js");
+const { functionPostFunnyDOW } = require("../HelperFunctions/slashFridayHelpers.js");
 
 module.exports = {
 	data: new SlashCommandBuilder()
@@ -53,17 +53,11 @@ module.exports = {
                 if (texts[0].files == null)
                 {
                     var text = texts[0].content;
-        
-                    var chunks = splitStringInto2000CharChunksonNewLine(text);
-        
-                    await interaction.editReply(chunks[0]);
-        
-                    var msg = await interaction.fetchReply();
-                    // send the rest of the chunks as replys to each other
-                    for (var i = 1; i < chunks.length; i++)
-                    {
-                        msg = await msg.reply(chunks[i]);
-                    }	
+
+                    if (content == "FUNNYDOW")
+                        await functionPostFunnyDOW("interaction", interaction, 3);
+                    else
+                        await interaction.editReply(text);	
                 }
                 else 
                 {

@@ -2,7 +2,6 @@ const { FormatPurityList, HaikuSelection, ObtainDBHolidays, NameFromUser } = req
 const { getD1, FindDate, GetDate, dateDiffInDays, getTimeFromString } = require("./HelperFunctions/basicHelpers.js");
 const { CheckHoliday, FindNextHoliday, MakeImage, EmbedHaikuGen, checkHurricaneStuff, monthFromInt, reverseDelay } = require("./HelperFunctions/commandHelpers.js");
 const { normalizeMSG } = require("./HelperFunctions/dbHelpers.js");
-const { funnyDOWTextSaved } = require("./HelperFunctions/slashFridayHelpers.js");
 
 var babadata = require('./babotdata.json'); //baba configuration file
 var data = require(babadata.datalocation + 'data.json'); //extra data
@@ -758,7 +757,7 @@ async function babaUntilHolidays(msgContent, author, DOWChosen)
             if (msgContent.replace("wednesday", "").replace("when is", "").replace("day of week", "").replace("days until", "").trim() == "next")
                 outs.push({ content: "The definition of insanity is doing the same thing over and over expecting a different result" });
             else
-                outs.push({ content: await funnyDOWTextSaved(3, author.id) });
+                outs.push({ content: "FUNNYDOW" });
         }
     }
 

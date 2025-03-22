@@ -1,4 +1,5 @@
 var babadata = require('../babotdata.json'); //baba configuration file
+const Discord = require('discord.js'); //discord module for interation with discord api
 const fs = require('fs');
 const { RNG } = require('./RNG');
 
@@ -25,6 +26,82 @@ function splitStringInto2000CharChunksonNewLine(str)
 	}
 	chunks.push(chunk);
 	return chunks;
+}
+
+function splitStringInto900CharChunksonSpace(str)
+{
+	var chunks = [];
+	var chunk = "";
+	var words = str.split(" ");
+	for (var i = 0; i < words.length; i++)
+	{
+		if (chunk.length + words[i].length > 900)
+		{
+			chunks.push(chunk);
+			chunk = "";
+		}
+		chunk += words[i] + " ";
+	}
+	chunks.push(chunk);
+	return chunks;
+}
+
+async function functionPostFunnyDOW(mode, message, dowNum, seedSet = -1, dontSave = false)
+{
+	var id = mode == "interaction" ? message.user.id : message.author.id;
+	var textList = await funnyDOWTextSaved(dowNum, id, seedSet, dontSave);
+
+	var chunks = textList[0].content == null ? [] : splitStringInto2000CharChunksonNewLine(textList[0].content);
+	var msg = null;
+
+	for (var i = 1; i < textList.length; i++)
+	{
+		var chunkAudioFile = textList[i];
+		if (chunkAudioFile.content == null)
+		{
+			// add file to previous message  (if < 5 files in that message)
+			if (textList[i - 1].files == null)
+				textList[i - 1].files = [];
+
+			for (var j = 0; j < chunkAudioFile.files.length; j++)
+			{
+				if (textList[i - 1].files.length >= 5)
+					break;
+				textList[i - 1].files.push(chunkAudioFile.files[j]);
+				// remove file from list
+				chunkAudioFile.files.splice(j, 1);
+				j--;
+			}
+
+			if (chunkAudioFile.files.length == 0)
+			{
+				// remove file from list
+				textList.splice(i, 1);
+				i--;
+			}
+		}
+	}
+
+	if (textList[0].files != null)
+		chunks[0] = {content: chunks[0], files: textList[0].files};
+
+	// add all of textList[1+] to chunks
+	for (var i = 1; i < textList.length; i++)
+		chunks.push(textList[i]);
+
+	if (mode == "message")
+		msg = await message.channel.send(chunks[0]);
+	else if (mode == "interaction")
+	{
+		await message.editReply(chunks[0]);
+		msg = await message.fetchReply();
+	}
+
+	// send the rest of the chunks as replys to each other
+	for (var i = 1; i < chunks.length; i++)
+	{
+		msg = await msg.reply(chunks[i]);
+	}
 }
 
 async function funnyDOWTextSaved(dowNum, authorID, seedSet = -1, dontSave = false)
@@ -110,7 +187,95 @@ async function funnyDOWTextSaved(dowNum, authorID, seedSet = -1, dontSave = fals
 	if (global.DebugFriday)
 		text += " " + seed;
 
-	return text;
+	var textList = await checkForMorshus(text);
+
+	return textList;
+}
+
+async function checkForMorshus(text)
+{
+	var files = [];
+	// check for {MORSHUIFY_AUDIO} or {MORSHUIFY_VIDEO}
+	// if found, replace all text after with morshu audio in 900 char chunks (split on spaces if possible)
+
+	if (text.includes("{MORSHUIFY_AUDIO}") || text.includes("{MORSHUIFY_AUDIO_HIDDEN}"))
+	{
+		var onlyHidden = text.includes("{MORSHUIFY_AUDIO_HIDDEN}") && !text.includes("{MORSHUIFY_AUDIO}");
+		var start = text.indexOf("{MORSHUIFY_AUDIO}") != -1 ? text.indexOf("{MORSHUIFY_AUDIO}") : text.indexOf("{MORSHUIFY_AUDIO_HIDDEN}");
+		var end = text.length;
+		var morshutext = text.substring(start, end);
+
+		text = text.replace(morshutext, "").trim();
+		if (text != "")
+			files.push({content: text});
+
+		morshutext = morshutext.replaceAll("{MORSHUIFY_AUDIO}", "").trim();
+		morshutext = morshutext.replaceAll("{MORSHUIFY_AUDIO_HIDDEN}", "").trim();
+		morshutext = morshutext.replaceAll("{MORSHUIFY_VIDEO}", "").trim();
+		morshutext = morshutext.replaceAll("{MORSHUIFY_VIDEO_HIDDEN}", "").trim();
+
+		// split morshutext into 900 char chunks
+		var chunks = splitStringInto900CharChunksonSpace(morshutext);
+
+		for (var i = 0; i < chunks.length; i++)
+		{
+			var morshifyed = await babaMorshu("audio", chunks[i]);
+
+			if (morshifyed.file == null)
+			{
+				files.push({content: chunks[i]});
+				continue;
+			}
+
+			var file = {content: chunks[i], files: [morshifyed.file]};
+			if (onlyHidden)
+				file = {files: [morshifyed.file]};
+
+			files.push(file);
+		}
+	}
+
+	if (text.includes("{MORSHUIFY_VIDEO}") || text.includes("{MORSHUIFY_VIDEO_HIDDEN}"))
+	{
+		var onlyHidden = text.includes("{MORSHUIFY_VIDEO_HIDDEN}") && !text.includes("{MORSHUIFY_VIDEO}");
+		var start = text.indexOf("{MORSHUIFY_VIDEO}") != -1 ? text.indexOf("{MORSHUIFY_VIDEO}") : text.indexOf("{MORSHUIFY_VIDEO_HIDDEN}");
+		var end = text.length;
+		var morshutext = text.substring(start, end);
+
+		text = text.replace(morshutext, "").trim();
+		if (text != "")
+			files.push({content: text});
+
+		morshutext = morshutext.replaceAll("{MORSHUIFY_AUDIO}", "").trim();
+		morshutext = morshutext.replaceAll("{MORSHUIFY_AUDIO_HIDDEN}", "").trim();
+		morshutext = morshutext.replaceAll("{MORSHUIFY_VIDEO}", "").trim();
+		morshutext = morshutext.replaceAll("{MORSHUIFY_VIDEO_HIDDEN}", "").trim();
+
+		// split morshutext into 900 char chunks
+		var chunks = splitStringInto900CharChunksonSpace(morshutext);
+
+		for (var i = 0; i < chunks.length; i++)
+		{
+			var morshifyed = await babaMorshu("video", chunks[i]);
+
+			if (morshifyed.file == null)
+			{
+				files.push({content: chunks[i]});
+				continue;
+			}
+
+			var file = {content: chunks[i], files: [morshifyed.file]};
+			if (onlyHidden)
+				file = {files: [morshifyed.file]};
+
+			files.push(file);
+		}
+	}
+
+	if (files.length == 0)
+		files.push({content: text});
+
+	return files;
 }
 
 async function funnyDOWText(cacheVersion, saveToFile, DateOveride, dowNum, authorID, recrused = 0, ToBeCounted = [], headLevel = 0, customString = null)
@@ -235,7 +400,7 @@ async function funnyDOWText(cacheVersion, saveToFile, DateOveride, dowNum, autho
 
 	// Manual Override ---------------------------------------
 	// if (recrused == 0 && babadata.testing !== undefined)
-	// 	text = "[SENDER]";
+	// 	text = "{MORSHUIFY_AUDIO_HIDDEN} {RECURSIVE}";
 	// -------------------------------------------------------
 
 	condensedNotation = pretext.UID + "";
@@ -1061,10 +1226,65 @@ function removeCountRuin(uid, g)
 	});
 }
 
+function babaMorshu(mode, text)
+{
+    var morshuPromise = new Promise((resolve, reject) => {
+        fetch('https://morshu.yoinks.org/morsh', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(
+            {
+                message: text,
+                response_type: mode
+            })
+        }).then(res => res.arrayBuffer())
+        .then((data) => {
+            const nodeBuffer = Buffer.from(data);
+            // save the file if success to babadata.temp + "morshu.mp3" or babadata.temp + "morshu.mp4"
+            // data will be a buffer of the file in either mp3 or mp4 format
+
+            if (mode == "audio")
+            {
+                // tbd save as mp3
+                var file = babadata.temp + "morshu.mp3";
+                fs.writeFileSync(file, nodeBuffer);
+                // return the file location
+
+                var newFile = new Discord.AttachmentBuilder(babadata.temp + "morshu.mp3", 
+                    { name: 'Morshu.mp3', description : text });
+
+                resolve({file: newFile});
+            }
+            else if (mode == "video")
+            {
+                // tbd save as mp4
+                var file = babadata.temp + "morshu.mp4";
+                fs.writeFileSync(file, nodeBuffer);
+                // return the file location
+
+                var newFile = new Discord.AttachmentBuilder(babadata.temp + "morshu.mp4", 
+                    { name: 'Morshu.mp4', description : text });
+
+                resolve({file: newFile});
+            }
+        })
+        .catch((error) => {
+            console.error(error);
+            resolve({file : null});
+        });
+    });
+
+    return morshuPromise;
+}
+
 module.exports = {
+	functionPostFunnyDOW,
     funnyDOWTextSaved,
     funnyFrogText,
 	removeCountRuin,
 	resetRNG,
-	splitStringInto2000CharChunksonNewLine
+	splitStringInto2000CharChunksonNewLine,
+	babaMorshu
 };

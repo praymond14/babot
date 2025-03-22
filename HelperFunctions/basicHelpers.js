@@ -7,7 +7,7 @@ const fs = require('fs');
 const https = require('https')
 const fetch = require('node-fetch');
 const { PermissionsBitField } = require('discord.js');
-const { funnyDOWTextSaved, resetRNG, splitStringInto2000CharChunksonNewLine } = require('./slashFridayHelpers');
+const { resetRNG, functionPostFunnyDOW } = require('./slashFridayHelpers');
 const { ModalBuilder, ActionRowBuilder, TextInputBuilder } = require('discord.js');
 const { ComponentType } = require('discord.js');
 
@@ -738,20 +738,8 @@ async function preformEasterEggs(message, msgContent, bot)
 				// convert to string with no spaces
 				frday = frdayInt.join('');
 	
-				var tesxt = await funnyDOWTextSaved(dowIntIncluded, message.author.id, [frday, numboVersion, as, during, utod, udf], true);
-	
-				if (tesxt != null)
-				{
-					var chunks = splitStringInto2000CharChunksonNewLine(tesxt);
-					console.log(outputstringdebug);
-	
-					var msg = await message.channel.send(chunks[0]);
-					// send the rest of the chunks as replys to each other
-					for (var i = 1; i < chunks.length; i++)
-					{
-						msg = await msg.reply(chunks[i]);
-					}				
-				}
+
+				await functionPostFunnyDOW("message", message, dowIntIncluded, [frday, numboVersion, as, during, utod, udf], true);
 	
 				resetRNG();
 			}
@@ -760,19 +748,7 @@ async function preformEasterEggs(message, msgContent, bot)
 		{
 			var setStringValue = message.content.match(/[sS][eE][tT][sS][tT][rR][iI][nN][gG]-"([^𓃐]*)"/)[1];
 			
-			var tesxt = await funnyDOWTextSaved(dowIntIncluded, message.author.id, [setStringValue], true);
-
-			if (tesxt != null)
-			{
-				var chunks = splitStringInto2000CharChunksonNewLine(tesxt);
-
-				var msg = await message.channel.send(chunks[0]);
-				// send the rest of the chunks as replys to each other
-				for (var i = 1; i < chunks.length; i++)
-				{
-					msg = await msg.reply(chunks[i]);
-				}				
-			}
+			await functionPostFunnyDOW("message", message, dowIntIncluded, [setStringValue], true);
 		}
 	}
 
