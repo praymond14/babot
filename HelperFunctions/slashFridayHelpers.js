@@ -192,84 +192,96 @@ async function funnyDOWTextSaved(dowNum, authorID, seedSet = -1, dontSave = fals
 	return textList;
 }
 
+async function morshin(text, mode)
+{
+	var files = [];
+	var morsh = "{MORSHUIFY_AUDIO}";
+	var morshHidden = "{MORSHUIFY_AUDIO_HIDDEN}";
+	var morshRev = "}OIDUA_YFIUHSROM{";
+	var morshRevHidden = "}NEDDIH_OIDUA_YFIUHSROM{";
+
+	if (mode == "video")
+	{
+		morsh = "{MORSHUIFY_VIDEO}";
+		morshHidden = "{MORSHUIFY_VIDEO_HIDDEN}";
+		morshRev = "}OEDIV_YFIUHSROM{";
+		morshRevHidden = "}NEDDIH_OEDIV_YFIUHSROM{";
+	}
+
+	var reversedTime = text.includes(morshRev) || text.includes(morshRevHidden);
+
+	if (reversedTime)
+		text = text.split("").reverse().join("");
+
+	var onlyHidden = text.includes(morshHidden) && !text.includes(morsh);
+	var start = text.indexOf(morsh) != -1 ? text.indexOf(morsh) : text.indexOf(morshHidden);
+	var end = text.length;
+	var morshutext = text.substring(start, end);
+
+	text = text.replace(morshutext, "").trim();
+	
+	if (text != "")
+	{
+		if (reversedTime)
+			text = text.split("").reverse().join("");
+		files.push({content: text});
+	}
+
+	morshutext = morshutext.replaceAll("{MORSHUIFY_AUDIO}", "").trim();
+	morshutext = morshutext.replaceAll("{MORSHUIFY_AUDIO_HIDDEN}", "").trim();
+	morshutext = morshutext.replaceAll("{MORSHUIFY_VIDEO}", "").trim();
+	morshutext = morshutext.replaceAll("{MORSHUIFY_VIDEO_HIDDEN}", "").trim();
+
+	if (reversedTime)
+		morshutext = morshutext.split("").reverse().join("");
+
+	// split morshutext into 900 char chunks
+	var chunks = splitStringInto900CharChunksonSpace(morshutext);
+
+	for (var i = 0; i < chunks.length; i++)
+	{
+		var morshifyed = await babaMorshu(mode, chunks[i]);
+
+		if (morshifyed.file == null)
+		{
+			files.push({content: chunks[i]});
+			continue;
+		}
+
+		var file = {content: chunks[i], files: [morshifyed.file]};
+		if (onlyHidden)
+			file = {files: [morshifyed.file]};
+
+		files.push(file);
+	}
+
+	return files;
+}
+
 async function checkForMorshus(text)
 {
 	var files = [];
 	// check for {MORSHUIFY_AUDIO} or {MORSHUIFY_VIDEO}
 	// if found, replace all text after with morshu audio in 900 char chunks (split on spaces if possible)
+	// }OIDUA_YFIUHSROM{
+	// }OEDIV_YFIUHSROM{
+	// }NEDDIH_OIDUA_YFIUHSROM{
+	// }NEDDIH_OEDIV_YFIUHSROM{
 
-	if (text.includes("{MORSHUIFY_AUDIO}") || text.includes("{MORSHUIFY_AUDIO_HIDDEN}"))
+	if (text.includes("{MORSHUIFY_VIDEO}") || text.includes("{MORSHUIFY_VIDEO_HIDDEN}") || text.includes("}OEDIV_YFIUHSROM{") || text.includes("}NEDDIH_OEDIV_YFIUHSROM{"))
 	{
-		var onlyHidden = text.includes("{MORSHUIFY_AUDIO_HIDDEN}") && !text.includes("{MORSHUIFY_AUDIO}");
-		var start = text.indexOf("{MORSHUIFY_AUDIO}") != -1 ? text.indexOf("{MORSHUIFY_AUDIO}") : text.indexOf("{MORSHUIFY_AUDIO_HIDDEN}");
-		var end = text.length;
-		var morshutext = text.substring(start, end);
-
-		text = text.replace(morshutext, "").trim();
-		if (text != "")
-			files.push({content: text});
-
-		morshutext = morshutext.replaceAll("{MORSHUIFY_AUDIO}", "").trim();
-		morshutext = morshutext.replaceAll("{MORSHUIFY_AUDIO_HIDDEN}", "").trim();
-		morshutext = morshutext.replaceAll("{MORSHUIFY_VIDEO}", "").trim();
-		morshutext = morshutext.replaceAll("{MORSHUIFY_VIDEO_HIDDEN}", "").trim();
-
-		// split morshutext into 900 char chunks
-		var chunks = splitStringInto900CharChunksonSpace(morshutext);
-
-		for (var i = 0; i < chunks.length; i++)
-		{
-			var morshifyed = await babaMorshu("audio", chunks[i]);
-
-			if (morshifyed.file == null)
-			{
-				files.push({content: chunks[i]});
-				continue;
-			}
-
-			var file = {content: chunks[i], files: [morshifyed.file]};
-			if (onlyHidden)
-				file = {files: [morshifyed.file]};
-
-			files.push(file);
-		}
+		// appedn to files
+		var newFiles = await morshin(text, "video");
+		for (var i = 0; i < newFiles.length; i++)
+			files.push(newFiles[i]);
 	}
 
-	if (text.includes("{MORSHUIFY_VIDEO}") || text.includes("{MORSHUIFY_VIDEO_HIDDEN}"))
+	if (text.includes("{MORSHUIFY_AUDIO}") || text.includes("{MORSHUIFY_AUDIO_HIDDEN}") || text.includes("}OIDUA_YFIUHSROM{") || text.includes("}NEDDIH_OIDUA_YFIUHSROM{"))
 	{
-		var onlyHidden = text.includes("{MORSHUIFY_VIDEO_HIDDEN}") && !text.includes("{MORSHUIFY_VIDEO}");
-		var start = text.indexOf("{MORSHUIFY_VIDEO}") != -1 ? text.indexOf("{MORSHUIFY_VIDEO}") : text.indexOf("{MORSHUIFY_VIDEO_HIDDEN}");
-		var end = text.length;
-		var morshutext = text.substring(start, end);
-
-		text = text.replace(morshutext, "").trim();
-		if (text != "")
-			files.push({content: text});
-
-		morshutext = morshutext.replaceAll("{MORSHUIFY_AUDIO}", "").trim();
-		morshutext = morshutext.replaceAll("{MORSHUIFY_AUDIO_HIDDEN}", "").trim();
-		morshutext = morshutext.replaceAll("{MORSHUIFY_VIDEO}", "").trim();
-		morshutext = morshutext.replaceAll("{MORSHUIFY_VIDEO_HIDDEN}", "").trim();
-
-		// split morshutext into 900 char chunks
-		var chunks = splitStringInto900CharChunksonSpace(morshutext);
-
-		for (var i = 0; i < chunks.length; i++)
-		{
-			var morshifyed = await babaMorshu("video", chunks[i]);
-
-			if (morshifyed.file == null)
-			{
-				files.push({content: chunks[i]});
-				continue;
-			}
-
-			var file = {content: chunks[i], files: [morshifyed.file]};
-			if (onlyHidden)
-				file = {files: [morshifyed.file]};
-
-			files.push(file);
-		}
+		// appedn to files
+		var newFiles = await morshin(text, "audio");
+		for (var i = 0; i < newFiles.length; i++)
+			files.push(newFiles[i]);
 	}
 
 	if (files.length == 0)
@@ -400,7 +412,7 @@ async function funnyDOWText(cacheVersion, saveToFile, DateOveride, dowNum, autho
 
 	// Manual Override ---------------------------------------
 	// if (recrused == 0 && babadata.testing !== undefined)
-	// 	text = "[AnyMorshu] {RECURSIVE}";
+	// 	text = "[AnyMorshu] Egg Thursday is my Life";
 	// -------------------------------------------------------
 
 	condensedNotation = pretext.UID + "";
