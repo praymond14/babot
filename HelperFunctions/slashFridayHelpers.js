@@ -400,7 +400,7 @@ async function funnyDOWText(cacheVersion, saveToFile, DateOveride, dowNum, autho
 
 	// Manual Override ---------------------------------------
 	// if (recrused == 0 && babadata.testing !== undefined)
-	// 	text = "{MORSHUIFY_AUDIO_HIDDEN} {RECURSIVE}";
+	// 	text = "[AnyMorshu] {RECURSIVE}";
 	// -------------------------------------------------------
 
 	condensedNotation = pretext.UID + "";

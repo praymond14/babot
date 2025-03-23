@@ -4,14 +4,17 @@ const { babaMorshu } = require('../HelperFunctions/slashFridayHelpers');
 module.exports = {
 	data: new SlashCommandBuilder()
 		.setName('morshu')
-		.setDescription('Gives the date in eves until or since (defaults to audio)!')
+		.setDescription('Morshu will speak your text you give him!')
         .addStringOption(opt => 
             opt.setName("text")
             .setDescription("The text for morshu to transcribe.")
             .setRequired(true))
+        .addBooleanOption(opt => 
+            opt.setName("subtitles")
+            .setDescription("Show subtitles for morshus transcription (off by default)."))
 		.addStringOption(option =>
 			option.setName('mode')
-				.setDescription('The mode of the morshu transcription!')
+				.setDescription('The mode of the morshu transcription (defaults to audio)!')
 				.addChoices(
 					{ name: "Audio", value: "audio" },
 					{ name: "Video", value: "video" }            
@@ -20,6 +23,7 @@ module.exports = {
 		await interaction.deferReply();
 		var mode = interaction.options.getString('mode');
         var text = interaction.options.getString('text');
+        var subtitles = interaction.options.getBoolean('subtitles');
 
         if (mode == null)
             mode = "video";
@@ -30,9 +34,13 @@ module.exports = {
         else
         {
             var objectSend = {
-                content: "Morshu has spoken!\n```" + text + "```",
+                content: "Morshu has spoken!",
                 files: [morshuFile.file]
             };
+
+            if (subtitles)
+                objectSend.content += "\n```" + text + "```";
+
             await interaction.editReply(objectSend);
         }
 
