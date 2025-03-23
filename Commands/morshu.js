@@ -22,7 +22,7 @@ module.exports = {
         var text = interaction.options.getString('text');
 
         if (mode == null)
-            mode = "audio";
+            mode = "video";
 
         var morshuFile = await babaMorshu(mode, text);
         if (morshuFile.file == null)
