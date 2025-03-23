@@ -552,7 +552,12 @@ async function babaUntilHolidays(msgContent, author, DOWChosen)
 
                 var whenistext = "";
                 if (IsDate != null)
-                    whenistext += "\n<t:" + timed + ":D>";
+                {
+                    if (ison == " is not on ")
+                        whenistext += "\n<t:" + (d2.getTime() / 1000) + ":D> is not on " + "<t:" + timed + ":D>";
+                    else
+                        whenistext += "\n<t:" + timed + ":D>";
+                }
                 else
                 {
                     if (holidayinfo.year != undefined)
