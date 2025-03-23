@@ -12,6 +12,9 @@ module.exports = {
         .addBooleanOption(opt => 
             opt.setName("subtitles")
             .setDescription("Show subtitles for morshus transcription (off by default)."))
+        .addStringOption(opt => 
+            opt.setName("personalizedtext")
+            .setDescription("Add some extra text or @ someone, Isaac Please!"))
 		.addStringOption(option =>
 			option.setName('mode')
 				.setDescription('The mode of the morshu transcription (defaults to audio)!')
@@ -24,6 +27,7 @@ module.exports = {
 		var mode = interaction.options.getString('mode');
         var text = interaction.options.getString('text');
         var subtitles = interaction.options.getBoolean('subtitles');
+        var personaltext = interaction.options.getString('personalizedtext');
 
         if (mode == null)
             mode = "video";
@@ -37,6 +41,9 @@ module.exports = {
                 content: "Morshu has spoken!",
                 files: [morshuFile.file]
             };
+
+            if (personaltext != null && personaltext != "")
+                objectSend.content += "\n" + personaltext
 
             if (subtitles)
                 objectSend.content += "\n```" + text + "```";
