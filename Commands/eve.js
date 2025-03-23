@@ -1,31 +1,27 @@
-const { babaUntilHolidays } = require("../commandFunctions.js");
 const { SlashCommandBuilder } = require('@discordjs/builders');
-const Discord = require('discord.js'); //discord module for interation with discord api
+const { babaUntilHolidays } = require('../commandFunctions');
 const { FrogButtons } = require("../HelperFunctions/basicHelpers.js");
 const { functionPostFunnyDOW } = require("../HelperFunctions/slashFridayHelpers.js");
 
 module.exports = {
 	data: new SlashCommandBuilder()
-    .setName('wednesday')
-    .setDescription('Generates a frog with how many wednesday until an event!')
-    .addStringOption(opt => 
-        opt.setName("event")
-        .setDescription("The event that will get used.")
-        .setRequired(true)),
+		.setName('eve')
+		.setDescription('Gives the date in eves until or since!')
+		.addStringOption(opt => 
+			opt.setName("event")
+			.setDescription("The event that will get used.")
+			.setRequired(true)),
 	async execute(interaction, bot) {
 		await interaction.deferReply();
         var event = interaction.options.getString("event");
         var message = await interaction.fetchReply();
         
-        var texts = await babaUntilHolidays(`${event} wednesday`, interaction.user, "04");
-        
+        var texts = await babaUntilHolidays(`${event} eves`, interaction.user, "04");
+
         if (texts.length > 1)
         {
-            setTimeout(async function()
-            {
-                FrogButtons(texts, interaction, message);
-                await interaction.editReply(texts[0]);
-            }, 1000);
+            FrogButtons(texts, interaction, message);
+            await interaction.editReply(texts[0]);
         }
         else 
         {
@@ -40,10 +36,7 @@ module.exports = {
             }
             else 
             {
-                setTimeout(async function()
-                {
-                    await interaction.editReply(texts[0]);
-                }, 1000);
+                await interaction.editReply(texts[0]);
             }
         }
 	},

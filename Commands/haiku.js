@@ -153,10 +153,10 @@ module.exports = {
             var info = {"ipp": 5, "page": 0}
 
             var cont = babaHaikuEmbed(purity, buy, msgstr, info);
-            var deadData = purity ? null : babaHaikuLinks(cont);
+            var deadData = purity || cont[0].components == null ? null : babaHaikuLinks(cont);
             
             interaction.editReply(cont[info.page]);
-            if (cont[info.page].components != null)
+            if (cont[info.page].components != null && cont.length > 1)
             {
                 handleButtonsEmbed(interaction.channel, message, interaction.user.id, cont, deadData);
             }

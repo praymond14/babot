@@ -1,4 +1,4 @@
-const { babaFriday,  babaHelp, babaPlease, babaPizza, babaVibeFlag, babaYugo, babaHaikuEmbed, babaWednesday, babaDayNextWed, babaJeremy, babaHurricane, babaRepost, babaWeather, babaProgress, babaAurora, babaGoodberrys, babaHaikuLinks } = require("./commandFunctions.js");
+const { babaFriday,  babaHelp, babaPlease, babaPizza, babaVibeFlag, babaYugo, babaHaikuEmbed, babaDayNextWed, babaJeremy, babaHurricane, babaRepost, babaWeather, babaProgress, babaAurora, babaGoodberrys, babaHaikuLinks, babaUntilHolidays } = require("./commandFunctions.js");
 const { Client, Intents } = require('discord.js'); //discord module for interation with discord api
 const Discord = require('discord.js'); //discord module for interation with discord api
 var babadata = require('./babotdata.json'); //baba configuration file
@@ -25,7 +25,7 @@ const { normalizeMSG } = require("./HelperFunctions/dbHelpers.js");
 const { Console } = require('console');
 const { SSL_OP_SSLEAY_080_CLIENT_DH_BUG } = require('constants');
 const { TextCommandBackup } = require("./textExtra.js");
-const { funnyDOWTextSaved, splitStringInto2000CharChunksonNewLine } = require("./HelperFunctions/slashFridayHelpers.js");
+const { functionPostFunnyDOW } = require("./HelperFunctions/slashFridayHelpers.js");
 //const { spawn } = require("child_process");
 /* [ 	["christmas", 12, 25, 0, 0], 
 	["thanksgiving", 11, 0, 4, 4], 
@@ -178,16 +178,7 @@ async function babaMessage(bot, message)
 			var tod = new Date();
 			if (tod.getDay() != 5)
 			{
-				var text = await funnyDOWTextSaved(5, message.author.id);
-
-				var chunks = splitStringInto2000CharChunksonNewLine(text);
-				
-				var msg = await message.channel.send(chunks[0]);
-				// send the rest of the chunks as replys to each other
-				for (var i = 1; i < chunks.length; i++)
-				{
-					msg = await msg.reply(chunks[i]);
-				}	
+				await functionPostFunnyDOW("message", message, 5);
 			}
 			else
 			{
@@ -346,11 +337,11 @@ async function babaMessage(bot, message)
 			var info = {"ipp": 5, "page": 0};
 
 			var cont = babaHaikuEmbed(purity, buy, msgContent, info);
-			var deadData = purity ? null : babaHaikuLinks(cont);
+			var deadData = purity || cont[0].components == null ? null : babaHaikuLinks(cont);
 			
 			message.channel.send(cont[info.page]).then(m2 => 
 			{
-				if (cont[info.page].components != null)
+				if (cont[info.page].components != null && cont.length > 1)
 				{
 					handleButtonsEmbed(message.channel, m2, message.author.id, cont, deadData);
 				}
@@ -364,7 +355,7 @@ async function babaMessage(bot, message)
 			if (msgContent.includes('days until next wednesday'))
 				message.channel.send(babaDayNextWed());
 
-			var texts = await babaWednesday(msgContent, message.author);
+			var texts = await babaUntilHolidays(msgContent, message.author, "04");
 			
 			var templocal = babadata.datalocation + "FrogHolidays/"; //creates the output frog image
 
@@ -374,14 +365,10 @@ async function babaMessage(bot, message)
 				{
 					var text = texts[i].content;
 
-					var chunks = splitStringInto2000CharChunksonNewLine(text);
-					
-					var msg = await message.channel.send(chunks[0]);
-					// send the rest of the chunks as replys to each other
-					for (var j = 1; j < chunks.length; j++)
-					{
-						msg = await msg.reply(chunks[j]);
-					}	
+					if (content == "FUNNYDOW")
+						await functionPostFunnyDOW("message", message, 3);
+					else
+						await message.channel.send(text);	
 				}
 				else
 					timedOutFrog(i, texts, message, templocal);

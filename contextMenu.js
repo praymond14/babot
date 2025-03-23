@@ -170,10 +170,10 @@ async function modalInfo(interaction, bot)
 
 
         var cont = babaHaikuEmbed(purity, buy, msgstr, info);
-        var deadData = purity ? null : babaHaikuLinks(cont);
+        var deadData = purity || cont[0].components == null ?  null : babaHaikuLinks(cont);
 
         interaction.editReply(cont[info.page]);
-        if (cont[info.page].components != null)
+        if (cont[info.page].components != null && cont.length > 1)
         {
             handleButtonsEmbed(interaction.channel, message, interaction.user.id, cont, deadData);
         }
@@ -203,11 +203,10 @@ async function buttonInfo(interaction, bot)
 
         var cont = babaHaikuEmbed(purity, buy, msgstr, info);
 
+        for (var i = 0; i < cont.length; i++)
+            cont[i].components = null;
+
         interaction.editReply(cont[info.page]);
-        if (cont[info.page].components != null)
-        {
-            handleButtonsEmbed(interaction.channel, message, interaction.user.id, cont);
-        }
     }
     else if (cid === "purity" || cid === "haiku" || cid === "haiku_list")
     {

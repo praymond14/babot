@@ -2,7 +2,6 @@ const { FormatPurityList, HaikuSelection, ObtainDBHolidays, NameFromUser } = req
 const { getD1, FindDate, GetDate, dateDiffInDays, getTimeFromString } = require("./HelperFunctions/basicHelpers.js");
 const { CheckHoliday, FindNextHoliday, MakeImage, EmbedHaikuGen, checkHurricaneStuff, monthFromInt, reverseDelay } = require("./HelperFunctions/commandHelpers.js");
 const { normalizeMSG } = require("./HelperFunctions/dbHelpers.js");
-const { funnyDOWTextSaved } = require("./HelperFunctions/slashFridayHelpers.js");
 
 var babadata = require('./babotdata.json'); //baba configuration file
 var data = require(babadata.datalocation + 'data.json'); //extra data
@@ -264,11 +263,11 @@ function babaHaikuEmbed(purity, mode, msgContent, pagestuff)
     else
     { 
         var haikussimnames = HaikuSelection(msgContent, mode);
+        if (haikussimnames == null) return [{content: "No Haiku Found, or the DB is Disabled!"}];
+
         var haiku = haikussimnames[0];
         var simnames = haikussimnames[1];
         //console.log(haiku, true);
-
-        if (haiku == null) return [{content: "No Haiku Found, or the DB is Disabled!"}];
 
         return EmbedHaikuGen(haiku, simnames);
     }
@@ -443,59 +442,52 @@ function babaJeremy()
     return { content: "```" + adjective + animal + "```" };
 }
 
-async function babaWednesday(msgContent, author)
+async function babaUntilHolidays(msgContent, author, DOWChosen)
 {
     msgContent = normalizeMSG(msgContent);
     var outs = [];
-    //let rawdata = fs.readFileSync(babadata.datalocation + "FrogHolidays/" + 'frogholidays.json'); //load file each time of calling wednesday
-    //let holidays = JSON.parse(rawdata);
-
-    if (!(global.dbAccess[1] && global.dbAccess[0])) return [{content: await funnyDOWTextSaved(3, author.id) }];
 
     var holidays = ObtainDBHolidays();
 
-    let d1 = getD1(); //get today
-    var yr = d1.getFullYear();
-    var dow_d1 = (d1.getDay() + 4) % 7;//get day of week (making wed = 0)
-    let d1_useage = new Date(d1.getFullYear(), d1.getMonth(), 1); //today that has been wednesday shifted
-    d1_useage.setDate(d1.getDate() - dow_d1); //modify today for wednesdays
-
-    var IsHoliday = CheckHoliday(msgContent, holidays); //get the holidays that are reqested
+    //get the holidays that are reqested and the date if it is a date
+    var IsHoliday = CheckHoliday(msgContent, holidays);
     var IsDate = FindDate(msgContent);
-
     if (IsDate != null)
         IsHoliday.push(IsDate);
+
+    var d1 = getD1(); //get today
+    var yr = d1.getFullYear();
 
     if (msgContent.includes('next event'))
     {
         var hols = FindNextHoliday(d1, yr, CheckHoliday("ALL", holidays));
-        for ( var i = 0; i < hols.length; i++) //loop through the holidays that are requested
-        {
+        for (var i = 0; i < hols.length; i++) // Add all the events to the list that are coming up
             IsHoliday.push(hols[i]);
-        }
     }
     
     if (msgContent.includes('next birthday'))
     {
         var hols = FindNextHoliday(d1, yr, CheckHoliday("BIRTHDAY", holidays));
-        for ( var i = 0; i < hols.length; i++) //loop through the holidays that are requested
-        {
+        for (var i = 0; i < hols.length; i++) // Add all the birthdays to the list that are coming up
             IsHoliday.push(hols[i]);
-        }
     }
 
-    if(IsHoliday.length > 0) //reply with password file string if baba password
+    if(IsHoliday.length > 0)
     {
         var templocationslist = [];
-
         for ( var i = 0; i < IsHoliday.length; i++) //loop through the holidays that are requested
         {
             var holidayinfo = IsHoliday[i];
             if (holidayinfo.name != "date" && holidayinfo.year)
+            {
                 yr = holidayinfo.year;
+                var tempDate = new Date(yr, holidayinfo.month - 1, holidayinfo.day);
+                if (tempDate < d1)
+                    yr--;
+            }
 
             console.log("holidayinfo: " + holidayinfo.name);
-            let d2 = GetDate(d1, yr, holidayinfo);
+            var d2 = GetDate(d1, yr, holidayinfo);
 
             if (isNaN(d2))
             {
@@ -509,35 +501,77 @@ async function babaWednesday(msgContent, author)
             var additionaltext = "";
             var showwed = false;
 
-            if (msgContent.includes('wednesday'))
-                showwed = true;
+            var dowtext = "";
 
+            if (DOWChosen == "00")
+                DOWChosen = "0" + (d1.getDay() + 1);
+
+            if (DOWChosen == "01")
+                dowtext = "sunday";
+            else if (DOWChosen == "02")
+                dowtext = "monday";
+            else if (DOWChosen == "03")
+                dowtext = "tuesday";
+            else if (DOWChosen == "04")
+                dowtext = "wednesday";
+            else if (DOWChosen == "05")
+                dowtext = "thursday";
+            else if (DOWChosen == "06")
+                dowtext = "friday";
+            else if (DOWChosen == "07")
+                dowtext = "saturday";
+
+            if (msgContent.includes(dowtext))
+                showwed = true;
+            
             if (msgContent.includes('when is')) //outputs the next occurance of the event
             {
-                var bonustext = holidayinfo.year != undefined ? " " + holidayinfo.year : "";
+                var timed = d2.getTime() / 1000;
+                var ison = " is on ";
                 
+                if (msgContent.includes('when isnt') || msgContent.includes('when is not') || msgContent.includes('when isn\'t'))
+                {
+                    // add a random number of days to d2 either before or after the date
+                    var days = Math.floor(Math.random() * 364) + 1;
+
+                    // add a random number of years from 0 to 5 either before or after the date
+                    var years = Math.floor(Math.random() * 5);
+
+                    var before = Math.random() < 0.5;
+                    var before2 = Math.random() < 0.5;
+
+                    var d3po = new Date(d2);
+                    d3po.setDate(d2.getDate() + (before ? -days : days));
+                    d3po.setFullYear(d2.getFullYear() + (before2 ? -years : years));
+
+                    timed = d3po.getTime() / 1000;
+                    ison = " is not on ";
+                }
+
+                var bonustext = holidayinfo.year != undefined ? " " + holidayinfo.year : "";
+
                 var whenistext = "";
                 if (IsDate != null)
-                    whenistext += "\n" + holidayinfo.safename;
+                {
+                    if (ison == " is not on ")
+                        whenistext += "\n<t:" + (d2.getTime() / 1000) + ":D> is not on " + "<t:" + timed + ":D>";
+                    else
+                        whenistext += "\n<t:" + timed + ":D>";
+                }
                 else
                 {
                     if (holidayinfo.year != undefined)
-                        // whenistext += "\n" + holidayinfo.safename + bonustext + " is on " + d2.toLocaleDateString('en-US', options);
-                        whenistext += "\n" + holidayinfo.safename + bonustext + " is on <t:" + d2.getTime() / 1000 + ":D>";
+                        whenistext += "\n" + holidayinfo.safename + bonustext + ison + "<t:" + timed + ":D>";
                     else
-                    {
-                        //whenistext += "\nThe next occurance of " + holidayinfo.safename + " is on " + d2.toLocaleDateString('en-US', options);
-                        whenistext += "\nThe next occurance of " + holidayinfo.safename + " is on <t:" + d2.getTime() / 1000 + ":D>";
-                        
-                    }
+                        whenistext += "\nThe next occurance of " + holidayinfo.safename + ison + "<t:" + timed + ":D>";
                 }
                 
                 additionaltext += whenistext + "\n";
             }
-            
+
             if (msgContent.includes('day of week')) //custom days until text output - for joseph
             {
-                var bonustext = holidayinfo.year != undefined ? " " + holidayinfo.year : "";
+                var bonustext = holidayinfo.year != undefined && holidayinfo.year != 0 ? " " + holidayinfo.year : "";
                 var dowtext = holidayinfo.safename + bonustext + " is on " + d2.toLocaleDateString('en-US', {weekday: 'long'}); //future text
                 
                 additionaltext += dowtext + "\n";
@@ -546,45 +580,68 @@ async function babaWednesday(msgContent, author)
             if (msgContent.includes('days until')) //custom days until text output - for joseph
             {
                 var int = dateDiffInDays(d1, d2); //convert to days difference
-                var bonustext = holidayinfo.year != undefined ? " " + holidayinfo.year : "";
+                var bonustext = holidayinfo.year != undefined && holidayinfo.year != 0 ? " " + holidayinfo.year : "";
 
-                var dutext = "";
+                dutext = holidayinfo.safename + bonustext + " is ";
+
                 if (int != 0)
-                {
-                    // if (int == 1)
-                    //     dutext = int + " Day until " + holidayinfo.safename; //future text
-                    // else
-                    //     dutext = int + " Days until " + holidayinfo.safename + bonustext; //future text
-                    
-                    dutext = holidayinfo.safename + bonustext + " is <t:" + d2.getTime() / 1000 + ":R>" + (int > 31 ? " which is in " + int + " day" + (int == 1 ? "" : "s") : "");
-
-                    additionaltext += dutext + "\n";
-                }
+                    dutext += "<t:" + d2.getTime() / 1000 + ":R>" + (int > 31 ? " which is in " + int + " day" + (int == 1 ? "" : "s") : "!");
                 else
+                {
+                    dutext += "Today!";
                     showwed = true;
+                }
+
+                additionaltext += dutext + "\n";
             }
 
             if (msgContent.includes('days since')) //custom days until text output - for joseph
             {
                 var int = dateDiffInDays(d1, d2); //convert to days difference
-                var bonustext = holidayinfo.year != undefined ? " " + holidayinfo.year : "";
-                
-                int = 3;
-                var dutext = "";
+                int = Math.abs(int);
+                var bonustext = holidayinfo.year != undefined && holidayinfo.year != 0 ? " " + holidayinfo.year : "";
+
+                dutext = holidayinfo.safename + bonustext + " is ";
+
                 if (int != 0)
-                {
-                    if (int == 1)
-                        dutext = int + " Day until " + holidayinfo.safename; //future text
-                    else
-                        dutext = int + " Days until " + holidayinfo.safename + bonustext; //future text
-                    
-                    dutext = "Since for Events Coming Soon";
-                    additionaltext += dutext + "\n";
-                }
+                    dutext += "<t:" + d2.getTime() / 1000 + ":R>" + (int > 31 ? " which was " + int + " day" + (int == 1 ? "" : "s") : " ago!");
                 else
+                {
+                    dutext += "Today!";
                     showwed = true;
+                }
+
+                additionaltext += dutext + "\n";
             }
-            
+
+            if (msgContent.includes("eves"))
+            {
+                var int = dateDiffInDays(d1, d2); //convert to days difference
+                int = Math.abs(int);
+                var bonustext = holidayinfo.year != undefined && holidayinfo.year != 0 ? " " + holidayinfo.year : "";
+
+                var eves = "";
+                var evesCloner = "eve ";
+                var HundredGroups = Math.ceil(int / 450);
+                for (var j = 0; j < HundredGroups; j++)
+                {
+                    var newInt = 450;
+                    if (j == HundredGroups - 1 && int % 450 != 0)
+                        newInt = int % 450;
+
+                    eves += evesCloner.repeat(newInt);
+                    eves = eves.trim();
+                    eves += "\n";
+                }
+                eves = eves.trim();
+
+                // if today is before d2
+                if (d1 < d2)
+                    additionaltext += "Today is " + holidayinfo.safename + bonustext + " " + eves + "!\n";
+                else
+                    additionaltext += holidayinfo.safename + bonustext + " is Today " + eves + "!\n";
+            }
+
             if (additionaltext !== "")
             {
                 outs.push({ content: additionaltext });
@@ -593,9 +650,13 @@ async function babaWednesday(msgContent, author)
                     continue;
             }
 
-            var dow_d2 = (d2.getDay() + 4) % 7;//get day of week (making wed = 0)
-            let d2_useage = new Date(d2.getFullYear(), d2.getMonth(), 1); //holiday that has been wednesday shifted
-            d2_useage.setDate(d2.getDate() - dow_d2);// modify holiday for wednesdays
+            var dow_d1 = (d1.getDay() + parseInt(DOWChosen)) % 7; // get day of week (making wed = 0)
+            let d1_useage = new Date(d1.getFullYear(), d1.getMonth(), 1); // today that has been wednesday shifted
+            d1_useage.setDate(d1.getDate() - dow_d1); // modify today for wednesdays
+
+            var dow_d2 = (d2.getDay() + parseInt(DOWChosen)) % 7; // get day of week (making wed = 0)
+            let d2_useage = new Date(d2.getFullYear(), d2.getMonth(), 1); // holiday that has been wednesday shifted
+            d2_useage.setDate(d2.getDate() - dow_d2); // modify holiday for wednesdays
 
             let weeks = Math.abs((d1_useage.getTime() - d2_useage.getTime()) / 3600000 / 24 / 7); // how many weeks
             
@@ -604,75 +665,83 @@ async function babaWednesday(msgContent, author)
 
             weeks = Math.round(weeks);
 
-            var wednesdayoverlay = "Wednesday_Plural.png"; //gets the wednesday portion
-            if (weeks == 1)
-                wednesdayoverlay = "Wednesday_Single.png"; //one week means single info
-
-            var templocal = babadata.datalocation + "FrogHolidays/"; //creates the output frog image
-
-            var outputname = "outputfrog_" + i + ".png"; //default output name
-            if (d1.getTime() - d2.getTime() == 0)
+            if (DOWChosen == "04")
             {
-                outputname =  holidayinfo.name + ".png"; //if today is the event, show something cool
+                var wednesdayoverlay = "Wednesday_Plural.png"; //gets the wednesday portion
+                if (weeks == 1)
+                    wednesdayoverlay = "Wednesday_Single.png"; //one week means single info
 
-                var custom = false;
-                if (holidayinfo.name == "date")
+                if (d2 < d1)
                 {
-                    custom = true;
+                    wednesdayoverlay = "sinces";
+                    if (weeks == 1)
+                        wednesdayoverlay = "since";
+                }
+
+                var templocal = babadata.datalocation + "FrogHolidays/"; //creates the output frog image
+
+                var outputname = "outputfrog_" + i + ".png"; //default output name
+                if (d1.getTime() - d2.getTime() == 0)
+                {
+                    outputname =  holidayinfo.name + ".png"; //if today is the event, show something cool
+
+                    var custom = false;
+                    if (holidayinfo.name == "date")
+                        custom = true;
+                    else
+                    {
+                        try
+                        {
+                            fs.accessSync(templocal + outputname, fs.constants.R_OK | fs.constants.W_OK);
+                        } 
+                        catch (err)
+                        {
+                            custom = true;
+                            outputname = "date.png";
+                        }
+                    }
+
+                    if (custom)
+                    {
+                        // images(templocal + outputname).save(templocal + "outputfrog_0.png");
+
+                        Jimp.read(templocal + outputname)
+                            .then(function (image) {
+                                loadedImage = image;
+                                return Jimp.loadFont(Jimp.FONT_SANS_32_BLACK);
+                            })
+                            .then(function (font) {
+                                loadedImage.print(font, 190, 20, holidayinfo.safename)
+                                        .write(templocal + "outputfrog_0.png");
+                            })
+                            .catch(function (err) {
+                                console.error(err);
+                            });
+                        outputname = "outputfrog_0.png";
+                    }
                 }
                 else
                 {
-                    try
+                    weeks = Math.floor(weeks);
+                    if (weeks > 999999) weeks = 1000000;
+                    var base = holidayinfo.name + "_base.png";
+
+                    try 
                     {
-                        fs.accessSync(templocal + outputname, fs.constants.R_OK | fs.constants.W_OK);
-                    } 
-                    catch (err)
-                    {
-                        custom = true;
-                        outputname = "date.png";
+                        await MakeImage(templocal, base, wednesdayoverlay, weeks, outputname, holidayinfo, false);
                     }
-                }
-
-                if (custom)
-                {
-                    // images(templocal + outputname).save(templocal + "outputfrog_0.png");
-
-                    Jimp.read(templocal + outputname)
-                        .then(function (image) {
-                            loadedImage = image;
-                            return Jimp.loadFont(Jimp.FONT_SANS_32_BLACK);
-                        })
-                        .then(function (font) {
-                            loadedImage.print(font, 190, 20, holidayinfo.safename)
-                                    .write(templocal + "outputfrog_0.png");
-                        })
-                        .catch(function (err) {
-                            console.error(err);
-                        });
-                    outputname = "outputfrog_0.png";
-                }
-            }
-            else
-            {
-                weeks = Math.floor(weeks);
-                if (weeks > 999999) weeks = 1000000;
-                var base = holidayinfo.name + "_base.png";
-
-                try 
-                {
-                    await MakeImage(templocal, base, wednesdayoverlay, weeks, outputname, holidayinfo, false);
-                }
-                catch(err) // probably not nessisary
-                {
-                    await MakeImage(templocal, "date_base.png", wednesdayoverlay, weeks, outputname, holidayinfo, true);
+                    catch(err) // probably not nessisary
+                    {
+                        await MakeImage(templocal, "date_base.png", wednesdayoverlay, weeks, outputname, holidayinfo, true);
+                    }
+                    
                 }
                 
+                var tempFilePath = templocal + outputname; // temp file location
+                templocationslist.push(tempFilePath);
             }
-            
-            var tempFilePath = templocal + outputname; // temp file location
-            templocationslist.push(tempFilePath);
         }
-
+        
         for (var j = 0; j < templocationslist.length; j++)
         {
             var newAttch = new Discord.AttachmentBuilder(templocationslist[j], 
@@ -693,15 +762,14 @@ async function babaWednesday(msgContent, author)
     }
     else
     {
-        var tod = new Date();
-        if (tod.getDay() == 3)
+        if ((d1.getDay() == 3 && (mode == "00" || mode == "04")))
             outs.push({ content: "It is Wednesday, My Dudes" });
         else
         {
             if (msgContent.replace("wednesday", "").replace("when is", "").replace("day of week", "").replace("days until", "").trim() == "next")
                 outs.push({ content: "The definition of insanity is doing the same thing over and over expecting a different result" });
             else
-                outs.push({ content: await funnyDOWTextSaved(3, author.id) });
+                outs.push({ content: "FUNNYDOW" });
         }
     }
 
@@ -709,24 +777,6 @@ async function babaWednesday(msgContent, author)
         outs.push({ content: "Baba Broke Getting that Event!" });
     
     return outs;
-
-    //if (msgContent.includes('super cursed'))
-    //{
-    //	setTimeout(function()
-    //	{ 
-    //		let help = "abcdefghijklm.nopqrstuvwxyz:1234567890/".split('');
-    //		let li = "";
-
-    //		for (var i = 0; i < holidays.help.outp.length; i++)
-    //		{
-    //			var t = help.indexOf(holidays.help.outp[i]);
-    //			t = ((t - holidays.help.count) + help.length) % help.length;
-    //			var s = help[t];
-    //			li += s;
-    //		}
-    //		message.channel.send(li);
-    //	}, 100);
-    //}
 }
 
 async function babaWhomst(user)
@@ -955,7 +1005,7 @@ module.exports = {
     babaYugo, 
     babaHaikuEmbed,
     babaHaikuLinks,
-    babaWednesday, 
+    babaUntilHolidays,
     babaDayNextWed,
     babaRepost,
     babaProgress,

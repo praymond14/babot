@@ -7,7 +7,7 @@ const fs = require('fs');
 const https = require('https')
 const fetch = require('node-fetch');
 const { PermissionsBitField } = require('discord.js');
-const { funnyDOWTextSaved, resetRNG, splitStringInto2000CharChunksonNewLine } = require('./slashFridayHelpers');
+const { resetRNG, functionPostFunnyDOW } = require('./slashFridayHelpers');
 const { ModalBuilder, ActionRowBuilder, TextInputBuilder } = require('discord.js');
 const { ComponentType } = require('discord.js');
 
@@ -75,13 +75,12 @@ function FindDate(message, haiku = false) //Not Thanks to Jeremy's Link
 		if (year == 0 && !isDay) //set year to first year found
 		{
 			var iv = parseInt(item);
-			if (iv < 100)
+			if (!isNaN(iv) && iv >= 0)
 			{
-				year = iv + 2000;
-			}
-			if (iv >= 2018)
-			{
-				year = iv;
+				if (iv < 100)
+					year = iv + 2000;
+				else
+					year = iv;
 			}
 		}
 	}
@@ -178,6 +177,9 @@ function GetDate(d1, yr, holidayinfo) //Gets the specified date from the selecte
 			if (holidayinfo.year)
 			{
 				yr = holidayinfo.year;
+                var tempDate = new Date(yr, holidayinfo.month - 1, holidayinfo.day);
+				if (tempDate < d1)
+					yr--;
 				holidayinfo.year = 0;
 			}
 		case 0:
@@ -202,6 +204,8 @@ function GetDate(d1, yr, holidayinfo) //Gets the specified date from the selecte
 
 			d2 = new Date(yr, mnth - 1, 1); //get first of specified month
 			var dtcalc = 1 + (holidayinfo.dayofweek - d2.getDay() - 7) % 7;
+			if (dtcalc == 1) dtcalc = -6;
+
 			dtcalc = dtcalc + (7 * wk); //calculate the day of the month
 
 			d2 = new Date(yr, mnth - 1, dtcalc); //get holiday
@@ -734,20 +738,8 @@ async function preformEasterEggs(message, msgContent, bot)
 				// convert to string with no spaces
 				frday = frdayInt.join('');
 	
-				var tesxt = await funnyDOWTextSaved(dowIntIncluded, message.author.id, [frday, numboVersion, as, during, utod, udf], true);
-	
-				if (tesxt != null)
-				{
-					var chunks = splitStringInto2000CharChunksonNewLine(tesxt);
-					console.log(outputstringdebug);
-	
-					var msg = await message.channel.send(chunks[0]);
-					// send the rest of the chunks as replys to each other
-					for (var i = 1; i < chunks.length; i++)
-					{
-						msg = await msg.reply(chunks[i]);
-					}				
-				}
+
+				await functionPostFunnyDOW("message", message, dowIntIncluded, [frday, numboVersion, as, during, utod, udf], true);
 	
 				resetRNG();
 			}
@@ -756,19 +748,7 @@ async function preformEasterEggs(message, msgContent, bot)
 		{
 			var setStringValue = message.content.match(/[sS][eE][tT][sS][tT][rR][iI][nN][gG]-"([^𓃐]*)"/)[1];
 			
-			var tesxt = await funnyDOWTextSaved(dowIntIncluded, message.author.id, [setStringValue], true);
-
-			if (tesxt != null)
-			{
-				var chunks = splitStringInto2000CharChunksonNewLine(tesxt);
-
-				var msg = await message.channel.send(chunks[0]);
-				// send the rest of the chunks as replys to each other
-				for (var i = 1; i < chunks.length; i++)
-				{
-					msg = await msg.reply(chunks[i]);
-				}				
-			}
+			await functionPostFunnyDOW("message", message, dowIntIncluded, [setStringValue], true);
 		}
 	}
 
@@ -877,6 +857,8 @@ function PersonalReact(ames, message, msgContent)
 				});
 		}
 	}
+
+	return rct;
 }
 
 function pleaseChecker(message, msgContent, ames)
@@ -1138,7 +1120,7 @@ function buttonsAwaitMessageComponent(message, userid, data, collector)
 			});
 		}
 	)
-	.catch(err => console.error(err));
+	.catch(err => console.error(err, true));
 }
 
 global.paged = {};
@@ -1722,6 +1704,8 @@ async function extremeEmoji(message, msgContent, reactneeded=0)
 	// console.log("goodfellas: " + Object.keys(goodfellas).length);
 	
 	var slightlyusedcategories = {};
+
+	// console.log("Reacting with: " + reactneeded + " emojis.");
 
 	reactEmoji(goodfellas, slightlyusedcategories, message, reactneeded);
 }

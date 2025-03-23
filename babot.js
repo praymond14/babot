@@ -43,8 +43,11 @@ console.log = function(d, ignoresave=false, DBdebugLog=false)
 	log_stdout.write((DBdebugLog ? "DB: " : "") + util.format(d) + '\n');
 };
 
-console.error = function(d) 
+console.error = function(d, supress=false) 
 {
+	if (supress)
+		return;
+	
 	log_file.write('---------------------------------\n');
 	log_file.write('Caught Exception:\n');
 	log_file.write(util.format(d) + '\n');

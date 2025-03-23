@@ -922,6 +922,8 @@ function LoadAllTheCache()
             // Time Gates -- TimeGates.json - `Select * from timegatess`
         const FridayResult = await LoadAllSlashFridayStuff();
         console.log("Friday Cache: " + FridayResult, false, true);
+
+        // TODO: On the first of the month, update frogholidays folder from downloading bikus.org/frogholidays.zip, and to add a flag to force download images from force cache download
     }
 
     var PromisedAllCache = new Promise((resolve, reject) =>

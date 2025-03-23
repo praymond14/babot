@@ -41,7 +41,7 @@ async function MakeImage(templocal, base, wednesdayoverlay, weeks, outputname, h
 	if (base == "date_base.png") baseImg = await Jimp.read(templocal + base);
 
 	var mydudes = await Jimp.read(templocal + "mydudes.png");
-	var wednesday = await Jimp.read(templocal + wednesdayoverlay);
+
 	baseImg.composite(mydudes, 0, 0);
 
 	if (!(bonus > 0 && weeks == 0)) //if weeks is 0 and bonus is real - no printing zero
@@ -50,11 +50,25 @@ async function MakeImage(templocal, base, wednesdayoverlay, weeks, outputname, h
 		baseImg.composite(week, 0, 0);
 	}
 
-	baseImg.composite(wednesday, 0, 0);
+	if (wednesdayoverlay != "since" && wednesdayoverlay != "sinces")
+	{
+		var wednesday = await Jimp.read(templocal + wednesdayoverlay);
+		baseImg.composite(wednesday, 0, 0);
+	}
 
 	var res = await BonusGenerator(bonus, baseImg, templocal, weeks, 1, 1, plu);
 	baseImg = res[0];
 	var textlocal = res[1];
+
+	if (wednesdayoverlay == "since" || wednesdayoverlay == "sinces")
+	{
+		var s = wednesdayoverlay == "sinces" ? "s" : "";
+		var font = await Jimp.loadFont(Jimp.FONT_SANS_32_BLACK);
+		baseImg.print(font, 80,
+							textlocal - 45, 
+							"Wednesday" + s + " Since", 
+							textoverlay ? 367 : 467);
+	}
 
 	if (holidayinfo.name == "date" || textoverlay || yeartop)
 	{
@@ -367,7 +381,7 @@ function CheckHoliday(msg, holdaylist) //checks if any of the holiday list is sa
 					if (year == 0) //set year to first year found
 					{
 						var iv = parseInt(block);
-						if (iv > new Date().getFullYear())
+						if (iv > 1300)
 						{
 							year = iv;
 						}
