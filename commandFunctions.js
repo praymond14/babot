@@ -533,10 +533,17 @@ async function babaUntilHolidays(msgContent, author, DOWChosen)
                 {
                     // add a random number of days to d2 either before or after the date
                     var days = Math.floor(Math.random() * 364) + 1;
+
+                    // add a random number of years from 0 to 5 either before or after the date
+                    var years = Math.floor(Math.random() * 5);
+
                     var before = Math.random() < 0.5;
+                    var before2 = Math.random() < 0.5;
 
                     var d3po = new Date(d2);
                     d3po.setDate(d2.getDate() + (before ? -days : days));
+                    d3po.setFullYear(d2.getFullYear() + (before2 ? -years : years));
+
                     timed = d3po.getTime() / 1000;
                     ison = " is not on ";
                 }

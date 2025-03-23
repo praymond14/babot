@@ -33,7 +33,7 @@ module.exports = {
             {
                 var text = texts[0].content;
 
-                if (content == "FUNNYDOW")
+                if (text == "FUNNYDOW")
                     await functionPostFunnyDOW("interaction", interaction, 3);
                 else
                     await interaction.editReply(text);
