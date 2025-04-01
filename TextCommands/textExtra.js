@@ -1,13 +1,14 @@
-var babadata = require('./babotdata.json'); //baba configuration file
-const { controlDOW, LoadAllTheCache, SaveSlashFridayJson, clearVCCList, DMMePlease } = require("./databaseVoiceController");
+var babadata = require('../babotdata.json'); //baba configuration file
+
 const fs = require('fs');
 const https = require('https');
 const fetch = require('node-fetch');
 
-const validLetters = "bikusfrday";
+const { SetHolidayChan, dailyRandom, fronge, Seperated, enumConverter } = require("../Functions/HelperFunctions/basicHelpers.js");
+const { reverseDelay } = require('../Functions/HelperFunctions/remindersByBaba.js');
+const { controlDOW, LoadAllTheCache, SaveSlashFridayJson, clearVCCList, DMMePlease } = require("../Functions/Database/databaseVoiceController.js");
 
-const { SetHolidayChan, dailyRandom, fronge, Seperated, enumConverter } = require("./HelperFunctions/basicHelpers.js");
-const { reverseDelay } = require("./HelperFunctions/commandHelpers.js");
+const validLetters = "bikusfrday";
 
 function generateTabs(num)
 {
@@ -325,7 +326,7 @@ function TextCommandBackup(bot, message, sentvalid, msgContent, g)
 						return;
 					}
 
-					reverseDelay(message, hiddenChan, mess, delay);
+					reverseDelay(message, message.author.id, hiddenChan, mess, parseInt(delay), false);
 				}
 				else if (msgContent.includes("tnt"))
 				{

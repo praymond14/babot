@@ -1,4 +1,4 @@
-const { setGrole } = require('../HelperFunctions/adminHelpers.js');
+const { setGrole } = require('../Functions/HelperFunctions/adminHelpers.js');
 const { SlashCommandBuilder } = require('@discordjs/builders');
 
 module.exports = {

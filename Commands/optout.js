@@ -1,6 +1,5 @@
 const { SlashCommandBuilder } = require('@discordjs/builders');
-const Discord = require('discord.js'); //discord module for interation with discord api
-const { optOut } = require('../databaseVoiceController.js');
+const { optOut } = require('../Functions/Database/databaseVoiceController.js');
 
 module.exports = {
 	data: new SlashCommandBuilder()

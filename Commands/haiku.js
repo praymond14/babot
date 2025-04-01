@@ -1,7 +1,6 @@
-const { babaHaikuEmbed, babaHaikuLinks } = require("../commandFunctions.js");
+const { babaHaikuEmbed, babaHaikuLinks } = require('../Functions/commandFunctions.js');
 const { SlashCommandBuilder } = require('@discordjs/builders');
-const { sqlEscapeStringThingforAdamBecauseHeWillDoanSQLInjectionOtherwise } = require("../HelperFunctions/dbHelpers.js");
-const { handleButtonsEmbed } = require("../HelperFunctions/basicHelpers.js");
+const { handleButtonsEmbed } = require("../Functions/HelperFunctions/basicHelpers.js");
 const Discord = require('discord.js');
 
 module.exports = {

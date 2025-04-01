@@ -1,4 +1,5 @@
 const { SlashCommandBuilder } = require('@discordjs/builders');
+const { getD1 } = require('../Tools/overrides');
 
 module.exports = {
 	data: new SlashCommandBuilder()
@@ -7,7 +8,7 @@ module.exports = {
 	async execute(interaction, bot) 
         {
                 var start = global.starttime;
-                var now = new Date();
+                var now = getD1();
                 var diff = now - start;
                 var diffDays = Math.floor(diff / 86400000); // days
                 var diffHrs = Math.floor((diff % 86400000) / 3600000); // hours

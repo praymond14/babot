@@ -1,4 +1,4 @@
-const { movetoChannel } = require('../HelperFunctions/adminHelpers.js');
+const { movetoChannel } = require('../Functions/HelperFunctions/adminHelpers.js');
 const { SlashCommandBuilder } = require('@discordjs/builders');
 var babadata = require('../babotdata.json'); //baba configuration file
 

@@ -1,4 +1,4 @@
-const { babaPlease } = require("../commandFunctions.js");
+const { babaPlease } = require('../Functions/commandFunctions.js');
 const { SlashCommandBuilder } = require('@discordjs/builders');
 
 module.exports = {

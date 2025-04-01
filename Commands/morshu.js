@@ -1,5 +1,6 @@
 const { SlashCommandBuilder } = require('@discordjs/builders');
-const { babaMorshu } = require('../HelperFunctions/slashFridayHelpers');
+const { babaMorshu } = require("../Functions/Voice/VoiceHelpers/morshin.js");
+const { splitStringInto900CharChunksonSpace } = require('../Functions/HelperFunctions/slashFridayHelpers');
 
 module.exports = {
 	data: new SlashCommandBuilder()
@@ -32,14 +33,24 @@ module.exports = {
         if (mode == null)
             mode = "video";
 
-        var morshuFile = await babaMorshu(mode, text);
-        if (morshuFile.file == null)
+        var textSplit = splitStringInto900CharChunksonSpace(text);
+
+        var filesOfMorsh = [];
+        for (var i = 0; i < textSplit.length; i++)
+        {
+            var tsplit = textSplit[i];
+            var morshuFile = await babaMorshu(mode, tsplit, i);
+            if (morshuFile.file != null)
+                filesOfMorsh.push(morshuFile.file);
+        }
+
+        if (filesOfMorsh.length == 0)
             await interaction.editReply("Morshu couldn't transcribe the text, it may have been too long or there was an error!");
         else
         {
             var objectSend = {
                 content: "Morshu has spoken!",
-                files: [morshuFile.file]
+                files: filesOfMorsh
             };
 
             if (personaltext != null && personaltext != "")

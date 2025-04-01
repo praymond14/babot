@@ -1,7 +1,10 @@
-var babadata = require('./babotdata.json'); //baba configuration file
+var babadata = require('../../babotdata.json'); //baba configuration file
+
 const fs = require('fs');
+
 const { NameFromUserIDID } = require('./databaseVoiceController');
-const { FindDate } = require('./HelperFunctions/basicHelpers');
+const { FindDate } = require('../HelperFunctions/basicHelpers');
+const { getD1 } = require('../../Tools/overrides');
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -151,7 +154,7 @@ function GenerateRandomHaiku(haikuList)
     object.PersonName = "No One";
     object.HaikuFormatted = "";
     object.DiscordName = "No One";
-    object.Date = new Date();
+    object.Date = getD1();
     object.ChannelName = "No Channel";
     object.Accidental = 1;
 
@@ -431,6 +434,21 @@ function NameFromUserID(userid)
     return userDBItemPromise;
 }
 
+function NameFromUserIDNoFakes(userid)
+{
+    var userDBItemPromise = new Promise((resolve, reject) => {
+        NameFromUserIDID(userid).then((result) =>
+        {
+            resolve(result.PersonName);
+        }).catch((err) => 
+        {
+            resolve("No One");
+        });
+    });
+
+    return userDBItemPromise;
+}
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 function GenInfo(line, type)
@@ -554,5 +572,6 @@ module.exports = {
     NameFromUserID,
 	FormatPurityList,
     ObtainDBHolidays,
-    HaikuSelection
+    HaikuSelection,
+    NameFromUserIDNoFakes
 }

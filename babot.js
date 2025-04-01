@@ -1,21 +1,22 @@
+var babadata = require('./babotdata.json'); //baba configuration file
+
 const fs = require('fs');
 var util = require('util');
-const { Client, GatewayIntentBits, Partials, Collection } = require('discord.js'); //discord module for interation with discord api
-const Discord = require('discord.js'); //discord module for interation with discord api
-const { REST } = require('@discordjs/rest');
-const { Routes } = require('discord-api-types/v9');
-var babadata = require('./babotdata.json'); //baba configuration file
-const txtCommands = require('./textCommands.js');
-//const { setCommandRoles } = require('./helperFunc');
 
-const { dailyCallStart } = require('./dailycall.js');
-const { contextInfo, modalInfo, buttonInfo, stringSelectInfo, userSelectInfo, channelSelectInfo } = require('./contextMenu');
-const { StartDB, EventDB, voiceChannelChange, DMMePlease } = require('./databaseVoiceController.js');
+const { Client, GatewayIntentBits, Partials, Collection } = require('discord.js'); //discord module for interation with discord api
+
+const { dailyCallStart } = require('./Functions/dailycall.js');
+const { contextInfo, modalInfo, buttonInfo, stringSelectInfo, userSelectInfo, channelSelectInfo } = require('./Functions/contextMenu');
+const { StartDB, EventDB, voiceChannelChange, DMMePlease } = require('./Functions/Database/databaseVoiceController.js');
+const { getOverides, getD1 } = require('./Tools/overrides.js');
+const txtCommands = require('./TextCommands/textCommands.js');
+
+var overrides = getOverides();
 
 global.dbAccess = [!process.argv.includes("-db"), process.argv.includes("-db") ? false : true];
-global.starttime = new Date();
+global.starttime = getD1(); //get today
 global.DailyErrors = 0;
-global.DebugFriday = false;
+global.DebugFriday = overrides.DebugFriday;
 
 global.toke = babadata.token;
 global.interactions = {};
@@ -24,7 +25,7 @@ global.loggedVCC = [];
 
 global.Bot = null;
 
-uignoreErrors = false;
+uignoreErrors = overrides.uignoreErrors;
 
 // append to existing log file without overwriting
 var log_file = fs.createWriteStream(babadata.temp + 'debug.log', {flags : 'a'});
@@ -134,7 +135,7 @@ function botOn(bot)
 		else
 			global.fridayCounter = fridayData
 		
-		dailyCallStart(bot);
+		dailyCallStart(bot, __dirname);
 	});
 	
 	bot.commands = new Collection();
