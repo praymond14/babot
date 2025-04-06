@@ -1138,7 +1138,9 @@ function LoadReminderCache()
 {
     var PromisedReminders = new Promise((resolve, reject) =>
     {
-        var query = `Select * from reminders`;
+        var testIndex = babadata.testing === undefined ? "0" : "1";
+
+        var query = `Select * from reminders where Testing = ` + testIndex;
         var jsonLocation = babadata.datalocation + "reminders.json";
 
         callSQLQuery(query)
@@ -2183,7 +2185,9 @@ function AddReminderToDB(reminderItem)
 
     return new Promise((resolve, reject) =>
     {
-        var query = `Insert into reminders (Source, Message, UserID, Files, Date, ChannelID, ThreadParentID, EnabledAtPerson, ID) VALUES ("${reminderItem.Source}", "${reminderItem.Message}", "${reminderItem.UserID}", "${fileString}", "${dtsrart}", "${reminderItem.ChannelID}", "${reminderItem.ThreadParentID}", ${reminderItem.EnableAtPerson}, "${reminderItem.ID}")`;
+        var testIndex = babadata.testing === undefined ? false : true;
+
+        var query = `Insert into reminders (Source, Message, UserID, Files, Date, ChannelID, ThreadParentID, EnabledAtPerson, ID, Testing) VALUES ("${reminderItem.Source}", "${reminderItem.Message}", "${reminderItem.UserID}", "${fileString}", "${dtsrart}", "${reminderItem.ChannelID}", "${reminderItem.ThreadParentID}", ${reminderItem.EnableAtPerson}, "${reminderItem.ID}", ${testIndex})`;
         callSQLQuery(query)
         .then(() => 
         {

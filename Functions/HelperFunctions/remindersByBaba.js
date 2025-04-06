@@ -280,7 +280,7 @@ function addReminder(DiscordMessage, UID, ChannelSendTo, MessageToSend, DelayinM
             "Date": dateOfReminder,
             "ChannelID": ChannelSendTo.id,
             "UserID": UID,
-            "ThreadParentID": ChannelSendTo.type == 11 ? ChannelSendTo.parentId : null,
+            "ThreadParentID": (ChannelSendTo.type == 11 || ChannelSendTo.type == 12) ? ChannelSendTo.parentId : null,
             "EnableAtPerson": IncludeAtUser,
             "State": "Added",
             "ID": IDIDIDID,

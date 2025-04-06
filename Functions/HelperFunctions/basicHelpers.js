@@ -1373,6 +1373,11 @@ function getTimeFromString(timestring)
 			newTime.setHours(newTime.getHours() + 12);
 		}
 
+		if (timestring.toLowerCase().includes("am") && hour == 12)
+		{
+			newTime.setHours(0);
+		}
+
 		if (newTime.getTime() < currentTime.getTime())
 		{
 			newTime.setDate(newTime.getDate() + 1);
