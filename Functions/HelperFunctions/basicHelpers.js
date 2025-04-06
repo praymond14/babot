@@ -1,15 +1,16 @@
-var babadata = require('../babotdata.json'); //baba configuration file
-// var request = require('node-fetch');
-const Discord = require('discord.js'); //discord module for interation with discord api
+var babadata = require('../../babotdata.json'); //baba configuration file
+
 const fs = require('fs');
-// const images = require('images');
-// const Jimp = require('jimp');
 const https = require('https')
 const fetch = require('node-fetch');
+
+const Discord = require('discord.js'); //discord module for interation with discord api
 const { PermissionsBitField } = require('discord.js');
-const { resetRNG, functionPostFunnyDOW } = require('./slashFridayHelpers');
 const { ModalBuilder, ActionRowBuilder, TextInputBuilder } = require('discord.js');
 const { ComponentType } = require('discord.js');
+
+const { getD1 } = require('../../Tools/overrides');
+const { resetRNG, functionPostFunnyDOW } = require('./slashFridayHelpers');
 
 const validLetters = "bikusfrday";
 
@@ -109,7 +110,7 @@ function FindDate(message, haiku = false) //Not Thanks to Jeremy's Link
 		return null;
 
 	if (year == 0 && !haiku)
-		year = new Date().getFullYear();
+		year = getD1().getFullYear();
 
 	var item = {};
 	item.name = "date"; //picture lookup value
@@ -127,9 +128,8 @@ function MonthsPlus(guild, d1)
 	var yr = d1.getFullYear();
 	if (d1.getMonth() == 9 && babadata.holidayval != "spook")
 	{
-		SetHolidayChan(guild, "spook");
-
 		//set channel info
+		SetHolidayChan(guild, "spook");
 	}
 	else if (d1.getMonth() == 10)
 	{
@@ -144,7 +144,7 @@ function MonthsPlus(guild, d1)
 		var d0 = new Date(yr, 10, 1);
 		var tgdayThisYearAlways = GetDate(d0, yr, hi);
 
-		var tday = new Date().getDate(); //get this day
+		var tday = getD1().getDate(); //get this day
 
 		if (tgday.getFullYear() == yr && babadata.holidayval != "thanks")
 		{
@@ -166,11 +166,28 @@ function MonthsPlus(guild, d1)
 		else if (babadata.holidayval != "defeat" && d1.getDate() > 25)
 			SetHolidayChan(guild, "defeat");
 	}
+
+	setChannelDescriptionToProgress(guild)
+}
+
+function setChannelDescriptionToProgress(guild, d1)
+{
+	if (guild != null && babadata.holidaychan != "0")
+	{
+		guild.channels.fetch(babadata.holidaychan).then(channels => {
+			var holidaychan = channels;
+
+			if (holidaychan != null)
+			{
+				holidaychan.setTopic("Holidays Brought to you by Baba!\n" + progressSimple(20));
+			}
+		});
+	}
 }
 
 function GetDate(d1, yr, holidayinfo) //Gets the specified date from the selected holiday at the year provided
 {
-	let d2 = new Date(); //new Date
+	let d2 = getD1(); //new Date
 	switch(holidayinfo.mode)
 	{
 		case 5:
@@ -408,10 +425,46 @@ function SetHolidayChan(guild, name, resetid = -1)
 	babadata = baadata;
 }
 
+function progressSimple(n)
+{
+    var n1less = n - 1;
 
+    var date2 = getD1();
+    var date1 = new Date(date2.getFullYear(), 0, 1);
 
+    var Difference_In_Time = date2.getTime() - date1.getTime();
+    var Difference_In_Days = Difference_In_Time / (1000 * 3600 * 24);
 
+    var leap = date2.getFullYear() % 100 === 0 ? date2.getFullYear() % 400 === 0 : date2.getFullYear() % 4 === 0;
+    var endoyear = 365 + leap;
+    var percent = +((Difference_In_Days / endoyear) * 100).toFixed(2);
 
+    var pb = "";
+
+    var vdiff = 0;
+    var valcount = 0;
+
+    for (var i = 1; i <= n1less; i++)
+    {
+        valcount = endoyear * (i / n);
+        v1plus = endoyear * ((i+1) / n);
+
+        var vdiff = (v1plus - valcount) / 3;
+
+        if (Difference_In_Days < valcount)
+            pb += (valcount - (2 * vdiff) > Difference_In_Days) ? "░" : ((valcount - vdiff > Difference_In_Days) ? "▒" : "▓");
+        else
+            pb += "█";
+    }
+
+    vdiff = (1/n * endoyear) / 3;
+    valcount = endoyear * (n1less / n);
+
+    if (Difference_In_Days > endoyear - (1/12)) pb += "█";
+    else pb += (valcount + vdiff > Difference_In_Days) ? "░" : ((valcount + (2 * vdiff) > Difference_In_Days) ? "▒" : "▓");
+
+	return pb + " " + percent + "%";
+}
 
 function CreateChannel(server, name, d1)
 {
@@ -427,7 +480,7 @@ function CreateChannel(server, name, d1)
 						type: Discord.ChannelType.GuildText,
 						parent: chan,
 						position: 3,
-						topic: "Holidays Brought to you by Baba!",
+						topic: "Holidays Brought to you by Baba!\n" + progressSimple(20),
 						reason: 'Baba Plase',
 						defaultReactionEmoji: "🎄"
 					}
@@ -494,17 +547,6 @@ function Seperated(vle)
 		return sgtuff;
 	}
 	else return [vle];
-}
-
-
-function getD1()
-{
-	var dateoveride = [false, 4, 1]; //allows for overiding date manually (testing)
-	var yr = new Date().getFullYear(); //get this year
-	var dy = dateoveride[0] ? dateoveride[2] : new Date().getDate(); //get this day
-	var my = dateoveride[0] ? dateoveride[1] - 1 : new Date().getMonth(); //get this month
-	var d1 = new Date(yr, my, dy);
-	return d1;
 }
 
 function fetchMeAPirate(message, id, local, res) 
@@ -829,7 +871,7 @@ function PersonalReact(ames, message, msgContent)
 			}
 		}
 
-		var tod = new Date();
+		var tod = getD1();
 
 		if (new Date(u_react.StartDate) > tod || new Date(u_react.EndDate) < tod)
 			isGood = false;
@@ -1293,7 +1335,7 @@ function enumConverter(int)
 
 function getTimeFromString(timestring)
 {
-	var currentTime = new Date();
+	var currentTime = getD1();
 	
 	var time = timestring.split(":");
 	var hour = 0;
@@ -1339,7 +1381,7 @@ function getTimeFromString(timestring)
 		hourtime = newTime;
 		timepossibles.push(newTime);
 	}
-	console.log("Time possibles: " + timepossibles);
+	// console.log("Time possibles: " + timepossibles);
 	// Group OVERRIDE: (these take precedence over all other time strings)
 	// midnight -> midnight of the next day
 	// noon -> the next noon
@@ -1360,7 +1402,7 @@ function getTimeFromString(timestring)
 		timepossibles.push(newTime);
 	}
 	
-	console.log("Time possibles: " + timepossibles);
+	// console.log("Time possibles: " + timepossibles);
 	if (timestring.toLowerCase().includes("noon") && !timestring.toLowerCase().includes("afternoon"))
 	{
 		var day = currentTime.getDate();
@@ -1609,7 +1651,7 @@ function getTimeFromString(timestring)
 	// pick a random time from the possible times
 	var time = timepossibles[Math.floor(Math.random() * timepossibles.length)];
 	// convert to current timezone
-	console.log(timepossibles);
+	// console.log(timepossibles);
 
 	// hourtime = new Date(hourtime.getTime() - (hourtime.getTimezoneOffset() * 60000));
 
@@ -1629,47 +1671,72 @@ async function extremeEmoji(message, msgContent, reactneeded=0)
 	for (var i = 0; i < emojis.length; i++) //
 	{
 		var eName = emojis[i].name;
-		var eShortName = emojis[i].shortname;
 		var eCategory = emojis[i].category;
-		var eChar = emojis[i].emoji;
+		var eSubCategory = emojis[i].category;
+		// var eChar = emojis[i].emoji;
+		var selections = emojis[i].emojis;
+
+		eCategory += " " + eSubCategory;
 
 		// replace _ in shortname with space
-		eShortName = eShortName.replace(/_/g, " ");
+		// eShortName = eShortName.replace(/_/g, " ");
 
 		// allow name to only have a-z 0-9 and space (force lowercase)
 		eName = eName.toLowerCase().replace(/[^a-z0-9 ]/g, "");
-		eShortName = eShortName.toLowerCase().replace(/[^a-z0-9 ]/g, "");
+		// eShortName = eShortName.toLowerCase().replace(/[^a-z0-9 ]/g, "");
 
 		var subValues = [];
 		var subValueseName = eName.split(" ");
-		var subValueseShortName = eShortName.split(" ");
+		// var subValueseShortName = eShortName.split(" ");
 
 		// add all sub values to array
 		subValues = subValues.concat(subValueseName);
-		subValues = subValues.concat(subValueseShortName);
+		// subValues = subValues.concat(subValueseShortName);
 
 		// remove duplicates
 		subValues = subValues.filter((v, i, a) => a.indexOf(v) === i);
 
-		subValues.push(eChar);
+		subValues.push(selections[0]);
 
 		// skip emoji if it has skin tone in it
-		if (eName.includes("skin tone") || eShortName.includes("skin tone"))
-			continue;
+		// if (eName.includes("skin tone") || eShortName.includes("skin tone"))
+		// 	continue;
 
 		// check if any sub values are in the message
 		var found = false;
-		for (var j = 0; j < subValues.length; j++)
+
+		for (var j = 0; j < selections.length; j++)
 		{
-			// skip if sub value is < 3 characters
-			if (subValues[j].length < 3 && subValues[j] != eChar)
-				continue;
-			if (msgContent.toLowerCase().includes(subValues[j]))
+			var eChars = selections[j];
+			if (msgContent.toLowerCase().includes(eChars) || msgContent.includes(eChars))
 			{
 				found = true;
 				break;
 			}
 		}
+
+		if (!found)
+		{
+			for (var j = 0; j < subValues.length; j++)
+			{
+				// skip if sub value is < 3 characters
+				if (subValues[j].length < 3 && subValues[j] != selections[0])
+					continue;
+				if (msgContent.toLowerCase().includes(subValues[j]))
+				{
+					found = true;
+					break;
+				}
+				if (message.content.toLowerCase().includes(subValues[j]))
+				{
+					found = true;
+					break;
+				}
+			}
+		}
+
+		if (eName == "mediumlight skin tone" || eName == "medium skin tone" || eName == "mediumdark skin tone" || eName == "dark skin tone" || eName == "light skin tone")
+			found = false;
 
 		// if found add to list
 		if (found)
@@ -1691,7 +1758,7 @@ async function extremeEmoji(message, msgContent, reactneeded=0)
 
 			// add emoji to category
 			if (!exists)
-				goodfellas[eCategory].push({name: eName, shortname: eShortName, char: eChar});
+				goodfellas[eCategory].push({name: eName, emojis: selections});
 		}
 	}
 
@@ -1712,6 +1779,7 @@ async function extremeEmoji(message, msgContent, reactneeded=0)
 
 async function reactEmoji(goodfellas, slightlyusedcategories, message, reactneeded)
 {
+	var goodfellasRoundNext = {};
 	// while reactcount is less than maxemoji
 	while (reactneeded > 0)
 	{
@@ -1720,8 +1788,17 @@ async function reactEmoji(goodfellas, slightlyusedcategories, message, reactneed
 		{
 			if (Object.keys(slightlyusedcategories).length == 0)
 			{
-				console.log("No emojis remaining.");
-				return;
+				if (goodfellasRoundNext != null && Object.keys(goodfellasRoundNext).length > 0)
+				{
+					goodfellas = goodfellasRoundNext;
+					goodfellasRoundNext = {};
+					slightlyusedcategories = {};
+				}
+				else
+				{
+					console.log("No emojis remaining.");
+					return;
+				}
 			}
 			else
 			{
@@ -1740,6 +1817,22 @@ async function reactEmoji(goodfellas, slightlyusedcategories, message, reactneed
 		// get random emoji
 		var emoji = categoryemojis[Math.floor(Math.random() * categoryemojis.length)];
 
+		// select a random emoji from theEmojis
+		var emojiChosen = emoji.emojis[Math.floor(Math.random() * emoji.emojis.length)];
+
+		var emojoIndex = emoji.emojis.indexOf(emojiChosen);
+		// remove emoji from theEmojis
+		emoji.emojis.splice(emojoIndex, 1);
+
+		// if emoji.emojis is not empty, add to goodfellasRoundNext
+		if (emoji.emojis.length > 0)
+		{
+			if (goodfellasRoundNext[category] == null)
+				goodfellasRoundNext[category] = [];
+
+			goodfellasRoundNext[category].push(emoji);
+		}
+
 		// remove emoji from category
 		var index = categoryemojis.indexOf(emoji);
 		categoryemojis.splice(index, 1);
@@ -1757,7 +1850,7 @@ async function reactEmoji(goodfellas, slightlyusedcategories, message, reactneed
 		reactneeded--;
 		// react with emoji
 		// console.log("Reacting with: " + emoji.char + " -- " + emoji.name);
-		await message.react(emoji.char).catch(
+		await message.react(emojiChosen).catch(
 			function(error)
 			{
 				// if unknown message, skip all emojis
@@ -1789,7 +1882,6 @@ function GambaRoll(time)
 
 module.exports = {
 	RoleAdd,
-    getD1,
     preformEasterEggs,
     dateDiffInDays,
     antiDelay,
@@ -1808,5 +1900,6 @@ module.exports = {
 	uExist,
 	Seperated,
 	enumConverter,
-	getTimeFromString
+	getTimeFromString,
+	progressSimple
 };

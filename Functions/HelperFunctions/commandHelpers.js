@@ -1,15 +1,16 @@
-var babadata = require('../babotdata.json'); //baba configuration file
-// var request = require('node-fetch');
-const Discord = require('discord.js'); //discord module for interation with discord api
+var babadata = require('../../babotdata.json'); //baba configuration file
+
 const fs = require('fs');
 const Jimp = require('jimp');
 const fetch = require('node-fetch');
 
-const options = { year: 'numeric', month: 'long', day: 'numeric' }; // for date parsing to string
-const { dateDiffInDays, antiDelay, GetDate, GetSimilarName, uExist } = require('./basicHelpers.js');
-const { getHurricaneInfo, saveUpdatedHurrInfo } = require('../databaseVoiceController.js');
+const Discord = require('discord.js'); //discord module for interation with discord api
 
-var to = [];
+const { dateDiffInDays, GetDate, GetSimilarName, uExist } = require('./basicHelpers.js');
+const { getHurricaneInfo, saveUpdatedHurrInfo } = require('../Database/databaseVoiceController.js');
+const { getD1 } = require('../../Tools/overrides.js');
+
+const options = { year: 'numeric', month: 'long', day: 'numeric' }; // for date parsing to string
 
 function getErrorFlag()
 {
@@ -222,23 +223,6 @@ function FindNextHoliday(d1, yr, simpleholidays)
 	return retme;
 }
 
-function reverseDelay(message, hiddenChan, mess, delay)
-{
-	if (delay < 0)
-		antiDelay(message);
-	else
-	{
-		var newto = setTimeout(function()
-		{
-			hiddenChan.sendTyping();
-			hiddenChan.send(mess);
-			to.splice(to.indexOf(newto), 1);
-		}, delay);
-
-		to.push(newto);
-	}
-}
-
 function SingleHaiku(haiku, simnames, page, pagetotal)
 {
 	var obj = {content: "BABA MAKE HAIKU"};
@@ -364,7 +348,7 @@ function CheckHoliday(msg, holdaylist) //checks if any of the holiday list is sa
 
 		for ( var i = 0; i < hol.name.length; i++) 
 		{
-			if ((msg == "BIRTHDAY" && hol.safename == "Birthday") || msg == "ALL" || msg.toLowerCase().includes(hol.name[i].replace("[NY]", new Date().getFullYear() + 1))) //checks if the holiday name is in the message
+			if ((msg == "BIRTHDAY" && hol.safename == "Birthday") || msg == "ALL" || msg.toLowerCase().includes(hol.name[i].replace("[NY]", getD1().getFullYear() + 1))) //checks if the holiday name is in the message
 			{
 				var item = {};
 				item.name = x; //picture lookup value
@@ -479,7 +463,7 @@ async function checkHurricaneStuff(hurricanename)
 {
     var hurricaneJson = await loadHurricaneHelpers();
 
-	var thisYear = new Date().getFullYear();
+	var thisYear = getD1().getFullYear();
 
 	// iNum = size of hurricaneJson
 	var iNum = hurricaneJson.length;
@@ -630,23 +614,10 @@ function monthFromInt(mint)
 	}
 }
 
-var cleanupFn = function cleanup() 
-{
-	console.log("Ending Delayed Messages");
-	if (to != null)  
-		to.forEach(clearTimeout);
-}
-
-global.CommandHelperCleanup = cleanupFn;
-
-process.on('SIGINT', cleanupFn);
-process.on('SIGTERM', cleanupFn);
-
 module.exports = {
     getErrorFlag,
     MakeImage,
     FindNextHoliday,
-    reverseDelay,
     EmbedHaikuGen,
     CheckHoliday,
 	loadHurricaneHelpers,

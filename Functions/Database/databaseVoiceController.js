@@ -1,7 +1,9 @@
+var babadata = require('../../babotdata.json'); //baba configuration file
+
 const fs = require('fs');
-var babadata = require('./babotdata.json'); //baba configuration file
 var mysql = require('mysql2');
-const { FindDate } = require('./HelperFunctions/basicHelpers.js');
+
+const { getD1 } = require('../../Tools/overrides');
 
 var con;
 
@@ -12,6 +14,25 @@ var timeoutFix = null;
 var timeoutCT = -1;
 
 // Helper Functions
+
+
+function splitStringInto1900CharChunksonSpace(str)
+{
+	var chunks = [];
+	var chunk = "";
+	var lines = str.split(" ");
+	for (var i = 0; i < lines.length; i++)
+	{
+		if (chunk.length + lines[i].length > 1900)
+		{
+			chunks.push(chunk);
+			chunk = "";
+		}
+		chunk += lines[i] + "\n";
+	}
+	chunks.push(chunk);
+	return chunks;
+}
 
 function StartDB(printOut)
 {
@@ -59,7 +80,7 @@ function StartDB(printOut)
             timeoutCT++;
         timeoutCT++;
 
-        var timestring = new Date().toLocaleTimeString();
+        var timestring = getD1().toLocaleTimeString();
         console.log("Timeout CT: " + timeoutCT + " - " + timestring, false, true);
 
         if (timeoutCT >= 8)
@@ -147,6 +168,15 @@ function ErrorWithDB(err, query)
     console.log("Error Occured because of Query: ", false, true);
     console.log(query, false, true);
 
+    DMMePlease("Error Occured because of Query: ");
+    var qChunks = splitStringInto1900CharChunksonSpace(query);
+    for (var i = 0; i < qChunks.length; i++)
+    {
+        DMMePlease("```"  + qChunks[i] + "```");
+    }
+
+    DMMePlease("Error: \n```" + err + "```");
+
     if (!validErrorCodes(err.code))
         dbErrored(err.code);
 }
@@ -179,6 +209,7 @@ function NameFromUserIDID(userID)
     {
         if (global.userCache[userID] != null)
         {
+            // console.log("NameFromUserID Cache Hit", false, true);
             resolve(global.userCache[userID]);
         }
         else
@@ -271,7 +302,7 @@ function EventDB(event, change, user)
     else 
     {
         var uid = user.id;
-        var time = new Date();
+        var time = getD1();
         var mpre = time.getMonth() + 1 < 10 ? 0 : "";
         var dpre = time.getUTCDate() < 10 ? 0 : "";
         var jtime = `${time.getFullYear()}-${mpre}${time.getMonth() + 1}-${dpre}${time.getUTCDate()} ${time.getHours()}:${time.getMinutes()}:${time.getSeconds()}`
@@ -464,7 +495,7 @@ function userJoinedVoice(userID, channelID, guild, overideTime = null)
 {
     var PromisedUserJoined = new Promise((resolve, reject) =>
     {
-        var dt = overideTime == null ? new Date() : overideTime;
+        var dt = overideTime == null ? getD1() : overideTime;
         var dtsrart = dt.toISOString().slice(0, 19).replace('T', ' ');
         var q = `INSERT INTO voiceactivity (ChannelID, UserID, StartTime) VALUES ("${channelID}", "${userID}", "${dtsrart}")`;
         userVoiceChange(q, userID, channelID, guild, "JoinVoice").then((result) => {resolve(result)}).catch((err) => {reject("JoinVoice")});
@@ -477,7 +508,7 @@ function userLeftVoice(userID, channelID, guild, overideTime = null)
 {
     var PromisedUserLeft = new Promise((resolve, reject) =>
     {
-        var dt = overideTime == null ? new Date() : overideTime;
+        var dt = overideTime == null ? getD1() : overideTime;
         var dtsrart = dt.toISOString().slice(0, 19).replace('T', ' ');
         var q = `UPDATE voiceactivity SET EndTime = "${dtsrart}" WHERE UserID = "${userID}" AND ChannelID = "${channelID}" AND EndTime IS NULL`;
         userVoiceChange(q, userID, channelID, guild, "JoinVoice").then((result) => {resolve(result)}).catch((err) => {reject("LeaveVoice")});
@@ -488,7 +519,7 @@ function userLeftVoice(userID, channelID, guild, overideTime = null)
 
 function logVCC(newMemberID, newChannelID, oldMemberID, oldChannelID, guildID)
 {
-    var time = new Date();
+    var time = getD1();
 	console.log("Logging VCC Data: " + newMemberID + " " + oldMemberID + " " + newChannelID + " " + oldChannelID + " " + time + " " + guildID, false, true);
 	// save time as a number
 	time = time.getTime();
@@ -946,10 +977,13 @@ function LoadEmojiCache()
 {
     var PromisedEmoji = new Promise((resolve, reject) =>
     {
-        var emojiurl = "https://gist.githubusercontent.com/oliveratgithub/0bf11a9aff0d6da7b46f1490f86a71eb/raw/d8e4b78cfe66862cf3809443c1dba017f37b61db/emojis.json";
+        var emojiurl = "https://raw.githubusercontent.com/chalda-pnuzig/emojis.json/refs/heads/master/src/list.with.modifiers.json";
 
         fetch(emojiurl).then(res => res.json()).then(json => {
             // save to emojiJSONCache
+            var newEmojis = groupEmojiByTones(json);
+            json.emojis = newEmojis;
+
             fs.writeFileSync(babadata.datalocation + "emojiJSONCache.json", JSON.stringify(json));
             resolve("SuccCess");
         }).catch((err) => {reject("Emoji")});
@@ -986,11 +1020,11 @@ function LoadReactCache()
     
                 // if startdate != null set year to this year
                 if (resj.StartDate != null)
-                    resj.StartDate.setFullYear(new Date().getFullYear());
+                    resj.StartDate.setFullYear(getD1().getFullYear());
     
                 // if enddate != null set year to this year
                 if (resj.EndDate != null)
-                    resj.EndDate.setFullYear(new Date().getFullYear());
+                    resj.EndDate.setFullYear(getD1().getFullYear());
     
                 // if startdate == null set to earliest date
                 if (resj.StartDate == null)
@@ -1098,6 +1132,58 @@ function LoadFishCache()
     });
 
     return PromisedFish;
+}
+
+function LoadReminderCache()
+{
+    var PromisedReminders = new Promise((resolve, reject) =>
+    {
+        var query = `Select * from reminders`;
+        var jsonLocation = babadata.datalocation + "reminders.json";
+
+        callSQLQuery(query)
+        .then((result) =>
+        {
+            var opts = [];
+            for (var i = 0; i < result.length; i++)
+            {
+                var res = result[i];
+
+                var files = null;
+                if (res.Files != null && res.Files.length > 0)
+                    files = res.Files.split(",");
+
+                
+                var ctimez = new Date(res.Date);
+                var offset = ctimez.getTimezoneOffset();
+                ctimez.setMinutes(ctimez.getMinutes() - offset);
+
+                var resj = 
+                {
+                    "Source": res.Source,
+                    "Message": res.Message,
+                    "Files": files,
+                    "Date": ctimez,
+                    "ChannelID": res.ChannelID,
+                    "UserID": res.UserID,
+                    "ThreadParentID": res.ThreadParentID,
+                    "EnableAtPerson": res.EnabledAtPerson,
+                    "State": "Pending",
+                    "ID": res.ID,
+                    "UpdateDB": false
+                }
+
+                opts.push(resj);
+            }
+
+            var data = JSON.stringify(opts);
+            fs.writeFileSync(jsonLocation, data);
+            resolve("SuccCess");
+        })
+        .catch((err) => {reject("Reminders")});
+    });
+
+    return PromisedReminders;
 }
 
 function LoadFrogCache()
@@ -1531,7 +1617,7 @@ function LoadAllSlashFridayStuff()
                 // get length of tempTimeGates
                 var items = tempTimeGates.length;
 
-                var ctimez = new Date();
+                var ctimez = getD1();
                 var offset = ctimez.getTimezoneOffset();
                 ctimez.setMinutes(ctimez.getMinutes() - offset);
 
@@ -1893,6 +1979,76 @@ function controlDOW(id, level, prefix)
     return PromisedControlDOW;
 }
 
+// Emoji Functions  --------------------------------------------------------------------------------------------------------------------------------------------------
+
+function getGroupedEmoji(emojiList, emojiName)
+{
+    for (var i = 0; i < emojiList.length; i++)
+    {
+        var emoji = emojiList[i];
+        if (emoji.name == emojiName)
+        {
+            return emoji;
+        }
+    }
+
+    return null;
+}
+
+function groupEmojiByTones(emojiList)
+{
+    var list = emojiList.emojis;
+    var grouped = [];
+    for (var i = 0; i < list.length; i++)
+    {
+        var emoji = list[i];
+        var eName = emoji.name;
+        emoji.emojis = [];
+        emoji.emojis.push(emoji.emoji);
+
+		if (eName.includes("skin tone"))
+        {
+            var enameSplit = "";
+            // split the name by "light", "medium", "dark", "mediumdark", "mediumlight"
+            enameSplit = eName.replace("medium-dark skin tone", "")
+            .replace("medium-light skin tone", "")
+            .replace("light skin tone", "")
+            .replace("medium skin tone", "")
+            .replace("dark skin tone", "")
+            .replace(" , ", " ");
+
+            // remove trailing : or ,
+            enameSplit = enameSplit.replace(/[:,\s]+$/, "");
+
+            // trim
+            enameSplit = enameSplit.trim();
+
+            var parent = getGroupedEmoji(list, enameSplit);
+            if (parent != null)
+                parent.emojis.push(emoji.emoji);
+            else
+            {
+                if (enameSplit != "")
+                {
+                    console.log("Parent not found: " + enameSplit);
+                    emoji.name = enameSplit;
+                    grouped.push(emoji);
+                }
+            }
+        }
+        else
+        {
+            var parent = getGroupedEmoji(grouped, eName); // check if already in list
+            if (parent != null)
+                parent.emojis.push(emoji.emoji);
+            else
+                grouped.push(emoji);
+        }
+    }
+
+    return grouped;
+}
+
 // Hurricane Functions  ----------------------------------------------------------------------------------------------------------------------------------------------
 
 async function saveUpdatedHurrInfo()
@@ -1972,7 +2128,7 @@ async function getHurricaneInfo()
 					{
 						var res = result[i];
 		
-						if (res.Year != new Date().getFullYear())
+						if (res.Year != getD1().getFullYear())
 							continue;
 						
 						// convert lastupdated to current timezone
@@ -2008,6 +2164,72 @@ async function getHurricaneInfo()
 			);
 		});
 	});
+}
+
+// Reminder Functions  -----------------------------------------------------------------------------------------------------------------------------------------------
+
+function AddReminderToDB(reminderItem)
+{
+    var fileString = "";
+    if (reminderItem.Files != null)
+    {
+        for (var i = 0; i < reminderItem.Files.length; i++)
+        {
+            fileString += reminderItem.Files[i] + ",";
+        }
+    }
+
+    var dtsrart = new Date(reminderItem.Date).toISOString().slice(0, 19).replace('T', ' ');
+
+    return new Promise((resolve, reject) =>
+    {
+        var query = `Insert into reminders (Source, Message, UserID, Files, Date, ChannelID, ThreadParentID, EnabledAtPerson, ID) VALUES ("${reminderItem.Source}", "${reminderItem.Message}", "${reminderItem.UserID}", "${fileString}", "${dtsrart}", "${reminderItem.ChannelID}", "${reminderItem.ThreadParentID}", ${reminderItem.EnableAtPerson}, "${reminderItem.ID}")`;
+        callSQLQuery(query)
+        .then(() => 
+        {
+            resolve("SuccCess");
+        })
+        .catch((err) => {reject("Reminder")});
+    });
+}
+
+function EditReminderInDB(reminderItem)
+{
+    var fileString = "";
+    if (reminderItem.Files != null)
+    {
+        for (var i = 0; i < reminderItem.Files.length; i++)
+        {
+            fileString += reminderItem.Files[i] + ",";
+        }
+    }
+
+    var dtsrart = new Date(reminderItem.Date).toISOString().slice(0, 19).replace('T', ' ');
+
+    return new Promise((resolve, reject) =>
+    {
+        var query = `Update reminders Set Source = "${reminderItem.Source}", Message = "${reminderItem.Message}", Files = "${fileString}", Date = "${dtsrart}", ChannelID = "${reminderItem.ChannelID}", ThreadParentID = "${reminderItem.ThreadParentID}", EnabledAtPerson = ${reminderItem.EnableAtPerson} WHERE ID = "${reminderItem.ID}"`;
+        callSQLQuery(query)
+        .then(() => 
+        {
+            resolve("SuccCess");
+        })
+        .catch((err) => {reject("Reminder")});
+    });
+}
+
+function DeleteReminderInDB(reminderItem)
+{
+    return new Promise((resolve, reject) =>
+    {
+        var query = `Delete from reminders WHERE ID = "${reminderItem.ID}"`;
+        callSQLQuery(query)
+        .then(() => 
+        {
+            resolve("SuccCess");
+        })
+        .catch((err) => {reject("Reminder")});
+    });
 }
 
 // Cleanup Functions  ------------------------------------------------------------------------------------------------------------------------------------------------
@@ -2059,5 +2281,10 @@ module.exports = {
     getHurricaneInfo,
     saveUpdatedHurrInfo,
 
-    DMMePlease
+    DMMePlease,
+
+    LoadReminderCache,
+    AddReminderToDB,
+    EditReminderInDB,
+    DeleteReminderInDB
 }

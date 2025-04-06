@@ -1,12 +1,15 @@
-var babadata = require('./babotdata.json'); //baba configuration file
+var babadata = require('../babotdata.json'); //baba configuration file
+
+const Discord = require('discord.js');
 const { ModalBuilder, ActionRowBuilder, TextInputBuilder } = require('discord.js');
 
 const { movetoChannel } = require('./HelperFunctions/adminHelpers.js');
-const { babaHaikuEmbed, babaHaikuLinks } = require('./commandFunctions');
-const { handleButtonsEmbed } = require('./HelperFunctions/basicHelpers');
+const { babaHaikuEmbed, babaHaikuLinks } = require('./commandFunctions.js');
+const { handleButtonsEmbed, getTimeFromString, FindDate } = require('./HelperFunctions/basicHelpers.js');
+const { getReminder, editReminder, removeReminder, handleButtonsEmbedReminders, getUserReminder, getUserReminderAndIDFromID, getUserIDFromID } = require('./HelperFunctions/remindersByBaba.js');
+const { sqlEscapeStringThingforAdamBecauseHeWillDoanSQLInjectionOtherwise } = require('./HelperFunctions/dbHelpers.js');
 
-const Discord = require('discord.js');
-const { sqlEscapeStringThingforAdamBecauseHeWillDoanSQLInjectionOtherwise } = require('./HelperFunctions/dbHelpers');
+global.ReminderList = {};
 
 async function contextInfo(interaction, bot)
 {
@@ -178,22 +181,187 @@ async function modalInfo(interaction, bot)
             handleButtonsEmbed(interaction.channel, message, interaction.user.id, cont, deadData);
         }
     }
+    else if (cid.startsWith("editReminder-"))
+    {
+        var remID = cid.split("-")[1];
+        var page = cid.split("-")[2];
+        var reminder = getReminder(remID);
+
+        var authorID = interaction.user.id;
+
+        if (reminder == null)
+            await interaction.reply({content: "Reminder not found, it may have been deleted/completed already", ephemeral: true});
+        else
+        {
+            var message = interaction.fields.getTextInputValue("messageInput");
+            var date = interaction.fields.getTextInputValue("dateInput");
+            var time = interaction.fields.getTextInputValue("timeInput");
+    
+            var theTime = getTimeFromString(time);
+            var theDate = null;
+            if (date != null)
+            {
+                theDate = FindDate(date);
+                theDate = new Date(theDate.year, theDate.month - 1, theDate.day);
+            }
+    
+            theDate = new Date(theDate.getFullYear(), theDate.getMonth(), theDate.getDate(), theTime.getHours(), theTime.getMinutes(), theTime.getSeconds());
+            
+            editReminder(remID, message, theDate);
+    
+            await interaction.reply({content: "Reminder Edited", ephemeral: true});
+        }
+
+        var massamage = global.ReminderList[remID];
+        if (massamage != null)
+        {
+            var reminderListGroup = getUserReminderAndIDFromID(remID);
+            var reminderList = reminderListGroup[0];
+            authorID = reminderListGroup[1];
+            var massamage2 = await massamage.reply(reminderList);
+            massamage.delete();
+            global.ReminderMessageExists[massamage.id] = false;
+
+            var finalComps = reminderList.finalComponents;
+            if (finalComps != null)
+                delete reminderList.finalComponents;
+            
+            if (reminderList.components != null && reminderList.components[0].components.length > 2)
+            {
+                handleButtonsEmbedReminders(massamage.channel, massamage2, authorID, finalComps);
+            }
+            delete global.ReminderList[remID];
+        }
+    }
+    else if (cid.startsWith("deleteReminder-"))
+    {
+        var remID = cid.split("-")[1];
+        var page = cid.split("-")[2];
+        var reminder = getReminder(remID);
+
+        var authorID = interaction.user.id;
+
+        if (reminder == null)
+            await interaction.reply({content: "Reminder not found, it may have been deleted/completed already", ephemeral: true});
+        else
+        {
+            authorID = getUserIDFromID(remID);
+            removeReminder(remID);
+    
+            await interaction.reply({content: "Reminder Deleted", ephemeral: true});
+        }
+
+
+        var massamage = global.ReminderList[remID];
+        if (massamage != null)
+        {
+            var reminderList = getUserReminder(authorID, 0);
+
+            var finalComps = reminderList.finalComponents;
+            if (finalComps != null)
+                delete reminderList.finalComponents;
+            
+            var massamage2 = await massamage.reply(reminderList);
+            massamage.delete();
+            global.ReminderMessageExists[massamage.id] = false;
+            
+            if (reminderList.components != null && reminderList.components[0].components.length > 2)
+            {
+                handleButtonsEmbedReminders(massamage.channel, massamage2, authorID, finalComps);
+            }
+            delete global.ReminderList[remID];
+        }
+    }
 }
 
 async function buttonInfo(interaction, bot)
 {
     var purity = false;
-    var list = false;
-    var chans = false;
-    var mye = 0;
     var buy = 0;
-    var embed;
     var msgstr = "";
 
 	var msg = interaction.message;
     var cid = interaction.customId;
 
-    if (cid === "cursed")
+    if (cid.startsWith("editrem-"))
+    {
+        var remID = cid.split("-")[1];
+        var page = cid.split("-")[2];
+
+        var reminder = getReminder(remID);
+
+        if (reminder == null)
+        {
+            await interaction.reply({content: "Reminder not found, may have been deleted/completed", ephemeral: true});
+            return;
+        }
+
+        var mode = reminder.Source == "Reminder" ? "Reminder" : "DM Message";
+
+        var theDate = new Date(reminder.Date);
+
+        var timeString = theDate.toLocaleTimeString('en-US', { hour: 'numeric', minute: 'numeric', second: 'numeric' });
+        var dateString = theDate.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+
+        const modal = new ModalBuilder()
+            .setCustomId('editReminder-' + remID + "-" + page)
+            .setTitle('Edit ' + mode);
+
+        const messageInput = new TextInputBuilder()
+            .setCustomId('messageInput')
+            .setLabel("The Message to Edit")
+            .setStyle(1)
+            .setRequired(false)
+            .setPlaceholder("Message")
+            .setValue(reminder.Message == null ? "BLANK BROKE ME ADAM PLEASE" : reminder.Message);
+
+        const dateInput = new TextInputBuilder()
+            .setCustomId('dateInput')
+            .setLabel("The Date to Edit")
+            .setStyle(1)
+            .setRequired(false)
+            .setPlaceholder("Date")
+            .setValue(dateString);
+
+        const timeInput = new TextInputBuilder()
+            .setCustomId('timeInput')
+            .setLabel("The Time to Edit")
+            .setStyle(1)
+            .setRequired(false)
+            .setPlaceholder("Time")
+            .setValue(timeString);
+
+        const firstActionRow = new ActionRowBuilder().addComponents(messageInput);
+        const secondActionRow = new ActionRowBuilder().addComponents(dateInput);
+        const thirdActionRow = new ActionRowBuilder().addComponents(timeInput);
+        modal.addComponents(firstActionRow, secondActionRow, thirdActionRow);
+
+        global.ReminderList[remID] = interaction.message;
+        interaction.showModal(modal);
+    }
+    else if (cid.startsWith("deleterem-"))
+    {
+        var remID = cid.split("-")[1];
+        var page = cid.split("-")[2];
+
+        const modal = new ModalBuilder()
+            .setCustomId('deleteReminder-' + remID + "-" + page)
+            .setTitle('Are you sure? Delete Reminder?');
+
+        const confirmInput = new TextInputBuilder()
+            .setCustomId('confirmInput')
+            .setLabel("Discord need something in popup to work")
+            .setStyle(1)
+            .setPlaceholder("Close the popup if you no want delete reminder")
+            .setRequired(false);
+
+        const firstActionRow = new ActionRowBuilder().addComponents(confirmInput);
+        modal.addComponents(firstActionRow);
+
+        global.ReminderList[remID] = interaction.message;
+        interaction.showModal(modal);
+    }
+    else if (cid === "cursed")
     {
         await interaction.deferReply();
         buy = 6;

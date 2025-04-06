@@ -1,15 +1,18 @@
-const { FormatPurityList, HaikuSelection, ObtainDBHolidays, NameFromUser } = require("./databaseandvoice.js");
-const { getD1, FindDate, GetDate, dateDiffInDays, getTimeFromString } = require("./HelperFunctions/basicHelpers.js");
-const { CheckHoliday, FindNextHoliday, MakeImage, EmbedHaikuGen, checkHurricaneStuff, monthFromInt, reverseDelay } = require("./HelperFunctions/commandHelpers.js");
-const { normalizeMSG } = require("./HelperFunctions/dbHelpers.js");
+var babadata = require('../babotdata.json'); //baba configuration file
 
-var babadata = require('./babotdata.json'); //baba configuration file
-var data = require(babadata.datalocation + 'data.json'); //extra data
-const Discord = require('discord.js'); //discord module for interation with discord api
 const fs = require('fs');
 const Jimp = require('jimp');
 const https = require('https');
 var PublicGoogleCalendar = require('public-google-calendar');
+
+const Discord = require('discord.js'); //discord module for interation with discord api
+
+const { reverseDelay } = require("./HelperFunctions/remindersByBaba.js");
+const { getD1 } = require("../Tools/overrides.js");
+const { FormatPurityList, HaikuSelection, ObtainDBHolidays, NameFromUser } = require("./Database/databaseandvoice.js");
+const { FindDate, GetDate, dateDiffInDays, getTimeFromString, progressSimple } = require("./HelperFunctions/basicHelpers.js");
+const { CheckHoliday, FindNextHoliday, MakeImage, EmbedHaikuGen, checkHurricaneStuff, monthFromInt } = require("./HelperFunctions/commandHelpers.js");
+const { normalizeMSG } = require("./HelperFunctions/dbHelpers.js");
 
 const options = { year: 'numeric', month: 'long', day: 'numeric' }; // for date parsing to string
 
@@ -75,47 +78,10 @@ function babaPizza()
 }
 
 function babaProgress(n = 20)
-{    
-    var n1less = n - 1;
+{
+    var pb = progressSimple(n);
 
-    var date2 = new Date();
-    var date1 = new Date(date2.getFullYear(), 0, 1);
-
-    var Difference_In_Time = date2.getTime() - date1.getTime();
-    
-    var Difference_In_Days = Difference_In_Time / (1000 * 3600 * 24);
-
-    var leap = date2.getFullYear() % 100 === 0 ? date2.getFullYear() % 400 === 0 : date2.getFullYear() % 4 === 0;
-
-    var endoyear = 365 + leap;
-
-    var percent = +((Difference_In_Days / endoyear) * 100).toFixed(2);
-
-    var pb = "";
-
-    var vdiff = 0;
-    var valcount = 0;
-
-    for (var i = 1; i <= n1less; i++)
-    {
-        valcount = endoyear * (i / n);
-        v1plus = endoyear * ((i+1) / n);
-
-        var vdiff = (v1plus - valcount) / 3;
-
-        if (Difference_In_Days < valcount)
-            pb += (valcount - (2 * vdiff) > Difference_In_Days) ? "░" : ((valcount - vdiff > Difference_In_Days) ? "▒" : "▓");
-        else
-            pb += "█";
-    }
-
-    vdiff = (1/n * endoyear) / 3;
-    valcount = endoyear * (n1less / n);
-
-    if (Difference_In_Days > endoyear - (1/12)) pb += "█";
-    else pb += (valcount + vdiff > Difference_In_Days) ? "░" : ((valcount + (2 * vdiff) > Difference_In_Days) ? "▒" : "▓");
-
-    return { content: pb + " " + percent + "%" };
+    return { content: pb };
 }
 
 function babaHelp()
@@ -436,6 +402,7 @@ function babaDayNextWed(since = 1)
 
 function babaJeremy()
 {
+    var data = JSON.parse(fs.readFileSync(babadata.datalocation + "data.json", {encoding:'utf8', flag:'r'}));
     var adjective = data.adjectives[Math.floor(Math.random() * data.adjectives.length)];
     var animal = data.animals[Math.floor(Math.random() * data.animals.length)].replaceAll(' ', '');
 
@@ -805,7 +772,6 @@ async function babaHurricane(hurricanename, callback)
     var url = "https://www.nhc.noaa.gov/xgtwo/two_atl_7d0.png";
 
     var binus = "";
-    var thisYear = new Date().getFullYear();
 
     console.log("Hurricane lookup for " + hurricanename);
 
@@ -934,7 +900,7 @@ async function babaRemind(message, time, date, interaction)
     // add the offset of midnight to theTime onto theDate if theDate is not null
     // else add the offset of now to theTime onto now
 
-    var now = new Date();
+    var now = getD1(); //get today
     // convert now to correct timezone
 
     var timeuntilTheTimeFromNow = theTime.getTime() - now.getTime();
@@ -951,12 +917,12 @@ async function babaRemind(message, time, date, interaction)
 
     var newTimeFromNow = theDate.getTime() - now.getTime();
 
-    var fullmsg = "<@" + interaction.user.id + "> Baba Reminds You: \n" + message;
+    var fullmsg = message;
 
     // obtain channel
     var channel = await interaction.guild.channels.fetch(interaction.channelId);
 
-    reverseDelay(null, channel, fullmsg, newTimeFromNow);
+    reverseDelay(null, interaction.member.id, channel, fullmsg, newTimeFromNow, true);
 
     return theDate;
 }

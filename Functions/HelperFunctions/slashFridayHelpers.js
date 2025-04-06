@@ -1,7 +1,10 @@
-var babadata = require('../babotdata.json'); //baba configuration file
-const Discord = require('discord.js'); //discord module for interation with discord api
+var babadata = require('../../babotdata.json'); //baba configuration file
+
 const fs = require('fs');
-const { RNG } = require('./RNG');
+
+const { RNG } = require('../../Tools/RNG.js');
+const { babaMorshu } = require('../Voice/VoiceHelpers/morshin.js');
+const { getD1 } = require('../../Tools/overrides.js');
 
 var theRNG = new RNG();
 
@@ -153,7 +156,7 @@ async function funnyDOWTextSaved(dowNum, authorID, seedSet = -1, dontSave = fals
 		var fmpath = babadata.datalocation + "fridaymessages.json";
 		var fmr = fs.readFileSync(fmpath);
 		var fmd = JSON.parse(fmr);
-		var tod = new Date();
+		var tod = getD1();
 	
 		var cnFull = condensedNotation;
 		if (cnYung.length > 0)
@@ -240,7 +243,7 @@ async function morshin(text, mode)
 
 	for (var i = 0; i < chunks.length; i++)
 	{
-		var morshifyed = await babaMorshu(mode, chunks[i]);
+		var morshifyed = await babaMorshu(mode, chunks[i], i);
 
 		if (morshifyed.file == null)
 		{
@@ -270,18 +273,42 @@ async function checkForMorshus(text)
 
 	if (text.includes("{MORSHUIFY_VIDEO}") || text.includes("{MORSHUIFY_VIDEO_HIDDEN}") || text.includes("}OEDIV_YFIUHSROM{") || text.includes("}NEDDIH_OEDIV_YFIUHSROM{"))
 	{
+		var morsh = "{MORSHUIFY_VIDEO}";
+		var morshHidden = "{MORSHUIFY_VIDEO_HIDDEN}";
+		var morshRev = "}OEDIV_YFIUHSROM{";
+		var morshRevHidden = "}NEDDIH_OEDIV_YFIUHSROM{";
+
+		var onlyHidden = (text.includes(morshHidden) || text.includes(morshRevHidden)) && !text.includes(morsh) && !text.includes(morshRev);
+
 		// appedn to files
 		var newFiles = await morshin(text, "video");
 		for (var i = 0; i < newFiles.length; i++)
 			files.push(newFiles[i]);
+
+		text = text.replaceAll(morsh, "").trim();
+		text = text.replaceAll(morshHidden, "").trim();
+		text = text.replaceAll(morshRev, "").trim();
+		text = text.replaceAll(morshRevHidden, "").trim();
+
+		if (!onlyHidden)
+			text = text.replaceAll("{MORSHUIFY_AUDIO}", "{MORSHUIFY_AUDIO_HIDDEN}").trim();
 	}
 
 	if (text.includes("{MORSHUIFY_AUDIO}") || text.includes("{MORSHUIFY_AUDIO_HIDDEN}") || text.includes("}OIDUA_YFIUHSROM{") || text.includes("}NEDDIH_OIDUA_YFIUHSROM{"))
 	{
+		var morsh = "{MORSHUIFY_AUDIO}";
+		var morshHidden = "{MORSHUIFY_AUDIO_HIDDEN}";
+		var morshRev = "}OIDUA_YFIUHSROM{";
+		var morshRevHidden = "}NEDDIH_OIDUA_YFIUHSROM{";
 		// appedn to files
 		var newFiles = await morshin(text, "audio");
 		for (var i = 0; i < newFiles.length; i++)
 			files.push(newFiles[i]);
+
+		text = text.replaceAll(morsh, "").trim();
+		text = text.replaceAll(morshHidden, "").trim();
+		text = text.replaceAll(morshRev, "").trim();
+		text = text.replaceAll(morshRevHidden, "").trim();
 	}
 
 	if (files.length == 0)
@@ -330,7 +357,7 @@ async function funnyDOWText(cacheVersion, saveToFile, DateOveride, dowNum, autho
 
     var optionsDOW = JSON.parse(rawdata);
 
-	var tod = new Date();
+	var tod = getD1();
 	if (DateOveride[0] != null)
 	{
 		tod = new Date(DateOveride[0] * 1000);
@@ -343,7 +370,7 @@ async function funnyDOWText(cacheVersion, saveToFile, DateOveride, dowNum, autho
 
 	if (DateOveride[1] != null && DateOveride[2] != null)
 	{
-		tod = new Date();
+		tod = getD1();
 	}
 
 	// if (babadata.testing != undefined)
@@ -412,7 +439,7 @@ async function funnyDOWText(cacheVersion, saveToFile, DateOveride, dowNum, autho
 
 	// Manual Override ---------------------------------------
 	// if (recrused == 0 && babadata.testing !== undefined)
-	// 	text = "[AnyMorshu] Egg Thursday is my Life";
+	// 	text = "{MORSHUIFY_VIDEO} {MORSHUIFY_AUDIO} Ben Franklin jumps cool boy under fishes";
 	// -------------------------------------------------------
 
 	condensedNotation = pretext.UID + "";
@@ -659,7 +686,7 @@ async function funnyDOWText(cacheVersion, saveToFile, DateOveride, dowNum, autho
 
 			// make sure to replace [SENDER] with the name of the user who called the command, needs to wait for the result
 			
-			var { NameFromUserID } = require('../databaseandvoice.js');
+			var { NameFromUserID } = require('../../databaseandvoice.js');
 
 			var res = await NameFromUserID(authorID);
 
@@ -1110,7 +1137,7 @@ function generateFridayOps(opsArray, authorID, prefix, DateOveride)
 
 	var TimeGates = JSON.parse(raw);
 
-	var tod = new Date();
+	var tod = getD1();
 	if (prefix != -1)
 	{
 		// loop through TimeGates until VersionNumber == prefix
@@ -1127,7 +1154,7 @@ function generateFridayOps(opsArray, authorID, prefix, DateOveride)
 
 	if (DateOveride[1] != null)
 	{
-		var tod = new Date();
+		var tod = getD1();
 	}
 
 	if (DateOveride[2] != null && DateOveride[0] != null)
@@ -1238,58 +1265,7 @@ function removeCountRuin(uid, g)
 	});
 }
 
-function babaMorshu(mode, text)
-{
-    var morshuPromise = new Promise((resolve, reject) => {
-        fetch('https://morshu.yoinks.org/morsh', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(
-            {
-                message: text,
-                response_type: mode
-            })
-        }).then(res => res.arrayBuffer())
-        .then((data) => {
-            const nodeBuffer = Buffer.from(data);
-            // save the file if success to babadata.temp + "morshu.mp3" or babadata.temp + "morshu.mp4"
-            // data will be a buffer of the file in either mp3 or mp4 format
-
-            if (mode == "audio")
-            {
-                // tbd save as mp3
-                var file = babadata.temp + "morshu.mp3";
-                fs.writeFileSync(file, nodeBuffer);
-                // return the file location
-
-                var newFile = new Discord.AttachmentBuilder(babadata.temp + "morshu.mp3", 
-                    { name: 'Morshu.mp3', description : text });
-
-                resolve({file: newFile});
-            }
-            else if (mode == "video")
-            {
-                // tbd save as mp4
-                var file = babadata.temp + "morshu.mp4";
-                fs.writeFileSync(file, nodeBuffer);
-                // return the file location
-
-                var newFile = new Discord.AttachmentBuilder(babadata.temp + "morshu.mp4", 
-                    { name: 'Morshu.mp4', description : text });
-
-                resolve({file: newFile});
-            }
-        })
-        .catch((error) => {
-            console.error(error);
-            resolve({file : null});
-        });
-    });
-
-    return morshuPromise;
-}
+ 
 
 module.exports = {
 	functionPostFunnyDOW,
@@ -1298,5 +1274,5 @@ module.exports = {
 	removeCountRuin,
 	resetRNG,
 	splitStringInto2000CharChunksonNewLine,
-	babaMorshu
+	splitStringInto900CharChunksonSpace
 };

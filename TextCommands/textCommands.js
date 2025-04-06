@@ -1,17 +1,19 @@
-const { babaFriday,  babaHelp, babaPlease, babaPizza, babaVibeFlag, babaYugo, babaHaikuEmbed, babaDayNextWed, babaJeremy, babaHurricane, babaRepost, babaWeather, babaProgress, babaAurora, babaGoodberrys, babaHaikuLinks, babaUntilHolidays } = require("./commandFunctions.js");
-const { Client, Intents } = require('discord.js'); //discord module for interation with discord api
-const Discord = require('discord.js'); //discord module for interation with discord api
-var babadata = require('./babotdata.json'); //baba configuration file
-//let request = require('request'); // not sure what this is used for //depricated
+
+var babadata = require('../babotdata.json'); //baba configuration file
+
 const fs = require('fs'); //file stream used for del fuction
+
 //const voice = require('@discordjs/voice')
 //var prism = require("prism-media");
 //var ffmpeg = require('fluent-ffmpeg');
 
-const { SetHolidayChan, CheckFrogID, handleButtonsEmbed, preformEasterEggs } = require("./HelperFunctions/basicHelpers.js");
-const { getErrorFlag } = require("./HelperFunctions/commandHelpers.js");
-const { setGrole, setVote, setVBH, movetoChannel, timedOutFrog } = require("./HelperFunctions/adminHelpers.js");
-const { normalizeMSG } = require("./HelperFunctions/dbHelpers.js");
+const Discord = require('discord.js'); //discord module for interation with discord api
+
+const { SetHolidayChan, CheckFrogID, handleButtonsEmbed, preformEasterEggs } = require("../Functions/HelperFunctions/basicHelpers.js");
+const { getErrorFlag } = require("../Functions/HelperFunctions/commandHelpers.js");
+const { setGrole, setVote, setVBH, movetoChannel, timedOutFrog } = require("../Functions/HelperFunctions/adminHelpers.js");
+const { normalizeMSG } = require("../Functions/HelperFunctions/dbHelpers.js");
+const { babaFriday,  babaHelp, babaPlease, babaPizza, babaVibeFlag, babaYugo, babaHaikuEmbed, babaDayNextWed, babaJeremy, babaHurricane, babaRepost, babaWeather, babaProgress, babaAurora, babaGoodberrys, babaHaikuLinks, babaUntilHolidays } = require("../Functions/commandFunctions.js");
 
 
 //To Do:
@@ -25,7 +27,8 @@ const { normalizeMSG } = require("./HelperFunctions/dbHelpers.js");
 const { Console } = require('console');
 const { SSL_OP_SSLEAY_080_CLIENT_DH_BUG } = require('constants');
 const { TextCommandBackup } = require("./textExtra.js");
-const { functionPostFunnyDOW } = require("./HelperFunctions/slashFridayHelpers.js");
+const { functionPostFunnyDOW } = require("../Functions/HelperFunctions/slashFridayHelpers.js");
+const { getD1 } = require("../Tools/overrides.js");
 //const { spawn } = require("child_process");
 /* [ 	["christmas", 12, 25, 0, 0], 
 	["thanksgiving", 11, 0, 4, 4], 
@@ -80,12 +83,7 @@ async function babaMessage(bot, message)
 		babadata = baadata;
 	}
 
-	var dateoveride = [false, 1, 1]; //allows for overiding date manually (testing)
-
-	var yr = new Date().getFullYear(); //get this year
-	var dy = dateoveride[0] ? dateoveride[2] : new Date().getDate(); //get this day
-	var my = dateoveride[0] ? dateoveride[1] - 1 : new Date().getMonth(); //get this month
-	var d1 = new Date(yr, my, dy) //todayish
+	var yr = getD1().getFullYear(); //get this year
 
 	if(msgContent.includes(yr - 1) && msgContent.includes("560231259842805770") && msgContent.includes("563063109422415872") && !message.author.bot && message.author.id == "360228104997961740") //if message contains baba and is not from bot
 	{
@@ -175,7 +173,7 @@ async function babaMessage(bot, message)
 		if (msgContent.includes("friday"))
 		{
 			message.channel.sendTyping();
-			var tod = new Date();
+			var tod = getD1();
 			if (tod.getDay() != 5)
 			{
 				await functionPostFunnyDOW("message", message, 5);
@@ -235,7 +233,7 @@ async function babaMessage(bot, message)
 		{
 			message.channel.sendTyping();
 			var start = global.starttime;
-			var now = new Date();
+			var now = getD1();
 			var diff = now - start;
 			var diffDays = Math.floor(diff / 86400000); // days
 			var diffHrs = Math.floor((diff % 86400000) / 3600000); // hours
@@ -365,7 +363,7 @@ async function babaMessage(bot, message)
 				{
 					var text = texts[i].content;
 
-					if (content == "FUNNYDOW")
+					if (text == "FUNNYDOW")
 						await functionPostFunnyDOW("message", message, 3);
 					else
 						await message.channel.send(text);	

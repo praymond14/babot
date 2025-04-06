@@ -1,12 +1,10 @@
-var babadata = require('../babotdata.json'); //baba configuration file
-var request = require('node-fetch');
-const Discord = require('discord.js'); //discord module for interation with discord api
-const fs = require('fs');
-// const images = require('images');
-// const Jimp = require('jimp');
-// const fetch = require('node-fetch');
+var babadata = require('../../babotdata.json'); //baba configuration file
 
-// const options = { year: 'numeric', month: 'long', day: 'numeric' }; // for date parsing to string
+var request = require('node-fetch');
+const fs = require('fs');
+
+const Discord = require('discord.js'); //discord module for interation with discord api
+
 const { RoleAdd } = require('./basicHelpers.js');
 
 async function setGrole(msg, rname) //creates role and sets users

@@ -1,14 +1,17 @@
-var babadata = require('./babotdata.json'); //baba configuration file
+var babadata = require('../babotdata.json'); //baba configuration file
+
 const fs = require('fs');
+
 const Discord = require('discord.js'); //discord module for interation with discord api
 
 const { loadInDBFSV } = require('./HelperFunctions/dbHelpers.js');
-const { SetHolidayChan, CreateChannel, MonthsPlus, getD1 } = require('./HelperFunctions/basicHelpers.js');
+const { SetHolidayChan, CreateChannel, MonthsPlus } = require('./HelperFunctions/basicHelpers.js');
 const { FindNextHoliday, CheckHoliday } = require('./HelperFunctions/commandHelpers.js');
-
-const { ObtainDBHolidays } = require('./databaseandvoice');
-const { LoadAllTheCache, SaveSlashFridayJson } = require('./databaseVoiceController');
+const { ObtainDBHolidays } = require('./Database/databaseandvoice');
+const { LoadAllTheCache, SaveSlashFridayJson } = require('./Database/databaseVoiceController');
 const { resetRNG } = require('./HelperFunctions/slashFridayHelpers.js');
+const { DailyReminderCall, StartTheReminders } = require('./HelperFunctions/remindersByBaba.js');
+const { getD1 } = require('../Tools/overrides.js');
 
 var to = null;
 var toWed = null;
@@ -16,12 +19,12 @@ var toTyp = null;
 
 global.BirthdayToday = null;
 
-function dailyCallStart(bot)
+function dailyCallStart(bot, dirName)
 {
 	loadInDBFSV();
 	bot.guilds.fetch(babadata.guildId).then(guild =>
 	{
-		dailyCall(bot, guild);
+		dailyCall(bot, guild, dirName);
 	});
 }
 
@@ -62,10 +65,10 @@ async function DisplayBirthdays(guild)
 
 function BabaTyping(guild, now)
 {
-	var eightAM = new Date();
+	var eightAM = getD1();
 	eightAM.setHours(8);
 
-	var tenPM = new Date();
+	var tenPM = getD1();
 	tenPM.setHours(23);
 
 	var timeToEightAM = Math.max(eightAM.getTime() - now.getTime(), 0);
@@ -158,13 +161,13 @@ function todayDay(dow, guild, now)
 			
 			var coolestCat = coolCats[Math.floor(Math.random() * coolCats.length)];
 			
-			var eightAM = new Date();
+			var eightAM = getD1();
 			eightAM.setHours(start.getHours());
 			eightAM.setMinutes(start.getMinutes());
 			eightAM.setSeconds(start.getSeconds());
 			eightAM.setMilliseconds(start.getMilliseconds());
 
-			var tenPM = new Date();
+			var tenPM = getD1();
 			tenPM.setHours(end.getHours());
 			tenPM.setMinutes(end.getMinutes());
 			tenPM.setSeconds(end.getSeconds());
@@ -233,23 +236,23 @@ function todayDay(dow, guild, now)
 }
 
 
-function dailyCall(bot, guild)
+function dailyCall(bot, guild, sourceDir)
 {
 	resetRNG();
 	global.DailyErrors = 0;
-	let rawdataBB = fs.readFileSync(__dirname + '/babotdata.json');
+	let rawdataBB = fs.readFileSync(sourceDir + '/babotdata.json');
 	babadata = JSON.parse(rawdataBB);
 
-	var dateoveride = [false, 10, 1]; //allows for overiding date manually (testing)
-
-	var yr = new Date().getFullYear(); //get this year
-	var dy = dateoveride[0] ? dateoveride[2] : new Date().getDate(); //get this day
-	var my = dateoveride[0] ? dateoveride[1] - 1 : new Date().getMonth(); //get this month
-	var d1 = new Date(yr, my, dy) //todayish
+	var d1 = getD1(true) //todayish
+	var d1Sim = getD1() //todayish
 
 	console.log("Daily Call Running: " + d1.toDateString());
-	var now = new Date();
-	var midnight = new Date();
+	
+	if (d1.getTime() != d1Sim.getTime())
+		console.log("Simulating: " + d1Sim.toDateString() + " in the Program");
+
+	var now = getD1(true);
+	var midnight = getD1(true);
     midnight.setHours(24);
     midnight.setMinutes(0);
     midnight.setSeconds(20);
@@ -264,10 +267,14 @@ function dailyCall(bot, guild)
 	holidayDaily(d1, g);
 	global.ResetDaily = true;
 
+	DailyReminderCall();
+
 	if ((global.dbAccess[1] && global.dbAccess[0]))
 	{
 		LoadAllTheCache().catch(() => {console.log("Error loading cache")});
 	}
+	
+	StartTheReminders().catch(() => {console.log("Error loading reminders")});
 
 	DisplayBirthdays(guild);
 	BabaTyping(guild, now);
@@ -282,7 +289,7 @@ function dailyCall(bot, guild)
 	console.log("Calling next command in: " + timeToMidnight / 1000 / 60 + " minutes");
 	to = setTimeout(function()
 	{
-		dailyCall(bot, guild);
+		dailyCall(bot, guild, sourceDir);
 	}, timeToMidnight);
 }
 

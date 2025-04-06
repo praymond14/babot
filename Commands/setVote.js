@@ -1,4 +1,4 @@
-const { setVote } = require('../HelperFunctions/adminHelpers.js');
+const { setVote } = require('../Functions/HelperFunctions/adminHelpers.js');
 const { SlashCommandBuilder } = require('@discordjs/builders');
 
 module.exports = {
