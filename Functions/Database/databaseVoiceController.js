@@ -620,7 +620,7 @@ function NameFromUserIDNoFakes(userid)
     return userDBItemPromise;
 }
 
-async function PickThePerfectUsername(member, order = ["N", "C", "G", "U"])
+async function PickThePerfectUsername(member, order = ["N", "C", "G", "U"], regexTrim = true)
 {
 	// N - Discord Nickname in Server
 	// C - Cached Name (from database)
@@ -643,11 +643,14 @@ async function PickThePerfectUsername(member, order = ["N", "C", "G", "U"])
         uName = "";
 
     // filter to only character a-z, A-Z, 0-9, and space
-    var regex = /[^a-zA-Z0-9 ]/g;
-    nName = nName.replace(regex, '');
-    cahcedName = cahcedName.replace(regex, '');
-    gName = gName.replace(regex, '');
-    uName = uName.replace(regex, '');
+    if (regexTrim)
+    {
+        var regex = /[^a-zA-Z0-9 ]/g;
+        nName = nName.replace(regex, '');
+        cahcedName = cahcedName.replace(regex, '');
+        gName = gName.replace(regex, '');
+        uName = uName.replace(regex, '');
+    }
 
 	// Loop through the order array and return the first non-empty name
 	for (const key of order) 
@@ -698,7 +701,7 @@ function voiceChannelChange(newMember, oldMember)
                 for (var i = 0; i < usersInShadowRealm.length; i++)
                 {
                     var userID = usersInShadowRealm[i];
-                    var userName = await PickThePerfectUsername(guild.members.cache.get(userID), ["C", "N", "G", "U"]);
+                    var userName = await PickThePerfectUsername(guild.members.cache.get(userID), ["C", "N", "G", "U"], true);
                     userNamedList.push(userName);
                 }
 
