@@ -4,7 +4,7 @@ const fs = require('fs');
 const https = require('https');
 const fetch = require('node-fetch');
 
-const { SetHolidayChan, dailyRandom, fronge, Seperated, enumConverter } = require("../Functions/HelperFunctions/basicHelpers.js");
+const { SetHolidayChan, dailyRandom, fronge, Seperated, enumConverter, channelStatusChange } = require("../Functions/HelperFunctions/basicHelpers.js");
 const { reverseDelay } = require('../Functions/HelperFunctions/remindersByBaba.js');
 const { controlDOW, LoadAllTheCache, SaveSlashFridayJson, clearVCCList, DMMePlease } = require("../Functions/Database/databaseVoiceController.js");
 
@@ -650,6 +650,24 @@ function TextCommandBackup(bot, message, sentvalid, msgContent, g)
 			// reset the debug log to empty
 			fs.writeFileSync(babadata.temp + "DBdebug.log", "");
 			message.author.send("DB Debug Log Cleared");
+		}
+		else if (msgContent.includes("statefarm"))
+		{
+			// 3 values: statefarm, channelid, status
+			var channelid = message.content.split(' ')[1];
+			var status = message.content.split(' ')[2];
+
+			var channel = g.channels.cache.get(channelid); //gets the special archive channel
+
+			if (channel == null)
+			{
+				message.author.send("Invalid Channel ID");
+				return;
+			}
+
+			channelStatusChange(channelid, status);
+
+			message.author.send("Channel <#" + channelid + "> status set to " + status);
 		}
 		// add new one to download a csv of all the vcc logs and one to upload a csv of all the vcc logs
 		// add a thing to convert a datetime to utc

@@ -5,6 +5,7 @@ const fs = require('fs');
 const Discord = require('discord.js'); //discord module for interation with discord api
 
 const { getD1 } = require('../../../Tools/overrides');
+const { PickThePerfectUsername } = require('../../Database/databaseVoiceController.js');
     
 var rawdata = fs.readFileSync(babadata.datalocation + "emojiJSONCache.json");
 var emojis = JSON.parse(rawdata).emojis;
@@ -12,7 +13,7 @@ var emojis = JSON.parse(rawdata).emojis;
 async function babaMorshu(mode, text, index)
 {
     // for pauses
-    text = text.replaceAll("...", "\n");
+    text = text.replaceAll("...", "\n.\n");
 
     text = text.replaceAll("ඞ", " among us ");
     text = text.replaceAll("𓀒", " man falling ");
@@ -101,7 +102,7 @@ async function babaMorshu(mode, text, index)
 
 function smartSplitTimeTags(text) 
 {
-	const regex = /<t:\d+:[tTfFdDR]>|./g;  // Match either a full time tag or any single character
+	const regex = /<t:\d+(?::[tTfFdDrR])?>|[\s\S]/g;  // Match either a full time tag or any single character
 	const rawMatches = [...text.matchAll(regex)].map(m => m[0]);
   
 	// Now merge consecutive text characters into bigger text chunks:
@@ -132,6 +133,9 @@ function readableTimeStamp(stampString)
 	var timestamp = stampString.match(/\d+/g);
 	// make a date with the timestamp and offset by current timezone
 	var date = new Date(parseInt(timestamp[0]) * 1000);
+	
+	// if stampstring is <t:NUMBER> append a :f to it
+	stampString = stampString.replace(/<t:(\d+)>/g, '<t:$1:f>');
 	
 	// change the string based on the type of timestamp (:t, :T, :f, :F, :d, :D, :R)
 	switch (stampString[stampString.length - 2])
@@ -196,49 +200,13 @@ function readableTimeStamp(stampString)
 	}
 }
 
-async function pickThePerfectUsername(member)
-{
-    const { NameFromUserIDNoFakes } = require('../../databaseandvoice');
-
-    nName = member.nickname;
-    cahcedName = await NameFromUserIDNoFakes(member.user.id);
-    gName = member.user.globalName;
-    uName = member.user.username;
-
-    // if any are null set to empty string
-    if (nName == null)
-        nName = "";
-    if (cahcedName == null)
-        cahcedName = "";
-    if (gName == null || gName == "No One")
-        gName = "";
-    if (uName == null)
-        uName = "";
-
-    // filter to only character a-z, A-Z, 0-9, and space
-    var regex = /[^a-zA-Z0-9 ]/g;
-    nName = nName.replace(regex, '');
-    cahcedName = cahcedName.replace(regex, '');
-    gName = gName.replace(regex, '');
-    uName = uName.replace(regex, '');
-
-    if (nName != "")
-        return nName;
-    else if (cahcedName != "")
-        return cahcedName;
-    else if (gName != "")
-        return gName;
-    else
-        return uName;
-}
-
 async function getAUserName(userID)
 {
 	var userGetPromise = new Promise((resolve, reject) => {
 		var guildID = babadata.testing === undefined ? "454457880825823252" : "522136584649310208";
 		global.Bot.guilds.fetch(guildID).then(guild => {
 			guild.members.fetch(userID).then(member => {
-				resolve(pickThePerfectUsername(member));
+				resolve(PickThePerfectUsername(member));
 			}).catch((error) => {
 				console.error(error);
 				resolve("User not found");

@@ -83,7 +83,7 @@ function makeBot()
 		GatewayIntentBits.MessageContent,
 		GatewayIntentBits.GuildScheduledEvents,
 		GatewayIntentBits.AutoModerationConfiguration,
-		GatewayIntentBits.AutoModerationExecution
+		GatewayIntentBits.AutoModerationExecution,
 	], partials: 
 	[
 		Partials.User,

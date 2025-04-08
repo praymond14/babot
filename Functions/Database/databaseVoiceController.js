@@ -605,6 +605,73 @@ function voiceChannelChangeLOGGED(newMemberID, oldMemberID, newChannelID, oldCha
 	});
 }
 
+function NameFromUserIDNoFakes(userid)
+{
+    var userDBItemPromise = new Promise((resolve, reject) => {
+        NameFromUserIDID(userid).then((result) =>
+        {
+            resolve(result.PersonName);
+        }).catch((err) => 
+        {
+            resolve("No One");
+        });
+    });
+
+    return userDBItemPromise;
+}
+
+async function PickThePerfectUsername(member, order = ["N", "C", "G", "U"])
+{
+	// N - Discord Nickname in Server
+	// C - Cached Name (from database)
+	// G - Discord Global Nickname
+	// U - Discord Username
+
+    nName = member.nickname;
+    cahcedName = await NameFromUserIDNoFakes(member.user.id);
+    gName = member.user.globalName;
+    uName = member.user.username;
+
+    // if any are null set to empty string
+    if (nName == null)
+        nName = "";
+    if (cahcedName == null)
+        cahcedName = "";
+    if (gName == null || gName == "No One")
+        gName = "";
+    if (uName == null)
+        uName = "";
+
+    // filter to only character a-z, A-Z, 0-9, and space
+    var regex = /[^a-zA-Z0-9 ]/g;
+    nName = nName.replace(regex, '');
+    cahcedName = cahcedName.replace(regex, '');
+    gName = gName.replace(regex, '');
+    uName = uName.replace(regex, '');
+
+	// Loop through the order array and return the first non-empty name
+	for (const key of order) 
+	{
+		switch (key) 
+		{
+			case "N":
+				if (nName != "") return nName;
+				break;
+			case "C":
+				if (cahcedName != "") return cahcedName;
+				break;
+			case "G":
+				if (gName != "") return gName;
+				break;
+			case "U":
+				if (uName != "") return uName;
+				break;
+		}
+	}
+
+    return uName;
+}
+
 function voiceChannelChange(newMember, oldMember)
 {
     const VCCChangeAsync = async function() 
@@ -615,6 +682,38 @@ function voiceChannelChange(newMember, oldMember)
         var oldUserChannel = oldMember.channelId;
     
         var guild = newMember.guild;
+
+        var shadowRealmChannel = babadata.testing === undefined ? "454464489681715200" : "1240062704966832209";
+
+        if (newUserChannel == shadowRealmChannel || oldUserChannel == shadowRealmChannel)
+        {
+            const { channelStatusChange } = require('../HelperFunctions/basicHelpers');
+
+            var usersInShadowRealm = await guild.channels.fetch(shadowRealmChannel).then(channel => channel.members.map(member => member.id));
+            if (usersInShadowRealm.length == 0)
+                channelStatusChange(shadowRealmChannel, "");
+            else
+            {
+                var userNamedList = [];
+                for (var i = 0; i < usersInShadowRealm.length; i++)
+                {
+                    var userID = usersInShadowRealm[i];
+                    var userName = await PickThePerfectUsername(guild.members.cache.get(userID), ["C", "N", "G", "U"]);
+                    userNamedList.push(userName);
+                }
+
+                // join the names with commas without the last comma and having an and before the last name
+                var userNamedListString = userNamedList.join(", ");
+                if (userNamedList.length > 1)
+                	userNamedListString = userNamedListString.substring(0, userNamedListString.lastIndexOf(",")) + (userNamedList.length > 2 ? "," : "") + " and" + userNamedListString.substring(userNamedListString.lastIndexOf(",") + 1);
+                else if (userNamedList.length == 1)
+                	userNamedListString = userNamedList[0];
+
+                userNamedListString += (userNamedList.length > 1 ? " are" : " is") + " Sleeping, please do not wake" + (userNamedList.length > 1 ? " them" : "") + ".";
+
+                channelStatusChange(shadowRealmChannel, userNamedListString);
+            }
+        }
 
         if (newUserChannel != null && newUserChannel != oldUserChannel && await userOptValue(guild, newUserID, "voice"))
         {
@@ -803,6 +902,12 @@ function FridayCounterIncrement()
             }
         }
         queryMiddle = queryMiddle.slice(0, -1);
+
+        if (queryMiddle.length == 0)
+        {
+            resolve("Friday Counter Empty");
+            return;
+        }
 
         var query = qureyStart + queryMiddle + qureyEnd;
         callSQLQuery(query)
@@ -2277,6 +2382,7 @@ module.exports = {
     voiceChannelChange,
 
     NameFromUserIDID,
+    PickThePerfectUsername,
     
     clearVCCList,
     optOut,

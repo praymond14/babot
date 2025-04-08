@@ -526,6 +526,31 @@ function cleanHead(head)
 	return head;
 }
 
+function channelStatusChange(channelID, status)
+{
+	var url = "https://discord.com/api/v10/channels/" + channelID + "/voice-status";
+	var mode = "PUT";
+	var body = {
+		"status": status
+	};
+	var heads = {
+		"Authorization": "Bot ",
+        "Content-Type": "application/json",
+	};
+
+	heads = cleanHead(heads);
+
+	var vail = {
+		method: mode,
+	   	headers: heads,
+		body: JSON.stringify(body)
+	};
+
+	fetch(url, vail).then(response => {
+		var stat = response.status;
+	});
+}
+
 function Seperated(vle)
 {
 	if (vle.length > 2000)
@@ -1906,5 +1931,6 @@ module.exports = {
 	Seperated,
 	enumConverter,
 	getTimeFromString,
-	progressSimple
+	progressSimple,
+	channelStatusChange
 };

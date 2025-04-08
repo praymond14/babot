@@ -434,21 +434,6 @@ function NameFromUserID(userid)
     return userDBItemPromise;
 }
 
-function NameFromUserIDNoFakes(userid)
-{
-    var userDBItemPromise = new Promise((resolve, reject) => {
-        NameFromUserIDID(userid).then((result) =>
-        {
-            resolve(result.PersonName);
-        }).catch((err) => 
-        {
-            resolve("No One");
-        });
-    });
-
-    return userDBItemPromise;
-}
-
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 function GenInfo(line, type)
@@ -573,5 +558,4 @@ module.exports = {
 	FormatPurityList,
     ObtainDBHolidays,
     HaikuSelection,
-    NameFromUserIDNoFakes
 }

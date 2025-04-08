@@ -13,6 +13,9 @@ const { SetHolidayChan, CheckFrogID, handleButtonsEmbed, preformEasterEggs } = r
 const { getErrorFlag } = require("../Functions/HelperFunctions/commandHelpers.js");
 const { setGrole, setVote, setVBH, movetoChannel, timedOutFrog } = require("../Functions/HelperFunctions/adminHelpers.js");
 const { normalizeMSG } = require("../Functions/HelperFunctions/dbHelpers.js");
+const { TextCommandBackup } = require("./textExtra.js");
+const { functionPostFunnyDOW } = require("../Functions/HelperFunctions/slashFridayHelpers.js");
+const { getD1 } = require("../Tools/overrides.js");
 const { babaFriday,  babaHelp, babaPlease, babaPizza, babaVibeFlag, babaYugo, babaHaikuEmbed, babaDayNextWed, babaJeremy, babaHurricane, babaRepost, babaWeather, babaProgress, babaAurora, babaGoodberrys, babaHaikuLinks, babaUntilHolidays } = require("../Functions/commandFunctions.js");
 
 
@@ -22,13 +25,8 @@ const { babaFriday,  babaHelp, babaPlease, babaPizza, babaVibeFlag, babaYugo, ba
 	- Bruh Mode? - Ryan
 	- make if (message.content.includes("847324692288765993")) do somthing more interesting
 */
-
-
-const { Console } = require('console');
-const { SSL_OP_SSLEAY_080_CLIENT_DH_BUG } = require('constants');
-const { TextCommandBackup } = require("./textExtra.js");
-const { functionPostFunnyDOW } = require("../Functions/HelperFunctions/slashFridayHelpers.js");
-const { getD1 } = require("../Tools/overrides.js");
+// const { Console } = require('console');
+// const { SSL_OP_SSLEAY_080_CLIENT_DH_BUG } = require('constants');
 //const { spawn } = require("child_process");
 /* [ 	["christmas", 12, 25, 0, 0], 
 	["thanksgiving", 11, 0, 4, 4], 

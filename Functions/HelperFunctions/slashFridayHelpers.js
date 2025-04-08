@@ -686,7 +686,7 @@ async function funnyDOWText(cacheVersion, saveToFile, DateOveride, dowNum, autho
 
 			// make sure to replace [SENDER] with the name of the user who called the command, needs to wait for the result
 			
-			var { NameFromUserID } = require('../../databaseandvoice.js');
+			var { NameFromUserID } = require('../Database/databaseandvoice.js');
 
 			var res = await NameFromUserID(authorID);
 

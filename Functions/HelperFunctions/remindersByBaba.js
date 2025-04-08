@@ -333,7 +333,8 @@ function editReminder(reminderID, newMessage, newDate)
         if (reminderList[i].ID == reminderID)
         {
             reminderList[i].Message = newMessage;
-            reminderList[i].Date = newDate;
+            if (newDate != null)
+                reminderList[i].Date = newDate;
             reminderList[i].State = "Edited";
             reminderList[i].UpdateDB = "Edit";
             break;
@@ -448,9 +449,10 @@ function getUserReminder(userID, i)
         return obj;
     }
 
-    var editButton = new Discord.ButtonBuilder().setCustomId("editrem-" + reminder.ID + "-" + i).setLabel("Edit").setStyle(2);
-    var deleteButton = new Discord.ButtonBuilder().setCustomId("deleterem-" + reminder.ID + "-" + i).setLabel("Delete").setStyle(4);
-    
+    var editButton = new Discord.ButtonBuilder().setCustomId("editrem-" + reminder.ID + "-" + i + "-" + userID).setLabel("Edit").setStyle(2);
+    var deleteButton = new Discord.ButtonBuilder().setCustomId("deleterem-" + reminder.ID + "-" + i+ "-" + userID).setLabel("Delete").setStyle(4);
+    var dismissButton = new Discord.ButtonBuilder().setCustomId("dismissrem-" + reminder.ID + "-" + i + "-" + userID).setLabel("Dismiss Message").setStyle(3);
+
     var footer = "Baba Works in Reminders and in Mysterious Ways";
     if (pagetotal > 1) 
     {
@@ -473,13 +475,13 @@ function getUserReminder(userID, i)
         obj.components = [row];
 
         var row = new Discord.ActionRowBuilder();
-        row.addComponents(editButton, deleteButton);
+        row.addComponents(editButton, deleteButton, dismissButton);
         finalComponents = [row];
     }
     else
     {
         var row = new Discord.ActionRowBuilder();
-        row.addComponents(editButton, deleteButton);
+        row.addComponents(editButton, deleteButton, dismissButton);
         obj.components = [row];
     }
 
@@ -494,6 +496,10 @@ function getUserReminder(userID, i)
     };
 
     var colorString = getReminderColor(new Date(parseInt(reminder.ID)), new Date(reminder.Date), getD1());
+
+    // if color strong is not a valid hex color, set it to white
+    if (!/^#[0-9A-F]{6}$/i.test(colorString))
+        colorString = "#FFFFFF";
 
     var exampleEmbed = new Discord.EmbedBuilder() // embed for the haiku
     .setColor(colorString)
@@ -532,6 +538,8 @@ function getReminderColor(started, end, now)
         const b = 0;
         return rgbToHex(r, g, b);
     }
+
+    return "#FFFFFF"; // Default to white if something goes wrong
 }
   
 function rgbToHex(r, g, b) 
