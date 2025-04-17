@@ -899,30 +899,34 @@ async function babaRemind(message, time, date, interaction)
 
     // add the offset of midnight to theTime onto theDate if theDate is not null
     // else add the offset of now to theTime onto now
+    var newTimeFromNow = theDate.getTime();
 
-    var now = getD1(); //get today
-    // convert now to correct timezone
-
-    var timeuntilTheTimeFromNow = theTime.getTime() - now.getTime();
-    var timeuntilthetimefromMidnight = theTime.getTime() - new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
-    
-    if (timeuntilTheTimeFromNow < 0) timeuntilTheTimeFromNow = 0;
-    if (timeuntilthetimefromMidnight < 0) timeuntilthetimefromMidnight = 0;
-
-    if (theDate == null)
+    if (date == null)
     {
-        theDate = theTime;
+        var now = getD1(); //get today
+        // convert now to correct timezone
+    
+        var timeuntilTheTimeFromNow = theTime.getTime() - now.getTime();
+        var timeuntilthetimefromMidnight = theTime.getTime() - new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+        
+        if (timeuntilTheTimeFromNow < 0) timeuntilTheTimeFromNow = 0;
+        if (timeuntilthetimefromMidnight < 0) timeuntilthetimefromMidnight = 0;
+    
+        if (theDate == null)
+        {
+            theDate = theTime;
+        }
+        else theDate.setTime(theDate.getTime() + timeuntilthetimefromMidnight);
+    
+        newTimeFromNow = theDate.getTime() - now.getTime();
     }
-    else theDate.setTime(theDate.getTime() + timeuntilthetimefromMidnight);
-
-    var newTimeFromNow = theDate.getTime() - now.getTime();
 
     var fullmsg = message;
 
     // obtain channel
     var channel = await interaction.guild.channels.fetch(interaction.channelId);
 
-    reverseDelay(null, interaction.member.id, channel, fullmsg, newTimeFromNow, true);
+    await reverseDelay(null, interaction.member.id, channel, fullmsg, newTimeFromNow, true);
 
     return theDate;
 }

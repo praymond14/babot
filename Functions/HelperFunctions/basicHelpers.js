@@ -548,6 +548,10 @@ function channelStatusChange(channelID, status)
 
 	fetch(url, vail).then(response => {
 		var stat = response.status;
+		if (stat == 200 || stat == 204)
+			console.log("SUCC cess");
+		else
+			console.log("FAIL ure");
 	});
 }
 
