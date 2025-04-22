@@ -8,7 +8,7 @@ const { ModalBuilder, ActionRowBuilder, TextInputBuilder } = require('discord.js
 
 const { getD1 } = require("../../Tools/overrides");
 const { antiDelay } = require("./basicHelpers");
-const { DeleteReminderInDB, EditReminderInDB, AddReminderToDB, LoadReminderCache } = require("../Database/databaseVoiceController");
+const { DeleteReminderInDB, EditReminderInDB, AddReminderToDB, LoadReminderCache, DMMePlease } = require("../Database/databaseVoiceController");
 
 var to = {};
 var toList = [];
@@ -119,11 +119,11 @@ function RefreshReminders(dontRun = false)
         if (reminderList[i].UpdateDB)
         {
             if (reminderList[i].UpdateDB == "Delete")
-                DeleteReminderInDB(reminderList[i]);
+                DeleteReminderInDB(reminderList[i]).catch(function(err) { DMMePlease(err); });
             else if (reminderList[i].UpdateDB == "Edit")
-                EditReminderInDB(reminderList[i]);
+                EditReminderInDB(reminderList[i]).catch(function(err) { DMMePlease(err); });
             else if (reminderList[i].UpdateDB == "Add")
-                AddReminderToDB(reminderList[i]);
+                AddReminderToDB(reminderList[i]).catch(function(err) { DMMePlease(err); });
             
             if (reminderList[i].UpdateDB != "Delete")
             {
@@ -233,39 +233,43 @@ function reminderCompleted(reminderItem)
     });
 }
 
-function getAttachments(message, IDID)
+async function getAttachments(message, IDID)
 {
-	var files = message.attachments;
+    const files = message.attachments;
+    const fileNames = [];
 
-    // save each of the attachments to the local file system as a temporary file (ex: file1_IDIDIDID.[ext], file2_IDIDIDID.[ext], etc.)
-    var fileNames = [];
-    var counter = 0;
-
-    // loop through the Collection of attachments and save each one to the local file system
-    files.forEach(function(attachment)
+    const promises = files.map((attachment, index) =>
     {
-        var fileName = attachment.name;
-        var fileExtension = fileName.split('.').pop();
-        var newFileName = "file" + counter + "_" + IDID + "." + fileExtension;
-        fetch(attachment.url).then(res => res.arrayBuffer()).then(data =>
-        {
-            const nodeBuffer = Buffer.from(data);
-            fs.writeFileSync(babadata.temp + newFileName, nodeBuffer);
-        });
-        counter++;
-        fileNames.push(newFileName);
+        const fileName = attachment.name;
+        const fileExtension = fileName.split('.').pop();
+        const newFileName = `file${index}_${IDID}.${fileExtension}`;
+
+        return fetch(attachment.url)
+            .then(res => res.arrayBuffer())
+            .then(data =>
+            {
+                const nodeBuffer = Buffer.from(data);
+                fs.writeFileSync(babadata.temp + newFileName, nodeBuffer);
+                fileNames.push(newFileName);
+            })
+            .catch(err =>
+            {
+                console.error(`Failed to process ${attachment.url}:`, err);
+            });
     });
+
+    await Promise.all(promises);
 
     return fileNames;
 }
 
-function addReminder(DiscordMessage, UID, ChannelSendTo, MessageToSend, DelayinMS, IncludeAtUser)
+async function addReminder(DiscordMessage, UID, ChannelSendTo, MessageToSend, DelayinMS, IncludeAtUser)
 {
     var IDIDIDID = Date.now();
     var Files = null;
     if (DiscordMessage != null && DelayinMS >= 0)
     {
-        Files = getAttachments(DiscordMessage, IDIDIDID);
+        Files = await getAttachments(DiscordMessage, IDIDIDID);
     }
 
 	if (DelayinMS < 0)
@@ -333,7 +337,8 @@ function editReminder(reminderID, newMessage, newDate)
         if (reminderList[i].ID == reminderID)
         {
             reminderList[i].Message = newMessage;
-            reminderList[i].Date = newDate;
+            if (newDate != null)
+                reminderList[i].Date = newDate;
             reminderList[i].State = "Edited";
             reminderList[i].UpdateDB = "Edit";
             break;
@@ -448,9 +453,10 @@ function getUserReminder(userID, i)
         return obj;
     }
 
-    var editButton = new Discord.ButtonBuilder().setCustomId("editrem-" + reminder.ID + "-" + i).setLabel("Edit").setStyle(2);
-    var deleteButton = new Discord.ButtonBuilder().setCustomId("deleterem-" + reminder.ID + "-" + i).setLabel("Delete").setStyle(4);
-    
+    var editButton = new Discord.ButtonBuilder().setCustomId("editrem-" + reminder.ID + "-" + i + "-" + userID).setLabel("Edit").setStyle(2);
+    var deleteButton = new Discord.ButtonBuilder().setCustomId("deleterem-" + reminder.ID + "-" + i+ "-" + userID).setLabel("Delete").setStyle(4);
+    var dismissButton = new Discord.ButtonBuilder().setCustomId("dismissrem-" + reminder.ID + "-" + i + "-" + userID).setLabel("Dismiss Message").setStyle(3);
+
     var footer = "Baba Works in Reminders and in Mysterious Ways";
     if (pagetotal > 1) 
     {
@@ -473,13 +479,13 @@ function getUserReminder(userID, i)
         obj.components = [row];
 
         var row = new Discord.ActionRowBuilder();
-        row.addComponents(editButton, deleteButton);
+        row.addComponents(editButton, deleteButton, dismissButton);
         finalComponents = [row];
     }
     else
     {
         var row = new Discord.ActionRowBuilder();
-        row.addComponents(editButton, deleteButton);
+        row.addComponents(editButton, deleteButton, dismissButton);
         obj.components = [row];
     }
 
@@ -494,6 +500,10 @@ function getUserReminder(userID, i)
     };
 
     var colorString = getReminderColor(new Date(parseInt(reminder.ID)), new Date(reminder.Date), getD1());
+
+    // if color strong is not a valid hex color, set it to white
+    if (!/^#[0-9A-F]{6}$/i.test(colorString))
+        colorString = "#FFFFFF";
 
     var exampleEmbed = new Discord.EmbedBuilder() // embed for the haiku
     .setColor(colorString)
@@ -532,6 +542,8 @@ function getReminderColor(started, end, now)
         const b = 0;
         return rgbToHex(r, g, b);
     }
+
+    return "#FFFFFF"; // Default to white if something goes wrong
 }
   
 function rgbToHex(r, g, b) 

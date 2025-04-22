@@ -140,21 +140,30 @@
 
 
 
-var started = new Date(parseInt("1742869086840"));
-console.log(started);
-var now = new Date("2025-03-25T02:19:00.001Z");
-var percentageFromStartToEnd = (now - started) / (new Date("2025-03-25T03:19:00.001Z") - started);
-// convert the percentage to a color between green and red
-var green = Math.floor(255 * percentageFromStartToEnd);
-var red = Math.floor(255 * (1 - percentageFromStartToEnd));
+// var started = new Date(parseInt("1742869086840"));
+// console.log(started);
+// var now = new Date("2025-03-25T02:19:00.001Z");
+// var percentageFromStartToEnd = (now - started) / (new Date("2025-03-25T03:19:00.001Z") - started);
+// // convert the percentage to a color between green and red
+// var green = Math.floor(255 * percentageFromStartToEnd);
+// var red = Math.floor(255 * (1 - percentageFromStartToEnd));
 
-var redHex = red.toString(16);
-if (redHex.length == 1)
-	redHex = "0" + redHex;
+// var redHex = red.toString(16);
+// if (redHex.length == 1)
+// 	redHex = "0" + redHex;
 
-var greenHex = green.toString(16);
-if (greenHex.length == 1)
-	greenHex = "0" + greenHex;
+// var greenHex = green.toString(16);
+// if (greenHex.length == 1)
+// 	greenHex = "0" + greenHex;
 
-var colorString = "#" + redHex + greenHex + "00";
-console.log(colorString);
+// var colorString = "#" + redHex + greenHex + "00";
+// console.log(colorString);
+
+
+// var userNamedList = ["Isaac", "Baba", "Baba"];
+
+// var userNamedListString = userNamedList.join(", ");
+// if (userNamedList.length > 1)
+// 	userNamedListString = userNamedListString.substring(0, userNamedListString.lastIndexOf(",")) + (userNamedList.length > 2 ? "," : "") + " and" + userNamedListString.substring(userNamedListString.lastIndexOf(",") + 1);
+// else if (userNamedList.length == 1)
+// 	userNamedListString = userNamedList[0];

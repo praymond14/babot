@@ -8,13 +8,18 @@ const { getD1 } = require('../../Tools/overrides');
 var con;
 
 var timeoutDisconnect = null;
-var timeoutClear = null;
 var timeoutFix = null;
 
-var timeoutCT = -1;
+var timeoutClear = null;
+
+var timeoutCT = 0;
+
+
+// TBD make connection only connect on calls to SQL, and then auto disconnect after 5 seconds of inactivity
+// if sql attempt fails, then try to reconnect every 5 seconds for first minute, then minutely until it works again, then once it works, trigger all the queries that failed
+
 
 // Helper Functions
-
 
 function splitStringInto1900CharChunksonSpace(str)
 {
@@ -34,108 +39,162 @@ function splitStringInto1900CharChunksonSpace(str)
 	return chunks;
 }
 
-function StartDB(printOut)
+function pingConnection()
 {
-	console.log(printOut + " - Starting Database Connection");
-	con = mysql.createConnection({
-		host: babadata.database.host,
-		user: babadata.database.user,
-		password: babadata.database.password,
-		database: babadata.database.database,
-		port: babadata.database.port,
-		charset : 'utf8mb4_general_ci'
-	});
-
-    if (timeoutCT <= 0)
+    var PromisedPing = new Promise((resolve, reject) =>
     {
-	    var loggedUsersVCC = fs.readFileSync(babadata.datalocation + "loggedUsersVCC.csv");
-        loggedUsersVCC = loggedUsersVCC.toString();
-        var lines = loggedUsersVCC.split("\n");
-        lines.pop();
-
-        if (lines.length > 0)
+        if (con != null)
         {
-            if (timeoutFix != null) clearTimeout(timeoutFix);
-
-            timeoutFix = setTimeout(function()
+            // check if connection is alive
+            con.ping(function (err)
             {
-                if (global.dbAccess[1] && global.dbAccess[0])
+                if (err) 
                 {
-                    console.log("Restoring User Voice Data", false, true);
-                    clearVCCList();
+                    console.log("Connection is not alive", false, true);
+                    resolve("ERROR");
                 }
                 else
                 {
-                    console.log("Database Not Accessible, Not Restoring Right Now", false, true);
+                    // console.log("Connection is alive", false, true);
+                    resolve("true");
                 }
-            }, 20000);
-        }
-    }
-
-    con.on('error', function(err) 
-	{
-        console.log("Database Error: " + err, false, true);
-
-        if (timeoutCT == -1)
-            timeoutCT++;
-        timeoutCT++;
-
-        var timestring = getD1().toLocaleTimeString();
-        console.log("Timeout CT: " + timeoutCT + " - " + timestring, false, true);
-
-        if (timeoutCT >= 8)
-        {
-            if (timeoutClear != null) clearTimeout(timeoutClear);
-            if (timeoutDisconnect != null) clearTimeout(timeoutDisconnect);
-            if (timeoutFix != null) clearTimeout(timeoutFix);
-
-            console.log("Too many timeouts, entering minutely check mode", false, true);
-
-            global.dbAccess[1] = false;
-            timeoutDisconnect = setTimeout(StartDB, 60000, err.code);
-            timeoutClear = setTimeout(function()
-            {
-                timeoutCT = 0; 
-                global.dbAccess[1] = true; 
-                console.log("Database Access Restored", false, true);
-
-                if (global.dbAccess[1] && global.dbAccess[0])
-                {
-                    console.log("Restoring User Voice Data in 90 seconds", false, true);
-                    timeoutFix = setTimeout(function()
-                    {
-                        console.log("Restoring User Voice Data", false, true);
-                        clearVCCList();
-                    }, 90000);
-                }
-            }, 90000);
+            });
         }
         else
-            StartDB(err.code);
+        {
+            console.log("Connection is null", false, true);
+            resolve("false");
+        }
     });
+
+    return PromisedPing;
 }
 
-function callSQLQuery(query)
+async function getConnection()
 {
+    var pingged = await pingConnection();
+
+    if (pingged != "true")
+    {
+        console.log("Creating New Connection", false, true);
+        con = mysql.createConnection({
+            host: babadata.database.host,
+            user: babadata.database.user,
+            password: babadata.database.password,
+            database: babadata.database.database,
+            port: babadata.database.port,
+            charset : 'utf8mb4_general_ci'
+        });
+    }
+
+    if (timeoutDisconnect != null)
+    {
+        clearTimeout(timeoutDisconnect);
+        timeoutDisconnect = null;
+    }
+
+    timeoutDisconnect = setTimeout(function()
+    {
+        if (con != null)
+        {
+            try 
+            {
+                con.end(function(err) 
+                {
+                    if (err) console.log("Error Ending Connection: " + err, false, true);
+                    console.log("Connection Ended", false, true);
+                    con = null;
+                });
+    
+                timeoutCT = 0;
+                con = null;
+            }
+            catch (err)
+            {
+                console.log("Error Ending Connection: " + err, false, true);
+                con = null;
+            }
+        }
+    }, 60000);
+
+    return con;
+}
+
+
+function dbErrored()
+{
+    timeoutCT++;
+    console.log("Database Connection Failed -> " + timeoutCT, false, true);
+
+    if (timeoutCT > 1)
+    {
+        global.dbAccess[1] = false;
+
+        if (timeoutFix != null)
+        {
+            clearTimeout(timeoutFix);
+            timeoutFix = null;
+        }
+
+        if (timeoutDisconnect != null)
+        {
+            clearTimeout(timeoutDisconnect);
+            timeoutDisconnect = null;
+        }
+        
+        timeoutFix = setTimeout(async function()
+        {
+            var pingged = await pingConnection();
+            if (pingged == "ERROR")
+            {
+                var timestring = getD1().toLocaleTimeString();
+                timeoutCT++;
+                console.log(timestring + ": Database Connection Failed, Retrying in 60 seconds -> " + timeoutCT, false, true);
+                timeoutFix = setTimeout(arguments.callee, 60000);
+            }
+            else
+            {
+                console.log("Database Connection Restored", false, true);
+                global.dbAccess[1] = true;
+                timeoutCT = 0;
+                clearTimeout(timeoutFix);
+                timeoutFix = null;
+
+                console.log("Restoring User Voice Data in 10 seconds", false, true);
+                timeoutClear = setTimeout(function()
+                {
+                    console.log("Restoring User Voice Data", false, true);
+                    clearVCCList();
+                }, 10000);
+            }
+        }, 60000);
+    }
+}
+
+async function callSQLQuery(query)
+{
+    var condor = await getConnection();
     return new Promise((resolve, reject) =>
     {
         if ((global.dbAccess[1] && global.dbAccess[0]))
         {
-            con.query(query, function (err, result)
+            condor.query(query, function (err, result)
             {
                 if (err) 
                 {
                     ErrorWithDB(err, query);
                     reject(err);
                 }
-    
-                if (timeoutCT > 0)
+                else 
                 {
-                    timeoutCT = 0;
-                    global.dbAccess[1] = true;
-                    console.log("Timeout CT Reset", false, true);
+                    if (timeoutCT > 0)
+                    {
+                        timeoutCT = 0;
+                        global.dbAccess[1] = true;
+                        console.log("Timeout CT Reset", false, true);
+                    }
+                    resolve(result);
                 }
-                resolve(result);
             });
         }
         else
@@ -145,22 +204,7 @@ function callSQLQuery(query)
             console.log("Database Not Accessible", false, true);
             reject("Database Not Accessible");
         }
-        
     });
-}
-
-function validErrorCodes(err)
-{
-    var catchCodes = ["ETIMEDOUT", "ER_HOST_NOT_PRIVILEGED", "ECONNREFUSED"];
-    return catchCodes.includes(err);
-}
-
-function dbErrored(err)
-{
-    console.error(err);
-    con.end();
-    con = null;
-    StartDB(err.code);
 }
 
 function ErrorWithDB(err, query)
@@ -172,18 +216,19 @@ function ErrorWithDB(err, query)
     var qChunks = splitStringInto1900CharChunksonSpace(query);
     for (var i = 0; i < qChunks.length; i++)
     {
-        DMMePlease("```"  + qChunks[i] + "```");
+        DMMePlease("```\n"  + qChunks[i] + "\n```", false);
     }
 
-    DMMePlease("Error: \n```" + err + "```");
+    DMMePlease("Error: \n```\n" + err + "\n```", false);
 
-    if (!validErrorCodes(err.code))
-        dbErrored(err.code);
+    dbErrored();
 }
 
-function DMMePlease(sourceMessage)
+function DMMePlease(sourceMessage, consoledlog = true)
 {
-    console.log("DMMePlease: " + sourceMessage, false, true);
+    if (consoledlog)
+        console.log("DMMePlease: " + sourceMessage, false, true);
+
     var guildID = babadata.testing === undefined ? "454457880825823252" : "522136584649310208";
     var logThreadChanID = babadata.testing === undefined ? "1337944450084769876" : "1337943563996106915";
     var channelOfThread = babadata.testing === undefined ? "509401300874690590" : "757071872721682594";
@@ -605,6 +650,76 @@ function voiceChannelChangeLOGGED(newMemberID, oldMemberID, newChannelID, oldCha
 	});
 }
 
+function NameFromUserIDNoFakes(userid)
+{
+    var userDBItemPromise = new Promise((resolve, reject) => {
+        NameFromUserIDID(userid).then((result) =>
+        {
+            resolve(result.PersonName);
+        }).catch((err) => 
+        {
+            resolve("No One");
+        });
+    });
+
+    return userDBItemPromise;
+}
+
+async function PickThePerfectUsername(member, order = ["N", "C", "G", "U"], regexTrim = true)
+{
+	// N - Discord Nickname in Server
+	// C - Cached Name (from database)
+	// G - Discord Global Nickname
+	// U - Discord Username
+
+    nName = member.nickname;
+    cahcedName = await NameFromUserIDNoFakes(member.user.id);
+    gName = member.user.globalName;
+    uName = member.user.username;
+
+    // if any are null set to empty string
+    if (nName == null)
+        nName = "";
+    if (cahcedName == null)
+        cahcedName = "";
+    if (gName == null || gName == "No One")
+        gName = "";
+    if (uName == null)
+        uName = "";
+
+    // filter to only character a-z, A-Z, 0-9, and space
+    if (regexTrim)
+    {
+        var regex = /[^a-zA-Z0-9 ]/g;
+        nName = nName.replace(regex, '');
+        cahcedName = cahcedName.replace(regex, '');
+        gName = gName.replace(regex, '');
+        uName = uName.replace(regex, '');
+    }
+
+	// Loop through the order array and return the first non-empty name
+	for (const key of order) 
+	{
+		switch (key) 
+		{
+			case "N":
+				if (nName != "") return nName;
+				break;
+			case "C":
+				if (cahcedName != "") return cahcedName;
+				break;
+			case "G":
+				if (gName != "") return gName;
+				break;
+			case "U":
+				if (uName != "") return uName;
+				break;
+		}
+	}
+
+    return uName;
+}
+
 function voiceChannelChange(newMember, oldMember)
 {
     const VCCChangeAsync = async function() 
@@ -615,6 +730,38 @@ function voiceChannelChange(newMember, oldMember)
         var oldUserChannel = oldMember.channelId;
     
         var guild = newMember.guild;
+
+        var shadowRealmChannel = babadata.testing === undefined ? "454464489681715200" : "1240062704966832209";
+
+        if (newUserChannel == shadowRealmChannel || oldUserChannel == shadowRealmChannel)
+        {
+            const { channelStatusChange } = require('../HelperFunctions/basicHelpers');
+
+            var usersInShadowRealm = await guild.channels.fetch(shadowRealmChannel).then(channel => channel.members.map(member => member.id));
+            if (usersInShadowRealm.length == 0)
+                channelStatusChange(shadowRealmChannel, "");
+            else
+            {
+                var userNamedList = [];
+                for (var i = 0; i < usersInShadowRealm.length; i++)
+                {
+                    var userID = usersInShadowRealm[i];
+                    var userName = await PickThePerfectUsername(guild.members.cache.get(userID), ["C", "N", "G", "U"], true);
+                    userNamedList.push(userName);
+                }
+
+                // join the names with commas without the last comma and having an and before the last name
+                var userNamedListString = userNamedList.join(", ");
+                if (userNamedList.length > 1)
+                	userNamedListString = userNamedListString.substring(0, userNamedListString.lastIndexOf(",")) + (userNamedList.length > 2 ? "," : "") + " and" + userNamedListString.substring(userNamedListString.lastIndexOf(",") + 1);
+                else if (userNamedList.length == 1)
+                	userNamedListString = userNamedList[0];
+
+                userNamedListString += (userNamedList.length > 1 ? " are" : " is") + " Sleeping, please do not wake" + (userNamedList.length > 1 ? " them" : "") + ".";
+
+                channelStatusChange(shadowRealmChannel, userNamedListString);
+            }
+        }
 
         if (newUserChannel != null && newUserChannel != oldUserChannel && await userOptValue(guild, newUserID, "voice"))
         {
@@ -803,6 +950,12 @@ function FridayCounterIncrement()
             }
         }
         queryMiddle = queryMiddle.slice(0, -1);
+
+        if (queryMiddle.length == 0)
+        {
+            resolve("Friday Counter Empty");
+            return;
+        }
 
         var query = qureyStart + queryMiddle + qureyEnd;
         callSQLQuery(query)
@@ -2193,7 +2346,7 @@ function AddReminderToDB(reminderItem)
         {
             resolve("SuccCess");
         })
-        .catch((err) => {reject("Reminder")});
+        .catch((err) => {reject("Reminder Add")});
     });
 }
 
@@ -2218,7 +2371,7 @@ function EditReminderInDB(reminderItem)
         {
             resolve("SuccCess");
         })
-        .catch((err) => {reject("Reminder")});
+        .catch((err) => {reject("Reminder Edit")});
     });
 }
 
@@ -2232,7 +2385,7 @@ function DeleteReminderInDB(reminderItem)
         {
             resolve("SuccCess");
         })
-        .catch((err) => {reject("Reminder")});
+        .catch((err) => {reject("Reminder Delete")});
     });
 }
 
@@ -2242,23 +2395,31 @@ var cleanupFn = function cleanup()
 {
 	if ((global.dbAccess[1] && global.dbAccess[0]))
 	{
-		console.log("Ending SQL Connection");
-		con.end();
+        try 
+        {
+            con.end();
+            console.log("Ending SQL Connection");
+            con = null;
+        }
+        catch (err)
+        {
+            con = null;
+        }
 	}
 
 	if (timeoutClear != null)
 	{
-		console.log("Clearing Timeout - DB Reconnecter");
+		console.log("Clearing Timeout - VCC Updater");
 		clearTimeout(timeoutClear);
 	}
 	if (timeoutDisconnect != null)
 	{
-		console.log("Clearing Timeout - DB Checker");
+		console.log("Clearing Timeout - DB Auto Disconnect");
 		clearTimeout(timeoutDisconnect);
 	}
 	if (timeoutFix != null)
 	{
-		console.log("Clearing Timeout - DB Fixer");
+		console.log("Clearing Timeout - DB Down Checker");
 		clearTimeout(timeoutFix);
 	}
 }
@@ -2273,10 +2434,10 @@ module.exports = {
     controlDOW,
     SaveSlashFridayJson,
     EventDB,
-    StartDB,
     voiceChannelChange,
 
     NameFromUserIDID,
+    PickThePerfectUsername,
     
     clearVCCList,
     optOut,

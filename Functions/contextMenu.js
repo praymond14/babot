@@ -185,6 +185,7 @@ async function modalInfo(interaction, bot)
     {
         var remID = cid.split("-")[1];
         var page = cid.split("-")[2];
+        var userID = cid.split("-")[3];
         var reminder = getReminder(remID);
 
         var authorID = interaction.user.id;
@@ -198,18 +199,27 @@ async function modalInfo(interaction, bot)
             var time = interaction.fields.getTextInputValue("timeInput");
     
             var theTime = getTimeFromString(time);
-            var theDate = null;
-            if (date != null)
+            var theDate = FindDate(date);
+
+            var extral = "";
+
+            if (message == null || message == "")
             {
-                theDate = FindDate(date);
-                theDate = new Date(theDate.year, theDate.month - 1, theDate.day);
+                message = reminder.Message;
+                extral += ": Invalid Message, keeping original message";
             }
-    
-            theDate = new Date(theDate.getFullYear(), theDate.getMonth(), theDate.getDate(), theTime.getHours(), theTime.getMinutes(), theTime.getSeconds());
+
+            if (theDate == null || theTime == null)
+                extral += ": Invalid Date/Time, keeping original date time";
+            else
+            {
+                theDate = new Date(theDate.year, theDate.month - 1, theDate.day);
+                theDate = new Date(theDate.getFullYear(), theDate.getMonth(), theDate.getDate(), theTime.getHours(), theTime.getMinutes(), theTime.getSeconds());
+            }
             
             editReminder(remID, message, theDate);
     
-            await interaction.reply({content: "Reminder Edited", ephemeral: true});
+            await interaction.reply({content: "Reminder Edited" + extral, ephemeral: true});
         }
 
         var massamage = global.ReminderList[remID];
@@ -237,6 +247,7 @@ async function modalInfo(interaction, bot)
     {
         var remID = cid.split("-")[1];
         var page = cid.split("-")[2];
+        var userID = cid.split("-")[3];
         var reminder = getReminder(remID);
 
         var authorID = interaction.user.id;
@@ -283,10 +294,23 @@ async function buttonInfo(interaction, bot)
 	var msg = interaction.message;
     var cid = interaction.customId;
 
+    if (interaction.message.interaction != null && interaction.message.interaction.user.id != interaction.user.id)
+    {
+        await interaction.reply({content: "You cannot use this button", ephemeral: true});
+        return;
+    }
+
     if (cid.startsWith("editrem-"))
     {
         var remID = cid.split("-")[1];
         var page = cid.split("-")[2];
+        var userID = cid.split("-")[3];
+
+        if (interaction.user.id != userID)
+        {
+            await interaction.reply({content: "You cannot use this button", ephemeral: true});
+            return;
+        }
 
         var reminder = getReminder(remID);
 
@@ -304,7 +328,7 @@ async function buttonInfo(interaction, bot)
         var dateString = theDate.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
 
         const modal = new ModalBuilder()
-            .setCustomId('editReminder-' + remID + "-" + page)
+            .setCustomId('editReminder-' + remID + "-" + page + "-" + userID)
             .setTitle('Edit ' + mode);
 
         const messageInput = new TextInputBuilder()
@@ -339,13 +363,37 @@ async function buttonInfo(interaction, bot)
         global.ReminderList[remID] = interaction.message;
         interaction.showModal(modal);
     }
+    else if (cid.startsWith("dismissrem-"))
+    {
+        var remID = cid.split("-")[1];
+        var page = cid.split("-")[2];
+        var userID = cid.split("-")[3];
+
+        if (interaction.user.id != userID)
+        {
+            await interaction.reply({content: "You cannot use this button", ephemeral: true});
+            return;
+        }
+
+        interaction.reply({content: "Reminder Dismissed", ephemeral: true});
+        // delete the message associated with the button
+        global.ReminderMessageExists[interaction.message.id] = false;
+        interaction.message.delete().catch(function (err) {}); //try to get the message, if it exists delete it
+    }
     else if (cid.startsWith("deleterem-"))
     {
         var remID = cid.split("-")[1];
         var page = cid.split("-")[2];
+        var userID = cid.split("-")[3];
+
+        if (interaction.user.id != userID)
+        {
+            await interaction.reply({content: "You cannot use this button", ephemeral: true});
+            return;
+        }
 
         const modal = new ModalBuilder()
-            .setCustomId('deleteReminder-' + remID + "-" + page)
+            .setCustomId('deleteReminder-' + remID + "-" + page + "-" + userID)
             .setTitle('Are you sure? Delete Reminder?');
 
         const confirmInput = new TextInputBuilder()

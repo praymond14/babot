@@ -7,7 +7,7 @@ const { Client, GatewayIntentBits, Partials, Collection } = require('discord.js'
 
 const { dailyCallStart } = require('./Functions/dailycall.js');
 const { contextInfo, modalInfo, buttonInfo, stringSelectInfo, userSelectInfo, channelSelectInfo } = require('./Functions/contextMenu');
-const { StartDB, EventDB, voiceChannelChange, DMMePlease } = require('./Functions/Database/databaseVoiceController.js');
+const { EventDB, voiceChannelChange, DMMePlease } = require('./Functions/Database/databaseVoiceController.js');
 const { getOverides, getD1 } = require('./Tools/overrides.js');
 const txtCommands = require('./TextCommands/textCommands.js');
 
@@ -83,7 +83,7 @@ function makeBot()
 		GatewayIntentBits.MessageContent,
 		GatewayIntentBits.GuildScheduledEvents,
 		GatewayIntentBits.AutoModerationConfiguration,
-		GatewayIntentBits.AutoModerationExecution
+		GatewayIntentBits.AutoModerationExecution,
 	], partials: 
 	[
 		Partials.User,
@@ -121,11 +121,6 @@ function botOn(bot)
 	{
 		global.Bot = bot;
 		console.log('Connected');
-	
-		if (global.dbAccess[1])
-		{
-			StartDB("Initializing");
-		}
 	
 		var fridayJson = fs.readFileSync(babadata.datalocation + "fridayCounter.json");
 		var fridayData = JSON.parse(fridayJson);
