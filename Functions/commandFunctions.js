@@ -889,36 +889,33 @@ function babaWeather(mode, city, callback)
 
 async function babaRemind(message, time, date, interaction)
 {
-    var theTime = getTimeFromString(time);
+    var theTime = getTimeFromString(time); // returns Date object for today at that time
+    var now = getD1(); // now in correct timezone
     var theDate = null;
+
     if (date != null)
     {
-        theDate = FindDate(date);
-        theDate = new Date(theDate.year, theDate.month - 1, theDate.day);
+        var parsedDate = FindDate(date); 
+        theDate = new Date(parsedDate.year, parsedDate.month - 1, parsedDate.day);
+        // Set the time part
+        theDate.setHours(theTime.getHours(), theTime.getMinutes(), theTime.getSeconds(), theTime.getMilliseconds());
+    }
+    else
+    {
+        // No date provided — use today's time, but if it's already passed, use tomorrow
+        if (theTime.getTime() <= now.getTime())
+        {
+            theTime.setDate(theTime.getDate() + 1); // move to tomorrow
+        }
+        theDate = theTime;
     }
 
-    // add the offset of midnight to theTime onto theDate if theDate is not null
-    // else add the offset of now to theTime onto now
-    var newTimeFromNow = theDate.getTime();
+    var newTimeFromNow = theDate.getTime() - now.getTime();
 
-    if (date == null)
+    if (newTimeFromNow < now)
     {
-        var now = getD1(); //get today
-        // convert now to correct timezone
-    
-        var timeuntilTheTimeFromNow = theTime.getTime() - now.getTime();
-        var timeuntilthetimefromMidnight = theTime.getTime() - new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
-        
-        if (timeuntilTheTimeFromNow < 0) timeuntilTheTimeFromNow = 0;
-        if (timeuntilthetimefromMidnight < 0) timeuntilthetimefromMidnight = 0;
-    
-        if (theDate == null)
-        {
-            theDate = theTime;
-        }
-        else theDate.setTime(theDate.getTime() + timeuntilthetimefromMidnight);
-    
-        newTimeFromNow = theDate.getTime() - now.getTime();
+        // set to now if
+        newTimeFromNow = now;
     }
 
     var fullmsg = message;

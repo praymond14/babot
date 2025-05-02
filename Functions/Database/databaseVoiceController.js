@@ -102,6 +102,7 @@ async function getConnection()
                 con.end(function(err) 
                 {
                     if (err) console.log("Error Ending Connection: " + err, false, true);
+                    DMMePlease("Error Ending Connection: " + err, false, true);
                     console.log("Connection Ended", false, true);
                     con = null;
                 });
@@ -112,6 +113,7 @@ async function getConnection()
             catch (err)
             {
                 console.log("Error Ending Connection: " + err, false, true);
+                DMMePlease("Error Ending Connection: " + err, false, true);
                 con = null;
             }
         }

@@ -1,6 +1,6 @@
 function getD1(ignoreOveride = false)
 {
-    var dateoveride = [false, 4, 1]; //allows for overiding date manually (testing)
+    var dateoveride = [false, 4, 28]; //allows for overiding date manually (testing)
     var d1 = new Date(); //get current date
     if (dateoveride[0] && !ignoreOveride) //if we are overiding the date
     {

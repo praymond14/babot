@@ -8,6 +8,7 @@ const { babaHaikuEmbed, babaHaikuLinks } = require('./commandFunctions.js');
 const { handleButtonsEmbed, getTimeFromString, FindDate } = require('./HelperFunctions/basicHelpers.js');
 const { getReminder, editReminder, removeReminder, handleButtonsEmbedReminders, getUserReminder, getUserReminderAndIDFromID, getUserIDFromID } = require('./HelperFunctions/remindersByBaba.js');
 const { sqlEscapeStringThingforAdamBecauseHeWillDoanSQLInjectionOtherwise } = require('./HelperFunctions/dbHelpers.js');
+const { getD1 } = require('../Tools/overrides.js');
 
 global.ReminderList = {};
 
@@ -215,6 +216,12 @@ async function modalInfo(interaction, bot)
             {
                 theDate = new Date(theDate.year, theDate.month - 1, theDate.day);
                 theDate = new Date(theDate.getFullYear(), theDate.getMonth(), theDate.getDate(), theTime.getHours(), theTime.getMinutes(), theTime.getSeconds());
+            }
+
+            if (theDate != null && theDate < getD1())
+            {
+                extral += ": Invalid Date/Time, keeping original date time";
+                theDate = null;
             }
             
             editReminder(remID, message, theDate);

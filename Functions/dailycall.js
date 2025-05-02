@@ -236,55 +236,59 @@ function todayDay(dow, guild, now)
 }
 
 
-function dailyCall(bot, guild, sourceDir)
+async function dailyCall(bot, guild, sourceDir)
 {
 	resetRNG();
 	global.DailyErrors = 0;
 	let rawdataBB = fs.readFileSync(sourceDir + '/babotdata.json');
 	babadata = JSON.parse(rawdataBB);
 
-	var d1 = getD1(true) //todayish
+	var now = getD1(true) //todayish
 	var d1Sim = getD1() //todayish
 
-	console.log("Daily Call Running: " + d1.toDateString());
+	console.log("Daily Call Running: " + now.toDateString());
+
+	// Set holiday channel if it is a holiday
+	let rawdata = fs.readFileSync(babadata.datalocation + "FrogHolidays/" + 'frogholidays.json'); //load file each time of calling wednesday
+	let frogdata = JSON.parse(rawdata);
+	var g = bot.guilds.resolve(frogdata.froghelp.mainfrog);
+	holidayDaily(now, g);
+
+	DailyReminderCall();
 	
-	if (d1.getTime() != d1Sim.getTime())
+	if (now.getTime() != d1Sim.getTime())
 		console.log("Simulating: " + d1Sim.toDateString() + " in the Program");
 
-	var now = getD1(true);
+	if ((global.dbAccess[1] && global.dbAccess[0]))
+	{
+		await LoadAllTheCache().catch(() => {console.log("Error loading cache")});
+	}
+	
+	await StartTheReminders().catch(() => {console.log("Error loading reminders")});
+
+	// daily birthday informer, at least I include everyone in this unlike someone else
+	DisplayBirthdays(guild);
+
+	// Baba typing funny robot things
+	global.ResetDaily = true;
+	BabaTyping(guild, now);
+
+	// Friday
+	if (now.getDay() == 5)
+		console.log("FRIDAY!");
+	
+	// send the it is wednesday message/any other day messages
+	todayDay(now.getDay(), guild, now);
+
+	// save slash friday json info
+	SaveSlashFridayJson();
+
 	var midnight = getD1(true);
     midnight.setHours(24);
     midnight.setMinutes(0);
     midnight.setSeconds(20);
     midnight.setMilliseconds(0);
 	var timeToMidnight = midnight.getTime() - now.getTime();
-
-	let rawdata = fs.readFileSync(babadata.datalocation + "FrogHolidays/" + 'frogholidays.json'); //load file each time of calling wednesday
-	let frogdata = JSON.parse(rawdata);
-
-	var g = bot.guilds.resolve(frogdata.froghelp.mainfrog);
-
-	holidayDaily(d1, g);
-	global.ResetDaily = true;
-
-	DailyReminderCall();
-
-	if ((global.dbAccess[1] && global.dbAccess[0]))
-	{
-		LoadAllTheCache().catch(() => {console.log("Error loading cache")});
-	}
-	
-	StartTheReminders().catch(() => {console.log("Error loading reminders")});
-
-	DisplayBirthdays(guild);
-	BabaTyping(guild, now);
-
-	if (d1.getDay() == 5)
-		console.log("FRIDAY!");
-	
-	todayDay(d1.getDay(), guild, now);
-
-	SaveSlashFridayJson();
 
 	console.log("Calling next command in: " + timeToMidnight / 1000 / 60 + " minutes");
 	to = setTimeout(function()
