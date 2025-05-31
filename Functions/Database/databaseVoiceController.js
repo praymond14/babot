@@ -160,6 +160,21 @@ function dbErrored()
                 console.log(timestring + ": Database Connection Failed, Retrying in 60 seconds -> " + timeoutCT, false, true);
                 timeoutFix = setTimeout(arguments.callee, 60000);
             }
+            else if (pingged == "false")
+            {
+                // Try to reconnect to the DB
+                await getConnection();
+                if (timeoutDisconnect != null) 
+                {
+                    clearTimeout(timeoutDisconnect);
+                    timeoutDisconnect = null;
+                }
+                
+                var timestring = getD1().toLocaleTimeString();
+                timeoutCT++;
+                console.log(timestring + ": Database Connection was null, attempted reconnect, Retrying in 60 seconds -> " + timeoutCT, false, true);
+                timeoutFix = setTimeout(arguments.callee, 60000);
+            }
             else
             {
                 console.log("Database Connection Possibly Restored", false, true);
