@@ -450,8 +450,15 @@ function TextCommandBackup(bot, message, sentvalid, msgContent, g)
 		{
 			if ((global.dbAccess[1] && global.dbAccess[0]))
 			{
-				LoadAllTheCache().catch(() => {console.log("Error loading cache")});
-				message.author.send("DOW cache updated (hopefully)");
+				LoadAllTheCache().then((result) => 
+				{
+					message.author.send("DOW cache updated (hopefully)");
+					message.author.send("```" + result + "```");
+				}).catch(() => 
+				{
+					console.log("Error loading cache")
+					message.author.send("Error loading cache");
+				});
 			}
 			else
 			{
@@ -655,7 +662,8 @@ function TextCommandBackup(bot, message, sentvalid, msgContent, g)
 		{
 			// 3 values: statefarm, channelid, status
 			var channelid = message.content.split(' ')[1];
-			var status = message.content.split(' ')[2];
+			// everything after the first space
+			var status = message.content.split(' ').slice(2, ).join(' '); //get the name for the role
 
 			var channel = g.channels.cache.get(channelid); //gets the special archive channel
 

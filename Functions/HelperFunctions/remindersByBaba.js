@@ -43,7 +43,7 @@ function RefreshReminders(dontRun = false)
     var reminderList = getReminderJSON();
     for (var i = 0; i < reminderList.length; i++)
     {
-        var remmy = reminderList[i];
+        const remmy = reminderList[i];
 
         if (remmy.State == "Added" || remmy.State == "Edited" || remmy.State == "Pending")
         {
@@ -149,6 +149,7 @@ function RefreshReminders(dontRun = false)
 
 function reminderCompleted(reminderItem)
 {
+    console.log("Reminder " + reminderItem.ID + " completed");
     var objectiveSender = {
         content: reminderItem.EnableAtPerson ? "<@" + reminderItem.UserID + "> `Baba Reminds You:`\n" + reminderItem.Message : reminderItem.Message,
     };
@@ -202,8 +203,11 @@ function reminderCompleted(reminderItem)
                     }
 
                     // delete all the files that were saved to the local file system
-                    for (var i = 0; i < reminderItem.Files.length; i++)
-                        fs.unlinkSync(babadata.temp + reminderItem.Files[i]);
+                    if (reminderItem.Files != null && reminderItem.Files.length > 0)
+                    {
+                        for (var i = 0; i < reminderItem.Files.length; i++)
+                            fs.unlinkSync(babadata.temp + reminderItem.Files[i]);
+                    }
                 }).catch((error) =>
                 {
                     console.error(error);
@@ -219,9 +223,12 @@ function reminderCompleted(reminderItem)
                         var msg = await msg.reply(AdditionalMessagesToSend[i]);
                 }
 
-                // delete all the files that were saved to the local file system
-                for (var i = 0; i < reminderItem.Files.length; i++)
-                    fs.unlinkSync(babadata.temp + reminderItem.Files[i]);
+                if (reminderItem.Files != null && reminderItem.Files.length > 0)
+                {
+                    // delete all the files that were saved to the local file system
+                    for (var i = 0; i < reminderItem.Files.length; i++)
+                        fs.unlinkSync(babadata.temp + reminderItem.Files[i]);
+                }
             }
         }).catch((error) =>
         {

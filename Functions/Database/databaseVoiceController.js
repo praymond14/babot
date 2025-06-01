@@ -102,6 +102,7 @@ async function getConnection()
                 con.end(function(err) 
                 {
                     if (err) console.log("Error Ending Connection: " + err, false, true);
+                    DMMePlease("Error Ending Connection: " + err, false, true);
                     console.log("Connection Ended", false, true);
                     con = null;
                 });
@@ -112,6 +113,7 @@ async function getConnection()
             catch (err)
             {
                 console.log("Error Ending Connection: " + err, false, true);
+                DMMePlease("Error Ending Connection: " + err, false, true);
                 con = null;
             }
         }
@@ -141,6 +143,12 @@ function dbErrored()
             clearTimeout(timeoutDisconnect);
             timeoutDisconnect = null;
         }
+
+        if (timeoutClear != null)
+        {
+            clearTimeout(timeoutClear);
+            timeoutClear = null;
+        }
         
         timeoutFix = setTimeout(async function()
         {
@@ -152,20 +160,68 @@ function dbErrored()
                 console.log(timestring + ": Database Connection Failed, Retrying in 60 seconds -> " + timeoutCT, false, true);
                 timeoutFix = setTimeout(arguments.callee, 60000);
             }
+            else if (pingged == "false")
+            {
+                // Try to reconnect to the DB
+                await getConnection();
+                if (timeoutDisconnect != null) 
+                {
+                    clearTimeout(timeoutDisconnect);
+                    timeoutDisconnect = null;
+                }
+                
+                var timestring = getD1().toLocaleTimeString();
+                timeoutCT++;
+                console.log(timestring + ": Database Connection was null, attempted reconnect, Retrying in 60 seconds -> " + timeoutCT, false, true);
+                timeoutFix = setTimeout(arguments.callee, 60000);
+            }
             else
             {
-                console.log("Database Connection Restored", false, true);
-                global.dbAccess[1] = true;
-                timeoutCT = 0;
-                clearTimeout(timeoutFix);
-                timeoutFix = null;
+                console.log("Database Connection Possibly Restored", false, true);
 
-                console.log("Restoring User Voice Data in 10 seconds", false, true);
-                timeoutClear = setTimeout(function()
+                // Try 3 more times at 10s intervals to confirm stability
+                let confirmAttempts = 0;
+                let confirmFailures = 0;
+                const confirmDbRestore = async () => 
                 {
-                    console.log("Restoring User Voice Data", false, true);
-                    clearVCCList();
-                }, 10000);
+                    let pingged = await pingConnection();
+                    if (pingged !== "true") 
+                    {
+                        confirmFailures++;
+                    }
+                    console.log("Confirming DB Restore: Attempt " + (confirmAttempts + 1) + " - Ping Result: " + pingged, false, true);
+
+                    confirmAttempts++;
+                    if (confirmAttempts < 3) 
+                    {
+                        setTimeout(confirmDbRestore, 10000);
+                    } 
+                    else 
+                    {
+                        if (confirmFailures > 0) 
+                        {
+                            // If any failed, revert to retrying every 60s and restore timeoutCT
+                            console.log("DB unstable after restore, reverting to retry mode", false, true);
+                            timeoutFix = setTimeout(arguments.callee, 60000);
+                        } 
+                        else 
+                        {
+                            global.dbAccess[1] = true;
+                            timeoutCT = 0;
+                            clearTimeout(timeoutFix);
+                            timeoutFix = null;
+
+                            // All confirmed, proceed to restore user voice data
+                            console.log("Restoring User Voice Data in 10 seconds", false, true);
+                            timeoutClear = setTimeout(function() 
+                            {
+                                console.log("Restoring User Voice Data", false, true);
+                                clearVCCList();
+                            }, 10000);
+                        }
+                    }
+                };
+                setTimeout(confirmDbRestore, 10000);
             }
         }, 60000);
     }
@@ -562,12 +618,15 @@ function userLeftVoice(userID, channelID, guild, overideTime = null)
     return PromisedUserLeft;
 }
 
-function logVCC(newMemberID, newChannelID, oldMemberID, oldChannelID, guildID)
+function logVCC(newMemberID, newChannelID, oldMemberID, oldChannelID, guildID, timeoveride = null)
 {
     var time = getD1();
 	console.log("Logging VCC Data: " + newMemberID + " " + oldMemberID + " " + newChannelID + " " + oldChannelID + " " + time + " " + guildID, false, true);
 	// save time as a number
 	time = time.getTime();
+
+    if (timeoveride != null)
+        time = timeoveride.getTime();
 
 	if (!fs.existsSync(babadata.datalocation + "loggedUsersVCC.csv"))
 	{
@@ -589,32 +648,43 @@ function clearVCCList()
 	// loop through each line
 	// for each line, get the newMember.id, newMember.channelId, oldMember.id, oldMember.channelId, time
 	// call voiceChannelChangeLOGGED(newMember.id, oldMember.id, newMember.channelId, oldMember.channelId, time)
-	var lines = loggedUsersVCC.split("\n");
-	for (var i = 0; i < lines.length; i++)
-	{
-		saveStuff(lines[i], i);
-	}
+    // Process lines sequentially to ensure saveStuff runs one at a time
+    var lines = loggedUsersVCC.split("\n");
+    async function processLinesSequentially(lines) 
+    {
+        for (let i = 0; i < lines.length; i++)
+            await saveStuff(lines[i], i);
+    }
+    processLinesSequentially(lines);
 }
 
 function saveStuff(lineWhole, i)
 {
-	setTimeout(function() 
-	{
-		if (lineWhole.length > 0)
-		{
-			var line = lineWhole.split(",");
-			var newMemberID = line[0];
-			var newChannelID = line[1] == "null" ? null : line[1];
-			var oldMemberID = line[2];
-			var oldChannelID = line[3] == "null" ? null : line[3];
-			var time = line[4];
-			// convert time to Date object
-			time = new Date(parseInt(time));
-			
-			var guildID = line[5];
-			voiceChannelChangeLOGGED(newMemberID, oldMemberID, newChannelID, oldChannelID, time, guildID);
-		}
-	}, i * 100);
+    return new Promise((resolve) =>
+    {
+        setTimeout(function()
+        {
+            if (lineWhole.length > 0)
+            {
+                var line = lineWhole.split(",");
+                var newMemberID = line[0];
+                var newChannelID = line[1] == "null" ? null : line[1];
+                var oldMemberID = line[2];
+                var oldChannelID = line[3] == "null" ? null : line[3];
+                var time = line[4];
+                // convert time to Date object
+                time = new Date(parseInt(time));
+                
+                var guildID = line[5];
+                // voiceChannelChangeLOGGED is async, so wait for it to finish
+                Promise.resolve(voiceChannelChangeLOGGED(newMemberID, oldMemberID, newChannelID, oldChannelID, time, guildID))
+                    .then(() => resolve())
+                    .catch(() => resolve());
+            }
+            else
+                resolve();
+        }, i * 100);
+    });
 }
 
 function voiceChannelChangeLOGGED(newMemberID, oldMemberID, newChannelID, oldChannelID, overideTime = null, guildID)
@@ -644,7 +714,7 @@ function voiceChannelChangeLOGGED(newMemberID, oldMemberID, newChannelID, oldCha
             }).catch((err) => 
             {
                 DMMePlease("Error in Voice Channel Change from Logged Values: " + err);
-                logVCC(newMemberID, newChannelID, oldMemberID, oldChannelID, guildID);
+                logVCC(newMemberID, newChannelID, oldMemberID, oldChannelID, guildID, overideTime);
             });
         }
 	});
