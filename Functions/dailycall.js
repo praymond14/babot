@@ -243,7 +243,8 @@ async function dailyCall(bot, guild, sourceDir)
 	let rawdataBB = fs.readFileSync(sourceDir + '/babotdata.json');
 	babadata = JSON.parse(rawdataBB);
 
-	var now = getD1(true) //todayish
+	var now = getD1(true, true) //todayish
+	var nowAtMidnight = getD1(false, true); //todayish at midnight
 	var d1Sim = getD1() //todayish
 
 	console.log("Daily Call Running: " + now.toDateString());
@@ -252,11 +253,11 @@ async function dailyCall(bot, guild, sourceDir)
 	let rawdata = fs.readFileSync(babadata.datalocation + "FrogHolidays/" + 'frogholidays.json'); //load file each time of calling wednesday
 	let frogdata = JSON.parse(rawdata);
 	var g = bot.guilds.resolve(frogdata.froghelp.mainfrog);
-	holidayDaily(now, g);
+	holidayDaily(nowAtMidnight, g);
 
 	DailyReminderCall();
 	
-	if (now.getTime() != d1Sim.getTime())
+	if (nowAtMidnight.getTime() != d1Sim.getTime())
 		console.log("Simulating: " + d1Sim.toDateString() + " in the Program");
 
 	if ((global.dbAccess[1] && global.dbAccess[0]))
@@ -266,7 +267,7 @@ async function dailyCall(bot, guild, sourceDir)
 	
 	await StartTheReminders().catch(() => {console.log("Error loading reminders")});
 
-	// daily birthday informer, at least I include everyone in this unlike someone else
+	// daily birthday informer
 	DisplayBirthdays(guild);
 
 	// Baba typing funny robot things
@@ -274,7 +275,7 @@ async function dailyCall(bot, guild, sourceDir)
 	BabaTyping(guild, now);
 
 	// Friday
-	if (now.getDay() == 5)
+	if (nowAtMidnight.getDay() == 5)
 		console.log("FRIDAY!");
 	
 	// send the it is wednesday message/any other day messages
@@ -283,7 +284,7 @@ async function dailyCall(bot, guild, sourceDir)
 	// save slash friday json info
 	SaveSlashFridayJson();
 
-	var midnight = getD1(true);
+	var midnight = getD1(false, true);
     midnight.setHours(24);
     midnight.setMinutes(0);
     midnight.setSeconds(20);

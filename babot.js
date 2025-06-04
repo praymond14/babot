@@ -14,7 +14,7 @@ const txtCommands = require('./TextCommands/textCommands.js');
 var overrides = getOverides();
 
 global.dbAccess = [!process.argv.includes("-db"), process.argv.includes("-db") ? false : true];
-global.starttime = getD1(); //get today
+global.starttime = getD1(true); //get today
 global.DailyErrors = 0;
 global.DebugFriday = overrides.DebugFriday;
 

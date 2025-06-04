@@ -506,7 +506,7 @@ function getUserReminder(userID, i)
         iconURL : "https://media.discordapp.net/attachments/574840583563116566/949515044746559568/JSO3bX0V.png"
     };
 
-    var colorString = getReminderColor(new Date(parseInt(reminder.ID)), new Date(reminder.Date), getD1());
+    var colorString = getReminderColor(new Date(parseInt(reminder.ID)), new Date(reminder.Date), getD1(true));
 
     // if color strong is not a valid hex color, set it to white
     if (!/^#[0-9A-F]{6}$/i.test(colorString))

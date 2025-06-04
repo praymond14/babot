@@ -156,7 +156,7 @@ async function funnyDOWTextSaved(dowNum, authorID, seedSet = -1, dontSave = fals
 		var fmpath = babadata.datalocation + "fridaymessages.json";
 		var fmr = fs.readFileSync(fmpath);
 		var fmd = JSON.parse(fmr);
-		var tod = getD1();
+		var tod = getD1(true);
 	
 		var cnFull = condensedNotation;
 		if (cnYung.length > 0)
@@ -357,7 +357,7 @@ async function funnyDOWText(cacheVersion, saveToFile, DateOveride, dowNum, autho
 
     var optionsDOW = JSON.parse(rawdata);
 
-	var tod = getD1();
+	var tod = getD1(true);
 	if (DateOveride[0] != null)
 	{
 		tod = new Date(DateOveride[0] * 1000);
@@ -370,7 +370,7 @@ async function funnyDOWText(cacheVersion, saveToFile, DateOveride, dowNum, autho
 
 	if (DateOveride[1] != null && DateOveride[2] != null)
 	{
-		tod = getD1();
+		tod = getD1(true);
 	}
 
 	// if (babadata.testing != undefined)
@@ -1137,7 +1137,7 @@ function generateFridayOps(opsArray, authorID, prefix, DateOveride)
 
 	var TimeGates = JSON.parse(raw);
 
-	var tod = getD1();
+	var tod = getD1(true);
 	if (prefix != -1)
 	{
 		// loop through TimeGates until VersionNumber == prefix
@@ -1154,7 +1154,7 @@ function generateFridayOps(opsArray, authorID, prefix, DateOveride)
 
 	if (DateOveride[1] != null)
 	{
-		var tod = getD1();
+		var tod = getD1(true);
 	}
 
 	if (DateOveride[2] != null && DateOveride[0] != null)

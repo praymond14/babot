@@ -154,7 +154,7 @@ function readableTimeStamp(stampString)
 			return date.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
 		case 'R':
 			// return relative time
-			var now = getD1();
+			var now = getD1(true);
 			var diff = date - now;
 			var mins = Math.floor(diff / 60000);
 			// if the date is in the past, return x seconds/minutes/hours/days ago

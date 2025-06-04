@@ -218,7 +218,7 @@ async function modalInfo(interaction, bot)
                 theDate = new Date(theDate.getFullYear(), theDate.getMonth(), theDate.getDate(), theTime.getHours(), theTime.getMinutes(), theTime.getSeconds());
             }
 
-            if (theDate != null && theDate < getD1())
+            if (theDate != null && theDate < getD1(true))
             {
                 extral += ": Invalid Date/Time, keeping original date time";
                 theDate = null;
