@@ -1,4 +1,4 @@
-function getD1(ignoreOveride = false)
+function getD1(getHours = false, ignoreOveride = false)
 {
     var dateoveride = [false, 4, 28]; //allows for overiding date manually (testing)
     var d1 = new Date(); //get current date
@@ -9,6 +9,9 @@ function getD1(ignoreOveride = false)
         var my = dateoveride[1] - 1; //get this month
         d1 = new Date(yr, my, dy);
     }
+
+    if (!getHours) //if we want to get the hours
+        d1.setHours(0, 0, 0, 0); //set time to midnight
 
     return d1;
 }

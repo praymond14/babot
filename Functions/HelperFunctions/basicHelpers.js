@@ -263,7 +263,10 @@ function GetDate(d1, yr, holidayinfo) //Gets the specified date from the selecte
 		d2 = GetDate(new Date(yr + 1, 0, 1), yr + 1, holidayinfo); //re-call function w/year of next
 	}
 	
-	if (d2.getTime() < d1.getTime()) //check if day is post holiday and make next holiday year + 1
+	// Convert d1 and d2 to midnight for accurate date comparison
+	var d1Midnight = new Date(d1.getFullYear(), d1.getMonth(), d1.getDate());
+	var d2Midnight = new Date(d2.getFullYear(), d2.getMonth(), d2.getDate());
+	if (d2Midnight.getTime() < d1Midnight.getTime()) //check if day is post holiday and make next holiday year + 1
 	{
 		if (holidayinfo.mode == 3)
 		{
@@ -1364,7 +1367,7 @@ function enumConverter(int)
 
 function getTimeFromString(timestring)
 {
-	var currentTime = getD1();
+	var currentTime = getD1(true);
 	
 	var time = timestring.split(":");
 	var hour = 0;

@@ -231,7 +231,7 @@ async function babaMessage(bot, message)
 		{
 			message.channel.sendTyping();
 			var start = global.starttime;
-			var now = getD1();
+			var now = getD1(true);
 			var diff = now - start;
 			var diffDays = Math.floor(diff / 86400000); // days
 			var diffHrs = Math.floor((diff % 86400000) / 3600000); // hours

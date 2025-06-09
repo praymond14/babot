@@ -101,8 +101,12 @@ async function getConnection()
             {
                 con.end(function(err) 
                 {
-                    if (err) console.log("Error Ending Connection: " + err, false, true);
-                    DMMePlease("Error Ending Connection: " + err, false, true);
+                    if (err) 
+                    {
+                        console.log("Error Ending Connection: " + err, false, true);
+                        DMMePlease("Error Ending Connection: " + err, false, true);
+                    }
+
                     console.log("Connection Ended", false, true);
                     con = null;
                 });
@@ -155,7 +159,7 @@ function dbErrored()
             var pingged = await pingConnection();
             if (pingged == "ERROR")
             {
-                var timestring = getD1().toLocaleTimeString();
+                var timestring = getD1(true).toLocaleTimeString();
                 timeoutCT++;
                 console.log(timestring + ": Database Connection Failed, Retrying in 60 seconds -> " + timeoutCT, false, true);
                 timeoutFix = setTimeout(arguments.callee, 60000);
@@ -170,7 +174,7 @@ function dbErrored()
                     timeoutDisconnect = null;
                 }
                 
-                var timestring = getD1().toLocaleTimeString();
+                var timestring = getD1(true).toLocaleTimeString();
                 timeoutCT++;
                 console.log(timestring + ": Database Connection was null, attempted reconnect, Retrying in 60 seconds -> " + timeoutCT, false, true);
                 timeoutFix = setTimeout(arguments.callee, 60000);
@@ -403,7 +407,7 @@ function EventDB(event, change, user)
     else 
     {
         var uid = user.id;
-        var time = getD1();
+        var time = getD1(true);
         var mpre = time.getMonth() + 1 < 10 ? 0 : "";
         var dpre = time.getUTCDate() < 10 ? 0 : "";
         var jtime = `${time.getFullYear()}-${mpre}${time.getMonth() + 1}-${dpre}${time.getUTCDate()} ${time.getHours()}:${time.getMinutes()}:${time.getSeconds()}`
@@ -596,7 +600,7 @@ function userJoinedVoice(userID, channelID, guild, overideTime = null)
 {
     var PromisedUserJoined = new Promise((resolve, reject) =>
     {
-        var dt = overideTime == null ? getD1() : overideTime;
+        var dt = overideTime == null ? getD1(true) : overideTime;
         var dtsrart = dt.toISOString().slice(0, 19).replace('T', ' ');
         var q = `INSERT INTO voiceactivity (ChannelID, UserID, StartTime) VALUES ("${channelID}", "${userID}", "${dtsrart}")`;
         userVoiceChange(q, userID, channelID, guild, "JoinVoice").then((result) => {resolve(result)}).catch((err) => {reject("JoinVoice")});
@@ -609,7 +613,7 @@ function userLeftVoice(userID, channelID, guild, overideTime = null)
 {
     var PromisedUserLeft = new Promise((resolve, reject) =>
     {
-        var dt = overideTime == null ? getD1() : overideTime;
+        var dt = overideTime == null ? getD1(true) : overideTime;
         var dtsrart = dt.toISOString().slice(0, 19).replace('T', ' ');
         var q = `UPDATE voiceactivity SET EndTime = "${dtsrart}" WHERE UserID = "${userID}" AND ChannelID = "${channelID}" AND EndTime IS NULL`;
         userVoiceChange(q, userID, channelID, guild, "JoinVoice").then((result) => {resolve(result)}).catch((err) => {reject("LeaveVoice")});
@@ -620,7 +624,7 @@ function userLeftVoice(userID, channelID, guild, overideTime = null)
 
 function logVCC(newMemberID, newChannelID, oldMemberID, oldChannelID, guildID, timeoveride = null)
 {
-    var time = getD1();
+    var time = getD1(true);
 	console.log("Logging VCC Data: " + newMemberID + " " + oldMemberID + " " + newChannelID + " " + oldChannelID + " " + time + " " + guildID, false, true);
 	// save time as a number
 	time = time.getTime();
@@ -1842,7 +1846,7 @@ function LoadAllSlashFridayStuff()
                 // get length of tempTimeGates
                 var items = tempTimeGates.length;
 
-                var ctimez = getD1();
+                var ctimez = getD1(true);
                 var offset = ctimez.getTimezoneOffset();
                 ctimez.setMinutes(ctimez.getMinutes() - offset);
 

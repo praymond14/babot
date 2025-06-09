@@ -890,7 +890,7 @@ function babaWeather(mode, city, callback)
 async function babaRemind(message, time, date, interaction)
 {
     var theTime = getTimeFromString(time); // returns Date object for today at that time
-    var now = getD1(); // now in correct timezone
+    var now = getD1(true); // now in correct timezone
     var theDate = null;
 
     if (date != null)
@@ -911,12 +911,6 @@ async function babaRemind(message, time, date, interaction)
     }
 
     var newTimeFromNow = theDate.getTime() - now.getTime();
-
-    if (newTimeFromNow < now)
-    {
-        // set to now if
-        newTimeFromNow = now;
-    }
 
     var fullmsg = message;
 
