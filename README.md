@@ -81,4 +81,4 @@ or
 !bsetgame <optional activity type> <activity> : sets the game for baba
 
 ## User Commands
-to get user commands type !baba help (note only command  is !baba passwords at the moment)
+to get user commands type !baba help (note only command  is !baba passwords at the moment) delete
